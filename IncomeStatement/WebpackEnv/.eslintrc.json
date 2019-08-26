@@ -1,0 +1,33 @@
+{
+    "root": true,
+    "extends": [
+        "airbnb-base",
+        "plugin:vue/essential",
+        "plugin:prettier/recommended"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 8
+    },
+    "globals": {
+        // 全域變數需要註冊在eslint裡
+        "$": true,
+        "SyntecProductDashboard": true
+    },
+    "rules": {
+        "arrow-body-style": "off",
+        "prettier/prettier": ["error", {
+            "singleQuote": true,
+            "trailingComma": "es5"
+        }],
+        "linebreak-style": ["error", "windows"],
+        "no-console": "off",
+        "no-plusplus": ["error", {"allowForLoopAfterthoughts": true}],
+        "no-underscore-dangle": "off",
+
+        // 以下規則專案架構上無法使用，故先關閉
+        "import/extensions": "off",
+        "import/no-unresolved": "off",
+        "no-alert": "off",
+        "no-continue": "off"
+    }
+}
