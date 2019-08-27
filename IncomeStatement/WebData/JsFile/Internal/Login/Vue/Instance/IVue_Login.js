@@ -12,15 +12,21 @@ function IVueInitalLogin() {
   let _Instance = null;
   this.Intital = () => {
     _Instance = new Vue({
+      /* eslint-disable no-undef */
       store: vueStore,
       el: '#vue_instance',
-      data: {},
+      data: {
+        userInput: {
+          account: ``,
+          password: ``,
+        },
+      },
       watch: {},
       computed: {},
       methods: {},
-      /* eslint-disable no-undef */
       created() {},
       mounted() {},
+      /* eslint-disable no-undef */
     });
   };
   this._getColsure = () => {

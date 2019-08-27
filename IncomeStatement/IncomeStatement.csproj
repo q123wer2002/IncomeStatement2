@@ -113,16 +113,8 @@
     <Content Include="WebData\BundleResult\Permission\PD_20190531_min_v1.js" />
     <Content Include="WebData\BundleResult\Permission\PD_20190531_min_v1_CSS.css" />
     <Content Include="WebData\Picture\error_message.png" />
-    <Content Include="WebData\Picture\icon\material-io\baseline_add_circle_outline_white_48dp.png" />
-    <Content Include="WebData\Picture\icon\material-io\baseline_arrow_back_white_48dp.png" />
-    <Content Include="WebData\Picture\icon\material-io\baseline_close_black_36dp.png" />
-    <Content Include="WebData\Picture\icon\material-io\baseline_history_white_48dp.png" />
-    <Content Include="WebData\Picture\icon\material-io\baseline_home_white_48dp.png" />
-    <Content Include="WebData\Picture\icon\material-io\baseline_menu_white_48dp.png" />
-    <Content Include="WebData\Picture\icon\material-io\baseline_settings_white_48dp.png" />
-    <Content Include="WebData\Picture\icon\material-io\outline_star_black_24dp.png" />
-    <Content Include="WebData\Picture\icon\material-io\outline_star_border_black_24dp.png" />
     <Content Include="WebData\Picture\loading.gif" />
+    <Content Include="WebData\Server_Code\S_InitialTable.aspx" />
     <Content Include="WebData\Server_Code\S_LoginChecker.aspx" />
   </ItemGroup>
   <ItemGroup>
@@ -142,8 +134,17 @@
     <Compile Include="WebData\Server_Code\CommonModule\FileLocation.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\HttpRequestHandler.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\JWTChecker.cs" />
+    <Compile Include="WebData\Server_Code\CommonModule\mssql\dbModel.cs" />
+    <Compile Include="WebData\Server_Code\CommonModule\mssql\MSSQL.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\RequestHandler.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\SyntecJWTModel.cs" />
+    <Compile Include="WebData\Server_Code\S_InitialTable.aspx.cs">
+      <DependentUpon>S_InitialTable.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_InitialTable.aspx.designer.cs">
+      <DependentUpon>S_InitialTable.aspx</DependentUpon>
+    </Compile>
     <Compile Include="WebData\Server_Code\S_LoginChecker.aspx.cs">
       <DependentUpon>S_LoginChecker.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -171,6 +172,7 @@
     <Folder Include="WebData\ConfigFile\" />
     <Folder Include="WebData\CSS\External\" />
     <Folder Include="WebData\JsFile\External\" />
+    <Folder Include="WebData\Picture\icon\material-io\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

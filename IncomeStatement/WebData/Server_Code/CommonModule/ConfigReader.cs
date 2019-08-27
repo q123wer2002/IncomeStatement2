@@ -16,12 +16,6 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 			}
 
 			string szFileContent = ReadConfigJsonString( szConfigName );
-
-			// file not exists
-			if( szFileContent == m_szDefaultJson ) {
-				return null;
-			}
-
 			return JObject.Parse( szFileContent );
 		}
 		public static string GetConnection()
@@ -29,11 +23,6 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 			JObject jConn = GetConfigFile( Config.Connection );
 			if( jConn == null ) {
 				return string.Empty;
-			}
-
-			// for aws
-			if( jConn[ "HostName" ] != null && jConn[ "HostName" ].ToString().Length != 0 ) {
-				return jConn[ "HostName" ].ToString();
 			}
 
 			// for private
@@ -51,10 +40,8 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 		#region Public Attribute
 		public enum Config
 		{
+			DBConnection,
 			Connection,
-			DBAPI,
-			CNCAPI,
-			AWSAPI
 		}
 		#endregion
 
@@ -62,14 +49,10 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 		static string GetConfigName( Config config )
 		{
 			switch( config ) {
+				case Config.DBConnection:
+					return "dbConnection.js";
 				case Config.Connection:
-					return "ConnectionConfig.ini";
-				case Config.DBAPI:
-					return "DBRestfulAPITemplate.ini";
-				case Config.CNCAPI:
-					return "RestfulAPITemplate.ini";
-				case Config.AWSAPI:
-					return "AWSAPITemplate.ini";
+					return "connection.js";
 			}
 
 			return string.Empty;
@@ -78,7 +61,7 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 		{
 			// only accept json in Object, not allow Array
 			string szConfigFilePath = m_szConfigPath + szConfigFileName;
-			string szJsonConfigString = "{";
+			string szTotalString = "";
 			string szReadLine = "";
 			if( File.Exists( szConfigFilePath ) == false ) {
 				return "{}";
@@ -87,20 +70,15 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 			// read config file
 			StreamReader file = new StreamReader( szConfigFilePath );
 			while( ( szReadLine = file.ReadLine() ) != null ) {
-				szJsonConfigString += szReadLine + ",";
+				szTotalString += szReadLine + ",";
 			}
 			file.Close();
 
-			// package config string
-			szJsonConfigString = szJsonConfigString.Remove( szJsonConfigString.Length - 1 );
-			szJsonConfigString += "}";
-
-			return szJsonConfigString;
+			return szTotalString;
 		}
 		#endregion
 
 		#region Private Attribute
-		const string m_szDefaultJson = "{}";
 		static string m_szConfigPath = FileLocation.ConfigPath;
 		#endregion
 	}
