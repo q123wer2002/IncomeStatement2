@@ -112,8 +112,14 @@
     <Content Include="WebData\BundleResult\Main\PD_20190531_min_v1_CSS.css" />
     <Content Include="WebData\BundleResult\Permission\PD_20190531_min_v1.js" />
     <Content Include="WebData\BundleResult\Permission\PD_20190531_min_v1_CSS.css" />
+    <Content Include="WebData\ConfigFile\connection.js" />
+    <Content Include="WebData\ConfigFile\dbConnection.js" />
     <Content Include="WebData\Picture\error_message.png" />
     <Content Include="WebData\Picture\loading.gif" />
+    <Content Include="WebData\Picture\login\bottom_wave.png" />
+    <Content Include="WebData\Picture\login\homepage_logo.png" />
+    <Content Include="WebData\Picture\login\main_pic.png" />
+    <Content Include="WebData\Picture\login\top_wave.png" />
     <Content Include="WebData\Server_Code\S_InitialTable.aspx" />
     <Content Include="WebData\Server_Code\S_LoginChecker.aspx" />
   </ItemGroup>
@@ -169,7 +175,6 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="WebData\ConfigFile\" />
     <Folder Include="WebData\CSS\External\" />
     <Folder Include="WebData\JsFile\External\" />
     <Folder Include="WebData\Picture\icon\material-io\" />
