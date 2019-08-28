@@ -33,10 +33,11 @@
                   type="password"
                   required
                   placeholder="密碼"
+                  @keyup.13="login"
                 ></b-form-input>
                 <br />
-                <span id="errorMsg">錯誤訊息</span>
-                <b-button variant="info" block>登入</b-button>
+                <span id="errorMsg">{{loginErrorMsg}}</span>
+                <b-button variant="info" block @click="login">登入</b-button>
             </div>
             <div id="bgPic"></div>
             <div id="bottomBanner"></div>

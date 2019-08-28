@@ -120,6 +120,7 @@
     <Content Include="WebData\Picture\login\homepage_logo.png" />
     <Content Include="WebData\Picture\login\main_pic.png" />
     <Content Include="WebData\Picture\login\top_wave.png" />
+    <Content Include="WebData\Server_Code\S_CheckAccountStatus.aspx" />
     <Content Include="WebData\Server_Code\S_InitialTable.aspx" />
     <Content Include="WebData\Server_Code\S_LoginChecker.aspx" />
   </ItemGroup>
@@ -143,7 +144,14 @@
     <Compile Include="WebData\Server_Code\CommonModule\mssql\dbModel.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\mssql\MSSQL.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\RequestHandler.cs" />
-    <Compile Include="WebData\Server_Code\CommonModule\SyntecJWTModel.cs" />
+    <Compile Include="WebData\Server_Code\CommonModule\JWTModel.cs" />
+    <Compile Include="WebData\Server_Code\S_CheckAccountStatus.aspx.cs">
+      <DependentUpon>S_CheckAccountStatus.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_CheckAccountStatus.aspx.designer.cs">
+      <DependentUpon>S_CheckAccountStatus.aspx</DependentUpon>
+    </Compile>
     <Compile Include="WebData\Server_Code\S_InitialTable.aspx.cs">
       <DependentUpon>S_InitialTable.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

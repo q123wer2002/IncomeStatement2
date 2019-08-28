@@ -1,10 +1,16 @@
 import Vue from 'vue';
+import MininsDataModel from '../../../Common/MixinsDataModel';
+import MininsFunctions from '../../../Common/MixinsFunctions';
 
 Vue.mixin({
   data() {
-    return {};
+    return {
+      ...MininsDataModel,
+    };
   },
-  methods: {},
+  methods: {
+    ...MininsFunctions,
+  },
   computed: {},
   created() {},
 });

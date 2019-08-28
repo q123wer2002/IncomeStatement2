@@ -20,10 +20,31 @@ function IVueInitalLogin() {
           account: ``,
           password: ``,
         },
+        loginErrorMsg: ``,
       },
       watch: {},
       computed: {},
-      methods: {},
+      methods: {
+        async login() {
+          // check is empty
+          const { account, password } = this.userInput;
+          if (account.length === 0 || password.length === 0) {
+            this.loginErrorMsg = `帳號密碼不能為空`;
+            return;
+          }
+
+          const resObject = await this.mixinCallBackService(
+            this.mixinBackendService.login,
+            { Username: account, Password: password },
+            false
+          );
+
+          if (resObject.status === this.mixinBackendErrorCode.success) {
+            // re-direct to home page
+            this.mixinToHomePage();
+          }
+        },
+      },
       created() {},
       mounted() {},
       /* eslint-disable no-undef */

@@ -2,14 +2,13 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace IncomeStatement.WebData.Server_Code.CommonModule
 {
 	public class JWTChecker
 	{
 		#region Public Method
-		public static ErrorCode isJWTValid( string szJWTToken, out SyntecJWTModel jwtObject )
+		public static ErrorCode isJWTValid( string szJWTToken, out JWTModel jwtObject )
 		{
 			ErrorCode eCode = ErrorCode.AuthenticationError;
 
@@ -24,62 +23,39 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 				return eCode;
 			}
 
-			//check UserIP is vaild or not 
-			if( isReceiveIPVaild( jwtObject ) == false ) {
+			//check token is expire or not
+			if( isTokenExpire(jwtObject) ) {
 				return eCode;
 			}
 
-			//if user From SynFactory in private cloud, Token will not expire 
-			if( ConnectionInfo.isAWS || isJWTfromSynFactory( jwtObject ) == false ) {
-				//check token is expire or not
-				if( isTokenExpire( jwtObject ) ) {
-					return eCode;
-				}
-			}
-
 			//valid autho
-			if( ConnectionInfo.isAWS == false ) {
-				if( isAuthAccess( jwtObject ) == false ) {
-					//means no autho
-					eCode = ErrorCode.NoAuthorization;
-					return eCode;
-				}
+			if( isAuthAccess(jwtObject) == false ) {
+				//means no autho
+				eCode = ErrorCode.NoAuthorization;
+				return eCode;
 			}
 
 			//success
 			eCode = ErrorCode.Success;
 			return eCode;
 		}
-		public static async Task<string> CreateNewJWTObjectString( string szUserName, bool isSynFactoryLogin = false )
+		public static async Task<string> CreateNewJWTObjectString( string szUserName )
 		{
-			SyntecJWTModel NewToken = await CreateNewJWTObject( szUserName );
-
-			//synfactory has no expire cookie
-			if( isSynFactoryLogin ) {
-				NewToken.sub = m_szSFCookieTag;
-			}
-
+			JWTModel NewToken = CreateNewJWTObject( szUserName );
 			return TokenObjecttoString( NewToken );
-		}
-		public static bool isSynFactoryLoginValid( string szVaildCode )
-		{
-			if( szVaildCode == m_szSynFactoryIdentityCode ) {
-				return true;
-			}
-			return false;
 		}
 		#endregion
 
 		#region Private Method
 		// parse
-		static bool TryParseJWTToken( string szJWTToken, out SyntecJWTModel jwtObject )
+		static bool TryParseJWTToken( string szJWTToken, out JWTModel jwtObject )
 		{
 			//default
 			jwtObject = null;
 
 			//parse
 			try {
-				jwtObject = Jose.JWT.Decode<SyntecJWTModel>(
+				jwtObject = Jose.JWT.Decode<JWTModel>(
 											szJWTToken,
 											Encoding.UTF8.GetBytes( m_szJWTSecret ),
 											JwsAlgorithm.HS256 );
@@ -89,35 +65,21 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 				return false;
 			}
 		}
-		static string TokenObjecttoString( SyntecJWTModel objJWTToken )
+		static string TokenObjecttoString( JWTModel objJWTToken )
 		{
 			string szJWT = Jose.JWT.Encode( objJWTToken, Encoding.UTF8.GetBytes( m_szJWTSecret ), JwsAlgorithm.HS256 );
 			return szJWT;
 		}
 
 		// valid
-		static bool isServerIPVaild( SyntecJWTModel obJWTToken )
+		static bool isServerIPVaild( JWTModel obJWTToken )
 		{
 			if( obJWTToken.iss == System.Web.HttpContext.Current.Request.ServerVariables[ "LOCAL_ADDR" ] ) {
 				return true;
 			}
 			return false;
 		}
-		static bool isReceiveIPVaild( SyntecJWTModel obJWTToken )
-		{
-			if( obJWTToken.aud == HttpContext.Current.Request.UserHostAddress ) {
-				return true;
-			}
-			return false;
-		}
-		static bool isJWTfromSynFactory( SyntecJWTModel obJWTToken )
-		{
-			if( obJWTToken.sub == m_szSFCookieTag ) {
-				return true;
-			}
-			return false;
-		}
-		static bool isTokenExpire( SyntecJWTModel obJWTToken )
+		static bool isTokenExpire( JWTModel obJWTToken )
 		{
 			double dCurrentTimestamp = ( DateTime.UtcNow.Subtract( new DateTime( 1970, 1, 1 ) ) ).TotalMilliseconds;
 			if( obJWTToken.exp > dCurrentTimestamp ) {
@@ -125,7 +87,7 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 			}
 			return true;
 		}
-		static bool isAuthAccess( SyntecJWTModel obJWTToken )
+		static bool isAuthAccess( JWTModel obJWTToken )
 		{
 			if( Authorization.isAccessAutho( obJWTToken.authorization ) ) {
 				return true;
@@ -135,19 +97,20 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 		}
 
 		// create
-		static async Task<SyntecJWTModel> CreateNewJWTObject( string szUserName )
+		static JWTModel CreateNewJWTObject( string szUserName )
 		{
-			SyntecJWTModel objNewJWT = new SyntecJWTModel();
+			JWTModel objNewJWT = new JWTModel();
 			double dCurrentTime = ( DateTime.UtcNow.Subtract( new DateTime( 1970, 1, 1 ) ) ).TotalMilliseconds;
 
 			//assign
 			objNewJWT.iss = System.Web.HttpContext.Current.Request.ServerVariables[ "LOCAL_ADDR" ];
 			objNewJWT.sub = "VaildUser";
-			objNewJWT.aud = HttpContext.Current.Request.UserHostAddress;
 			objNewJWT.exp = dCurrentTime + m_nExpireTime;
 			objNewJWT.iat = dCurrentTime;
 			objNewJWT.userName = szUserName;
 
+			// TODO
+			objNewJWT.authorization = null;
 			return objNewJWT;
 		}
 
@@ -155,9 +118,7 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 
 		#region Private Attribute
 		const int m_nExpireTime = 86400000;
-		const string m_szJWTSecret = "SyntecCloudFrontEndIsFuckingComplex";//JWT Code
-		const string m_szSFCookieTag = "SynFactory";
-		const string m_szSynFactoryIdentityCode = "SyntecCloudFrontEndIsFuckingComplexFromSynFactory";
+		const string m_szJWTSecret = "MyJWTSecretCode_Danny";//JWT Code
 		#endregion
 	}
 }

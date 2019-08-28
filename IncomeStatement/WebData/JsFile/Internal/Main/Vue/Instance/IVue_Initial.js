@@ -18,11 +18,23 @@ function IVueInitialCreator() {
       el: '#vue-instance',
       components: {},
       data: {},
-      methods: {},
+      methods: {
+        async checkAccountStatus() {
+          const { isErrorAuth } = await this.mixinAccountStatus();
+
+          // direct to login page
+          if (isErrorAuth) {
+            this.mixinToLoginPage();
+          }
+        },
+      },
       updated() {},
       computed: {},
       created() {},
-      mounted() {},
+      async mounted() {
+        // check account status
+        await this.checkAccountStatus();
+      },
       watch: {},
       beforeDestroy() {},
     });

@@ -8,7 +8,10 @@ const CommonDataModel = {
   mixinApiErrorMsg: {
     success: `OK`,
   },
-  mixinBackendService: {},
+  mixinBackendService: {
+    login: `S_LoginChecker.aspx`,
+    checkStatus: `S_CheckAccountStatus.aspx`,
+  },
 };
 
 export default CommonDataModel;

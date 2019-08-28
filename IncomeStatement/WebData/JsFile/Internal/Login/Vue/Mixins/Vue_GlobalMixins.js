@@ -11,10 +11,6 @@ Vue.mixin({
   methods: {
     ...MininsFunctions,
   },
-  computed: {
-    mixini18n() {
-      return this.$store.getters.i18n;
-    },
-  },
+  computed: {},
   created() {},
 });

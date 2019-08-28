@@ -1,9 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
-using IncomeStatement.WebData.Server_Code.CommonModule;
+﻿using IncomeStatement.WebData.Server_Code.CommonModule;
 using System;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace IncomeStatement.WebData.Server_Code
 {
@@ -13,7 +9,7 @@ namespace IncomeStatement.WebData.Server_Code
 		const int nDefaultUserId = 0;
 		async protected void Page_Load( object sender, EventArgs e )
 		{
-			m_requestHandler = new RequestHandler( ConnectionInfo.isAWS, ConfigReader.GetConnection() );
+			m_requestHandler = new RequestHandler();
 
 			//set default response
 			m_requestHandler.StatusCode = (int)ErrorCode.Error;
@@ -22,15 +18,16 @@ namespace IncomeStatement.WebData.Server_Code
 			//get user typing
 			string szUserName = Request.Form[ Param.Username ].ToString();
 			string szUserPassword = Request.Form[ Param.Password ].ToString();
-			SyntecJWTModel jwtTokenObject = new SyntecJWTModel();
 			DateTime ExpireTime = DateTime.Now.AddDays( 1d );
-			bool isUserInfoValid = false;
+
+			//TODO: check username and password
 
 			//create token 
 			string szJWTToken = "";
 			szJWTToken = await JWTChecker.CreateNewJWTObjectString( szUserName );
-			Response.Cookies[ CookieKey.SyntecJWT ].Value = szJWTToken;
-			Response.Cookies[ CookieKey.SyntecJWT ].Expires = ExpireTime;
+			Response.Cookies[ CookieKey.JWTName ].Value = szJWTToken;
+			Response.Cookies[ CookieKey.JWTName ].Expires = ExpireTime;
+			Response.Cookies[ CookieKey.UserID ].Value = nDefaultUserId.ToString(); //default
 			Response.Cookies[ CookieKey.UserID ].Expires = ExpireTime;
 
 			//success
@@ -48,13 +45,6 @@ namespace IncomeStatement.WebData.Server_Code
 			catch {
 				return false;
 			}
-		}
-		string EncryptedString( string szText )
-		{
-			SHA256 hashFunction = new SHA256CryptoServiceProvider();
-			byte[] bHashFunc = hashFunction.ComputeHash( Encoding.Default.GetBytes( szText ) );
-			string szEncrytedPassword = Convert.ToBase64String( bHashFunc );
-			return szEncrytedPassword;
 		}
 		class Param
 		{

@@ -3,7 +3,7 @@ const webpack = require('webpack');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserPlugin = require('terser-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
-const isProductionMode = true;
+const isProductionMode = false;
 const webpackDev = {
 	host : "localhost",
 	port : 8080

@@ -21,18 +21,11 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 				return "UserID";
 			}
 		}
-		public static string SyntecJWT
+		public static string JWTName
 		{
 			get
 			{
-				return "SyntecJWT";
-			}
-		}
-		public static string AWSSFReToken
-		{
-			get
-			{
-				return "AWS_SF_ReToken";
+				return "IncomeJWT";
 			}
 		}
 	}

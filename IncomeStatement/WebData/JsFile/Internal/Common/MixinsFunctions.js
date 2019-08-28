@@ -1,24 +1,21 @@
 import 'babel-polyfill';
 import { fnDeepClone } from './Utility';
+import mixinDataModel from './MixinsDataModel.js';
 
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
-
+const { mixinBackendErrorCode } = mixinDataModel;
 const mixinFuncitons = {
   // go pages
-  mixinToHomePage(pageLanguage) {
-    const tempPageLanguage = pageLanguage || this.mixinGetCurrentLanguageCode();
+  mixinToHomePage() {
     const currentURLInfo = new URL(window.location.origin);
-    window.location = `${
-      currentURLInfo.href
-    }${webpackDashboardName}/Language/${tempPageLanguage}`;
+    window.location = `${currentURLInfo.href}${webpackDashboardName}`;
   },
-  mixinToLoginPage(pageLanguage) {
-    const tempPageLanguage = pageLanguage || this.mixinGetCurrentLanguageCode();
+  mixinToLoginPage() {
     const currentURLInfo = new URL(window.location.origin);
     window.location = `${
       currentURLInfo.href
-    }${webpackDashboardName}/Login.html?Language=${tempPageLanguage}&ToPrevious=1`;
+    }${webpackDashboardName}/Login.html`;
   },
 
   // check status
@@ -27,20 +24,20 @@ const mixinFuncitons = {
     let fnGoPage;
 
     switch (responseStatus) {
-      case backendErrorCode.success: {
+      case mixinBackendErrorCode.success: {
         isSuccess = true;
         break;
       }
-      case backendErrorCode.error: {
+      case mixinBackendErrorCode.error: {
         isSuccess = false;
         break;
       }
-      case backendErrorCode.authenticationError: {
+      case mixinBackendErrorCode.authenticationError: {
         fnGoPage = this.mixinToLoginPage;
         isSuccess = false;
         break;
       }
-      case backendErrorCode.noAuthorization: {
+      case mixinBackendErrorCode.noAuthorization: {
         fnGoPage = this.mixinToNoPermissionPage;
         isSuccess = false;
         break;
@@ -101,7 +98,7 @@ const mixinFuncitons = {
       null
     );
 
-    if (resObj.status === backendErrorCode.success) {
+    if (resObj.status === mixinBackendErrorCode.success) {
       const languageCode = this.mixinGetCurrentLanguageCode();
       this.mixinToLoginPage(languageCode);
     }
@@ -109,14 +106,13 @@ const mixinFuncitons = {
   async mixinAccountStatus() {
     // call api
     const resObj = await this.mixinCallBackService(
-      this.mixinBackendService.AccountStatus,
-      null
+      this.mixinBackendService.checkStatus
     );
 
     return {
-      isErrorAuth: resObj.status === backendErrorCode.authenticationError,
-      isErrorNoAuth: resObj.status === backendErrorCode.noAuthorization,
-      isSuccess: resObj.status === backendErrorCode.success,
+      isErrorAuth: resObj.status === mixinBackendErrorCode.authenticationError,
+      isErrorNoAuth: resObj.status === mixinBackendErrorCode.noAuthorization,
+      isSuccess: resObj.status === mixinBackendErrorCode.success,
     };
   },
 
@@ -139,26 +135,18 @@ const mixinFuncitons = {
 
       return resultObj;
     };
-    let tempPayload = {};
-    if (payloadObject !== null) {
-      tempPayload = fnDeepClone(payloadObject);
-      tempPayload.UserId = tempPayload.UserId || this.mixinGetCookie(`UserID`);
-    }
 
-    const additionalHeader = {};
-    if (webpackIsAWS) {
-      // get token, append header
-      additionalHeader.IdToken = window.localStorage.getItem(`IdToken`);
-      additionalHeader.AccessToken = window.localStorage.getItem(`AccessToken`);
-      additionalHeader.RefreshToken = window.localStorage.getItem(
-        `RefreshToken`
-      );
+    let tempPayload;
+    if (payloadObject !== null) {
+      tempPayload = {
+        ...payloadObject,
+        UserId: payloadObject.UserId || this.mixinGetCookie(`UserID`),
+      };
     }
 
     return $.ajax({
       url: backendUrl,
       method: `POST`,
-      headers: additionalHeader,
       dataType: `json`,
       data: tempPayload,
       cache: false,
