@@ -44,9 +44,20 @@ function IVueInitalLogin() {
             this.mixinToHomePage();
           }
         },
+        async checkAccountStatus() {
+          const { isSuccess } = await this.mixinAccountStatus();
+
+          // direct to login page
+          if (isSuccess) {
+            this.mixinToHomePage();
+          }
+        },
       },
       created() {},
-      mounted() {},
+      async mounted() {
+        // check account status
+        await this.checkAccountStatus();
+      },
       /* eslint-disable no-undef */
     });
   };

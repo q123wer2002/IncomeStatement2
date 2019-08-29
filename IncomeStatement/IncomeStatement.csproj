@@ -123,6 +123,7 @@
     <Content Include="WebData\Server_Code\S_CheckAccountStatus.aspx" />
     <Content Include="WebData\Server_Code\S_InitialTable.aspx" />
     <Content Include="WebData\Server_Code\S_LoginChecker.aspx" />
+    <Content Include="WebData\Server_Code\S_Logout.aspx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.aspx.cs">
@@ -165,6 +166,13 @@
     </Compile>
     <Compile Include="WebData\Server_Code\S_LoginChecker.aspx.designer.cs">
       <DependentUpon>S_LoginChecker.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_Logout.aspx.cs">
+      <DependentUpon>S_Logout.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_Logout.aspx.designer.cs">
+      <DependentUpon>S_Logout.aspx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>

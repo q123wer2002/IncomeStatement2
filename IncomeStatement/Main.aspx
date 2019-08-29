@@ -20,6 +20,90 @@
     </head>
     <body>
         <div id="vue-instance">
+            <div id="leftMenu">
+                <p id="title">功能列表</p>
+                <hr />
+                <template v-for="item in menu">
+                    <div class="menuItem button" squared block @click="item.isShowChild = !item.isShowChild">
+                        <span style="color: white">{{item.text}}</span>
+                        <img :src="$options.imgSrc.dropDown" width="32px" class="dropIcon">
+                    </div>
+
+                    <b-collapse v-model="item.isShowChild" :id="`collaspe_${item.key}`">
+                        <ul class="submenuUL">
+                            <li v-for="submenu in subMenu[item.key]" class="button">{{submenu.text}}</li>
+                        </ul>
+                    </b-collapse>
+                </template>
+                <hr />
+                <div id="btnLogout" class="button" @click="logout">登出</div>
+            </div>
+            <div id="rightContent"></div>
         </div>
     </body>
 </html>
+
+<style scoped>
+#leftMenu {
+    position: relative;
+    width: 16%;
+    background-color: #61C7D0;
+    color: #000;
+    overflow-y: auto;
+    border-radius: 1vw;
+    margin: 16px 0 16px 16px;
+    display: inline-block;
+    float: left;
+}
+#title {
+    font-size: 20px;
+    text-align: center;
+    padding: 11px 8px 0 8px;
+}
+.menuItem {
+    font-size: 0.9rem;
+    width: 100%;
+    text-align: center;
+    padding: 8px;
+    background-color: #138496;
+}
+.menuItem:hover {
+    background-color: #93D2D8;
+}
+.dropIcon {
+    position: absolute;
+    right: 8px;
+}
+.submenuUL {
+    font-size: 17px;
+    text-align: left;
+    padding-left: 8%;
+    list-style: none;
+}
+.submenuUL li {
+    padding: 8px;
+}
+.submenuUL li:hover{
+    background-color: #93D2D8;
+}
+#btnLogout {
+    bottom: 8%;
+    padding: 8px;
+    background-color: #6E7E85;
+    text-align: center;
+    width: 100%;
+}
+#btnLogout:hover {
+    background-color: #6EA7AC;
+}
+#rightContent {
+    position: relative;
+    display: inline-block;
+    float: left;
+    width: 80%;
+    min-height: 500px;
+    border: 1px solid rgba(19, 132, 150, 0.7);
+    border-radius: 1vw;
+    margin: 16px 0 16px 16px;
+}
+</style>

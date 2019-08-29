@@ -1,5 +1,4 @@
 import 'babel-polyfill';
-import { fnDeepClone } from './Utility';
 import mixinDataModel from './MixinsDataModel.js';
 
 /* eslint-disable no-undef */
@@ -94,8 +93,7 @@ const mixinFuncitons = {
   async mixinLogoutProcess() {
     // call api
     const resObj = await this.mixinCallBackService(
-      this.mixinBackendService.Logout,
-      null
+      this.mixinBackendService.logout
     );
 
     if (resObj.status === mixinBackendErrorCode.success) {

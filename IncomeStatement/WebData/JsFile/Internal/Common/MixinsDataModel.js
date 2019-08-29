@@ -11,6 +11,7 @@ const CommonDataModel = {
   mixinBackendService: {
     login: `S_LoginChecker.aspx`,
     checkStatus: `S_CheckAccountStatus.aspx`,
+    logout: `S_Logout.aspx`,
   },
 };
 
