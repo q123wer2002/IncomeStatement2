@@ -31,14 +31,23 @@
 
                     <b-collapse v-model="item.isShowChild" :id="`collaspe_${item.key}`">
                         <ul class="submenuUL">
-                            <li v-for="submenu in subMenu[item.key]" class="button">{{submenu.text}}</li>
+                            <li
+                                v-for="submenu in subMenu[item.key]"
+                                class="button"
+                                @click="currentPageKey = submenu.key"
+                            >{{submenu.text}}</li>
                         </ul>
                     </b-collapse>
                 </template>
                 <hr />
                 <div id="btnLogout" class="button" @click="logout">登出</div>
             </div>
-            <div id="rightContent"></div>
+            <div id="rightContent">
+                <p id="helloMessage" v-if="currentPageKey.length === 0">
+                    您好，歡迎使用<b>家庭收支記帳調查編碼系統</b><br />請點選功能操作！
+                </p>
+                <component :is="currentPageKey"></component>
+            </div>
         </div>
     </body>
 </html>
@@ -102,8 +111,12 @@
     float: left;
     width: 80%;
     min-height: 500px;
-    border: 1px solid rgba(19, 132, 150, 0.7);
     border-radius: 1vw;
     margin: 16px 0 16px 16px;
+}
+#helloMessage {
+    text-align: center;
+    margin-top: 60px;
+    color: #137C8D;
 }
 </style>

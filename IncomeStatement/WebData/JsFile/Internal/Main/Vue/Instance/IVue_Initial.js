@@ -5,6 +5,8 @@ import 'bootstrap-vue/dist/bootstrap-vue.css';
 import vueStore from '../Vuex/Vuex_GlobalStore';
 import '../Mixins/Vue_GlobalMixins';
 
+import IncomeDataMaintain from '../Components/CVue_IncomeDataMaintain.vue';
+
 Vue.use(BootstrapVue);
 function IVueInitialCreator() {
   const _this = this;
@@ -19,7 +21,9 @@ function IVueInitialCreator() {
       // component
       store: vueStore,
       el: '#vue-instance',
-      components: {},
+      components: {
+        IncomeDataMaintain,
+      },
       data: {
         // ui
         menu: [
@@ -42,7 +46,7 @@ function IVueInitialCreator() {
         subMenu: {
           maintainPage: [
             {
-              key: `dataMaintain`,
+              key: `IncomeDataMaintain`,
               text: `收支資料維護`,
             },
             {
@@ -87,6 +91,7 @@ function IVueInitialCreator() {
             },
           ],
         },
+        currentPageKey: `IncomeDataMaintain`,
       },
       methods: {
         async checkAccountStatus() {
