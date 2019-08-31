@@ -46,7 +46,8 @@
                 <p id="helloMessage" v-if="currentPageKey.length === 0">
                     您好，歡迎使用<b>家庭收支記帳調查編碼系統</b><br />請點選功能操作！
                 </p>
-                <component :is="currentPageKey"></component>
+                <component :is="currentPageKey" v-if="supportedComponent.includes(currentPageKey)"></component>
+                <p v-else>Not supported</p>
             </div>
         </div>
     </body>

@@ -6,6 +6,8 @@ import vueStore from '../Vuex/Vuex_GlobalStore';
 import '../Mixins/Vue_GlobalMixins';
 
 import IncomeDataMaintain from '../Components/CVue_IncomeDataMaintain.vue';
+import SubjectMaintain from '../Components/CVue_SubjectMaintain.vue';
+import DetailedMaintain from '../Components/CVue_DetailedMaintain.vue';
 
 Vue.use(BootstrapVue);
 function IVueInitialCreator() {
@@ -23,6 +25,8 @@ function IVueInitialCreator() {
       el: '#vue-instance',
       components: {
         IncomeDataMaintain,
+        SubjectMaintain,
+        DetailedMaintain,
       },
       data: {
         // ui
@@ -48,50 +52,60 @@ function IVueInitialCreator() {
             {
               key: `IncomeDataMaintain`,
               text: `收支資料維護`,
+              isSupport: true,
             },
             {
-              key: `detailMaintain`,
+              key: `DetailedMaintain`,
               text: `收支明細維護`,
+              isSupport: true,
             },
             {
-              key: `subjectMaintain`,
+              key: `SubjectMaintain`,
               text: `收支科目維護`,
+              isSupport: true,
             },
             {
               key: `cardMaintain`,
               text: `戶口組成卡維護`,
+              isSupport: false,
             },
             {
               key: `dataChecker`,
               text: `收支資料檢誤`,
+              isSupport: false,
             },
           ],
           reportPage: [
             {
               key: `familyIncomeResult`,
               text: `家庭收支記帳調查結果`,
+              isSupport: false,
             },
             {
               key: `familyIncomeReport`,
               text: `家庭收支記帳調查統計月報`,
+              isSupport: false,
             },
           ],
           systemPage: [
             {
               key: `accountManagement`,
               text: `帳號管理`,
+              isSupport: false,
             },
             {
               key: `changePassword`,
               text: `密碼變更`,
+              isSupport: false,
             },
             {
               key: `incomePortManagement`,
               text: `收支戶號管理`,
+              isSupport: false,
             },
           ],
         },
-        currentPageKey: `IncomeDataMaintain`,
+        currentPageKey: `SubjectMaintain`,
       },
       methods: {
         async checkAccountStatus() {
@@ -107,7 +121,19 @@ function IVueInitialCreator() {
         },
       },
       updated() {},
-      computed: {},
+      computed: {
+        supportedComponent() {
+          return Object.keys(this.subMenu).reduce((tempAry, key) => {
+            this.subMenu[key].forEach(obj => {
+              if (obj.isSupport) {
+                tempAry.push(obj.key);
+              }
+            });
+
+            return tempAry;
+          }, []);
+        },
+      },
       created() {},
       async mounted() {
         // check account status

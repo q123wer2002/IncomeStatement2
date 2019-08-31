@@ -1,47 +1,37 @@
 <template>
   <div id="mainPage">
-    <div class="filterItem">
-      <span>年月</span>
-      <b-form-select
-        v-model="date.year"
-        :options="yearOptions"
-        class="d-inline w-25 h-10"
-        size="sm"
-      ></b-form-select>
-      <b-form-select
-        v-model="date.month"
-        :options="monthOptions"
-        class="d-inline w-25 h-10"
-        size="sm"
-      ></b-form-select>
-    </div>
-    <div class="filterItem">
-      <span>戶號</span>
-      <b-form-input
-        v-model="port.start"
-        type="number"
-        class="d-inline w-25 h-25"
-        size="sm"
-      ></b-form-input>
-      ~
-      <b-form-input
-        v-model="port.end"
-        type="number"
-        class="d-inline w-25 h-25"
-        size="sm"
-      ></b-form-input>
-    </div>
-    <div class="filterItem">
-      <span>每頁顯示比數</span>
-      <b-form-input
-        v-model="showNumbers"
-        type="number"
-        class="d-inline w-25 h-25"
-        size="sm"
-      ></b-form-input>
+    <div class="filterItem" v-for="item in items" :key="item.key">
+      <span>{{ item.text }}</span>
+      <span v-for="(typeValue, typeKey) in item.type" :key="typeKey">
+        <b-form-select
+          v-if="typeValue === `select`"
+          v-model="item.value[typeKey]"
+          :options="item.source[typeKey]"
+          class="d-inline w-25 h-10"
+          size="sm"
+          :state="item.valid[typeKey](item.value[typeKey])"
+        ></b-form-select>
+
+        <b-form-input
+          v-else
+          v-model="item.value[typeKey]"
+          :type="typeValue"
+          class="d-inline w-25 h-25"
+          size="sm"
+          :state="item.valid[typeKey](item.value[typeKey])"
+        ></b-form-input>
+
+        <span v-if="typeKey === `start`">~</span>
+      </span>
     </div>
 
-    <b-button variant="info" id="btnSearch" size="sm" @click="search">
+    <b-button
+      variant="info"
+      id="btnSearch"
+      size="sm"
+      @click="search"
+      :disabled="!isBtnSearchDisabled"
+    >
       查詢
     </b-button>
   </div>
@@ -49,58 +39,61 @@
 
 <script>
 export default {
+  /* eslint-disable no-undef, no-param-reassign */
   name: 'Selector',
   components: {},
-  props: {},
+  props: {
+    filterModel: {
+      type: Array,
+      required: true,
+    },
+  },
   data() {
     return {
-      date: {
-        year: 0,
-        month: 0,
-      },
-      port: {
-        start: 0,
-        end: 0,
-      },
-      showNumbers: 20,
+      items: [],
     };
   },
   methods: {
+    initialFilterItem() {
+      // key, text, type, value, source
+      this.items = this.filterModel;
+    },
     search() {
-      this.$emit(`search`, {
-        date: this.date,
-        port: this.port,
-        showNumbers: this.showNumbers,
-      });
+      const itemValueObj = this.items.reduce((tempObj, itemObj) => {
+        tempObj[itemObj.key] = itemObj.value;
+        return tempObj;
+      }, {});
+
+      // emit
+      this.$emit(`search`, itemValueObj);
     },
   },
   created() {},
-  mounted() {},
+  mounted() {
+    this.initialFilterItem();
+  },
   computed: {
-    yearOptions() {
-      return [2017, 2018, 2019].map(year => {
-        return {
-          value: year,
-          text: `${year}年`,
-        };
-      });
-    },
-    monthOptions() {
-      return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(month => {
-        return {
-          value: month,
-          text: `${month}月`,
-        };
+    isBtnSearchDisabled() {
+      if (this.items.length === 0) {
+        return false;
+      }
+
+      return this.items.every(itemObj => {
+        return Object.keys(itemObj.value).every(key => {
+          const value = itemObj.value[key];
+          return itemObj.valid[key](value);
+        });
       });
     },
   },
+  /* eslint-disable no-undef, no-param-reassign */
 };
 </script>
 
 <style scoped>
 #mainPage {
   position: relative;
-  width: 70%;
+  width: 85%;
   padding: 8px 16px;
   margin: 8px auto;
   border-bottom: 1px solid #61c7d0;
