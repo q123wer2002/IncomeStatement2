@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.IO;
 
 namespace IncomeStatement.WebData.Server_Code.CommonModule
@@ -15,8 +16,11 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 				return null;
 			}
 
-			string szFileContent = ReadConfigJsonString( szConfigName );
-			return JObject.Parse( szFileContent );
+			string szFileContent = ReadConfigJsonString(szConfigName)
+				.Replace("\t", "")
+				.Replace("\r\n", "");
+
+			return JObject.Parse(szFileContent);
 		}
 		public static string GetConnection()
 		{
@@ -50,9 +54,9 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 		{
 			switch( config ) {
 				case Config.DBConnection:
-					return "dbConnection.js";
+					return "dbConnection.json";
 				case Config.Connection:
-					return "connection.js";
+					return "connection.json";
 			}
 
 			return string.Empty;
@@ -62,17 +66,14 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 			// only accept json in Object, not allow Array
 			string szConfigFilePath = m_szConfigPath + szConfigFileName;
 			string szTotalString = "";
-			string szReadLine = "";
 			if( File.Exists( szConfigFilePath ) == false ) {
 				return "{}";
 			}
 
 			// read config file
-			StreamReader file = new StreamReader( szConfigFilePath );
-			while( ( szReadLine = file.ReadLine() ) != null ) {
-				szTotalString += szReadLine + ",";
+			using( StreamReader file = new StreamReader(szConfigFilePath) ) {
+				szTotalString += file.ReadToEnd();
 			}
-			file.Close();
 
 			return szTotalString;
 		}

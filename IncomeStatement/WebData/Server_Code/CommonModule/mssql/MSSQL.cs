@@ -39,6 +39,57 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 			string szErrorMsg;
 			bool isSuccess = TryQuery(szCreateSQL, out szErrorMsg);
 		}
+		public bool TryQuery( string szSQL, out string szErrorMsg )
+		{
+			szErrorMsg = null;
+			try {
+				using( SqlConnection con = new SqlConnection(m_builder.ConnectionString) ) {
+					con.Open();
+					using( SqlCommand cmd = new SqlCommand(szSQL, con) ) {
+						int nAffact = cmd.ExecuteNonQuery();
+					}
+					con.Close();
+				}
+				return true;
+			}
+			catch( Exception ex ) {
+				szErrorMsg = ex.ToString();
+				return false;
+			}
+		}
+		public bool TryQuery( string szSQL, out JArray resultArray )
+		{
+			try {
+				using( SqlConnection con = new SqlConnection(m_builder.ConnectionString) ) {
+					con.Open();
+					using( SqlCommand cmd = new SqlCommand(szSQL, con) ) {
+
+						// start sql cmd
+						resultArray = new JArray();
+						using( SqlDataReader reader = cmd.ExecuteReader() ) {
+
+							// read result
+							while( reader.Read() ) {
+								JObject tempObject = new JObject();
+								for( int i = 0; i < reader.FieldCount; i++ ) {
+									string szKey = reader.GetName(i);
+									tempObject[ szKey ] = reader.GetValue(i).ToString();
+								}
+
+								resultArray.Add((JToken)tempObject);
+							}
+						}
+					}
+					con.Close();
+				}
+
+				return true;
+			}
+			catch {
+				resultArray = null;
+				return false;
+			}
+		}
 		#endregion
 
 		#region Public Attribute
@@ -57,27 +108,6 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 				catch {
 					return false;
 				}
-			}
-		}
-		#endregion
-
-		#region Private Method
-		bool TryQuery( string szSQL, out string szErrorMsg )
-		{
-			szErrorMsg = null;
-			try {
-				using( SqlConnection con = new SqlConnection(m_builder.ConnectionString) ) {
-					con.Open();
-					using( SqlCommand cmd = new SqlCommand(szSQL, con) ) {
-						int nAffact = cmd.ExecuteNonQuery();
-					}
-					con.Close();
-				}
-				return true;
-			}
-			catch( Exception ex ) {
-				szErrorMsg = ex.ToString();
-				return false;
 			}
 		}
 		#endregion
@@ -101,14 +131,14 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 			{
 				get
 				{
-					return "username";
+					return "Username";
 				}
 			}
 			public static string Password
 			{
 				get
 				{
-					return "password";
+					return "Password";
 				}
 			}
 			public static string Catalog

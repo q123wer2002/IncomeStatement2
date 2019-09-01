@@ -78,7 +78,7 @@ export default {
         return false;
       }
 
-      return this.items.every(itemObj => {
+      return this.items.some(itemObj => {
         return Object.keys(itemObj.value).every(key => {
           const value = itemObj.value[key];
           return itemObj.valid[key](value);

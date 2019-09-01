@@ -19,4 +19,49 @@
 			get;set;
 		}
 	}
+	public class TableName
+	{
+		public static string CoFam
+		{
+			get
+			{
+				return "co_fam";
+			}
+		}
+		public static string CoExpM
+		{
+			get
+			{
+				return "co_exp_m";
+			}
+		}
+		public static string CoFamLog
+		{
+			get
+			{
+				return "co_fam_log";
+			}
+		}
+		public static string CoExpMLog
+		{
+			get
+			{
+				return "co_exp_m_log";
+			}
+		}
+		public static string CoExpCode
+		{
+			get
+			{
+				return "co_exp_code";
+			}
+		}
+		public static string CoParam
+		{
+			get
+			{
+				return "co_param";
+			}
+		}
+	}
 }

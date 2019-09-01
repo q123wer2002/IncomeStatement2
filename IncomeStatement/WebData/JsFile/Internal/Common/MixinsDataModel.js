@@ -12,6 +12,9 @@ const CommonDataModel = {
     login: `S_LoginChecker.aspx`,
     checkStatus: `S_CheckAccountStatus.aspx`,
     logout: `S_Logout.aspx`,
+    incomeData: `S_IncomeStateData.aspx`,
+    subjectData: `S_SubjectData.aspx`,
+    paramInfo: `S_ParamInfo.aspx`,
   },
 };
 

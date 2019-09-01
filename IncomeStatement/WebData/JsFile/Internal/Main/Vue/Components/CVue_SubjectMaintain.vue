@@ -27,10 +27,18 @@
         >
           新增
         </b-button>
-        <b-button variant="info" :disabled="!selected.length > 0">
+        <b-button
+          variant="info"
+          :disabled="!selected.length > 0"
+          @click="deleteItems"
+        >
           刪除
         </b-button>
-        <b-button variant="info" :disabled="!selected.length > 0">
+        <b-button
+          variant="info"
+          :disabled="!selected.length > 0"
+          @click="exportCSV"
+        >
           匯出資料
         </b-button>
       </b-button-group>
@@ -60,6 +68,9 @@
           <span v-if="item.stop_fg === `Y`">是</span>
           <span v-else>否</span>
         </template>
+        <template slot="[place]" slot-scope="{ item }">
+          <span>{{ placeName(item.place) }}</span>
+        </template>
         <template slot="[edit]" slot-scope="{ item }">
           <a href="javascript:;" @click="openDetailedView(item)">編輯</a>
         </template>
@@ -76,17 +87,22 @@
 
     <!-- add data -->
     <b-modal ref="domModal" size="xl" title="科目維護" hide-footer>
-      <subject-view :subjectData="subjectData"></subject-view>
+      <subject-view
+        :subjectData="subjectData"
+        @changed="onChange"
+      ></subject-view>
     </b-modal>
   </div>
 </template>
 
 <script>
+import { mapState, mapActions } from 'vuex';
 import { subjectModel } from '../DataModel/selectorModel.js';
 import Selector from './CVue_Selector.vue';
 import SubjectView from './CVue_SubjectView.vue';
 
 export default {
+  /* eslint-disable no-undef, no-param-reassign, camelcase */
   name: 'IncomeDataMaintain',
   components: {
     Selector,
@@ -99,7 +115,7 @@ export default {
       subjectData: {},
 
       fields: [],
-      items: [],
+      queryObject: {},
       currentPage: 1,
       perPage: 20,
       selected: [],
@@ -107,8 +123,25 @@ export default {
     };
   },
   methods: {
-    searchEvent(message) {
-      console.log(message);
+    ...mapActions([
+      `initialParam`,
+      `initialSubject`,
+      `saveSubject`,
+      `deleteSubjects`,
+    ]),
+    async searchEvent(filterObject) {
+      const { subjectCode, subjectName } = filterObject;
+      // set default
+      this.queryObject = {};
+      if (subjectCode.code_no > 0) {
+        this.queryObject.CodeNo = subjectCode.code_no;
+      }
+
+      if (subjectName.code_name.length > 0) {
+        this.queryObject.CodeName = subjectName.code_name;
+      }
+
+      await this.queryIncomeStateData();
     },
     onRowSelected(items) {
       this.selected = items;
@@ -121,12 +154,85 @@ export default {
     },
     openDetailedView(dataObj) {
       if (dataObj) {
-        this.subjectData = dataObj;
+        this.subjectData = JSON.parse(JSON.stringify(dataObj));
       } else {
         this.subjectData = {};
       }
 
       this.$refs.domModal.show();
+    },
+    async queryIncomeStateData() {
+      this.isBusy = true;
+      await this.initialSubject(this.queryObject);
+      this.isBusy = false;
+    },
+    async onChange(subjectObj) {
+      // set object keys
+      if (!subjectObj.code1 || !subjectObj.code2) {
+        subjectObj.code1 = subjectObj.code_no.toString().substring(0, 3);
+        subjectObj.code2 = subjectObj.code_no.toString().substring(3);
+      }
+
+      if (!subjectObj.code_des) {
+        subjectObj.code_des = subjectObj.code_no + subjectObj.code_name;
+      }
+
+      // save this subject
+      await this.saveSubject(subjectObj);
+      this.$refs.domModal.hide();
+    },
+    async deleteItems() {
+      await this.deleteSubjects(
+        this.selected.map(obj => {
+          const { code_no } = obj;
+          return {
+            code_no,
+          };
+        })
+      );
+
+      this.clearSelected();
+    },
+    exportCSV() {
+      // create csv data
+      const filedName = [
+        `科目代碼`,
+        `科目名稱`,
+        `金額上限`,
+        `金額下限`,
+        `購買地點`,
+        `是否停用`,
+      ];
+      const csvData = [
+        filedName,
+        ...this.selected.map(obj => {
+          const { code_no, code_name, upp_lim, low_lim, place, stop_fg } = obj;
+          return [
+            code_no,
+            code_name,
+            upp_lim,
+            low_lim,
+            this.placeName(place),
+            stop_fg === `Y` ? `是` : `否`,
+          ];
+        }),
+      ];
+      const csvDataString = csvData.map(col => col.join(`,`)).join('\n');
+      const encodedUri = URL.createObjectURL(
+        new Blob([`\uFEFF${csvDataString}`], {
+          type: `text/csv;charset=utf-8;`,
+        })
+      );
+
+      // create link
+      const link = document.createElement(`a`);
+      link.setAttribute(`href`, encodedUri);
+      link.setAttribute(`download`, `subject_export.csv`);
+      document.body.appendChild(link);
+      link.click();
+
+      // clear
+      this.clearSelected();
     },
   },
   created() {
@@ -140,27 +246,46 @@ export default {
       { key: `stop_fg`, label: `是否停用` },
       { key: `edit`, label: `` },
     ];
-    this.items = [
-      {
-        code_no: 10101,
-        code_name: `支付私人`,
-        upp_lim: 700,
-        low_lim: 200,
-        place: 2,
-        stop_fg: `Y`,
-      },
-      {
-        code_no: 10102,
-        code_name: `支付金融機關與企業政府`,
-        upp_lim: 1700,
-        low_lim: 100,
-        place: 4,
-        stop_fg: `N`,
-      },
-    ];
   },
-  mounted() {},
-  computed: {},
+  async mounted() {
+    await this.initialParam();
+  },
+  computed: {
+    ...mapState([`subjectArray`, `paramArray`]),
+    items() {
+      if (Object.keys(this.queryObject) === 0) {
+        return [];
+      }
+
+      return this.subjectArray.filter(obj => {
+        let isCorrect = false;
+        if (this.queryObject.CodeName && this.queryObject.CodeNamelength > 0) {
+          isCorrect = obj.code_name === this.queryObject.CodeName;
+          if (isCorrect === false) {
+            return false;
+          }
+        }
+
+        if (this.queryObject.CodeNo && this.queryObject.CodeNo.length > 0) {
+          return obj.code_no.toString().startsWith(this.queryObject.CodeNo);
+        }
+
+        return false;
+      });
+    },
+    placeName() {
+      return placeNo => {
+        if (!placeNo || placeNo === 0) {
+          return ``;
+        }
+
+        return this.paramArray.find(
+          obj => obj.par_typ === `A` && obj.par_no === placeNo
+        ).par_name;
+      };
+    },
+  },
+  /* eslint-disable no-undef, no-param-reassign, camelcase */
 };
 </script>
 

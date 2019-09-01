@@ -31,12 +31,13 @@
 
     <hr />
 
-    <b-button variant="danger">結束</b-button>
-    <b-button variant="info">儲存</b-button>
+    <b-button variant="info" @click="save">儲存</b-button>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
   name: 'SubjectView',
   components: {},
@@ -90,17 +91,38 @@ export default {
           type: `checkbox`,
         },
         {
-          key: `remark`,
+          key: `code_rem`,
           text: `備註`,
           type: `text`,
         },
       ],
     };
   },
-  methods: {},
+  methods: {
+    setDefaultKeys() {
+      this.subjectData.code_no = this.subjectData.code_no || ``;
+      this.subjectData.code_name = this.subjectData.code_name || ``;
+      this.subjectData.upp_lim = this.subjectData.upp_lim || 0;
+      this.subjectData.low_lim = this.subjectData.low_lim || 0;
+      this.subjectData.place = this.subjectData.place || ``;
+      this.subjectData.param1 = this.subjectData.param1 || ``;
+      this.subjectData.param2 = this.subjectData.param2 || ``;
+      this.subjectData.stop_fg = this.subjectData.stop_fg || `N`;
+      this.subjectData.code_rem = this.subjectData.code_rem || ``;
+    },
+    save() {
+      this.$emit(`changed`, this.subjectData);
+    },
+    cancel() {
+      this.$el.hide();
+    },
+  },
   created() {},
-  mounted() {},
+  mounted() {
+    this.setDefaultKeys();
+  },
   computed: {
+    ...mapState([`paramArray`]),
     isDisabled: {
       get() {
         return this.subjectData.stop_fg === `Y`;
@@ -110,7 +132,14 @@ export default {
       },
     },
     placeOpts() {
-      return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      return this.paramArray
+        .filter(obj => obj.par_typ === `A`)
+        .map(obj => {
+          return {
+            value: obj.par_no,
+            text: obj.par_name,
+          };
+        });
     },
     inputType() {
       return [`text`, `number`];

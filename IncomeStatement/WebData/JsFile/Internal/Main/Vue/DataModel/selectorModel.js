@@ -7,11 +7,11 @@ export const incomeDataModel = [
       month: `select`,
     },
     value: {
-      year: 2019,
+      year: 108,
       month: 7,
     },
     source: {
-      year: [2017, 2018, 2019].map(year => {
+      year: [106, 107, 108].map(year => {
         return {
           value: year,
           text: `${year}年`,
@@ -125,11 +125,11 @@ export const detailedModel = [
       month: `select`,
     },
     value: {
-      year: 2019,
+      year: 108,
       month: 7,
     },
     source: {
-      year: [2017, 2018, 2019].map(year => {
+      year: [106, 107, 108].map(year => {
         return {
           value: year,
           text: `${year}年`,

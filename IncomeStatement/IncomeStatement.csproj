@@ -121,9 +121,12 @@
     <Content Include="WebData\Picture\login\main_pic.png" />
     <Content Include="WebData\Picture\login\top_wave.png" />
     <Content Include="WebData\Server_Code\S_CheckAccountStatus.aspx" />
+    <Content Include="WebData\Server_Code\S_IncomeStateData.aspx" />
     <Content Include="WebData\Server_Code\S_InitialTable.aspx" />
     <Content Include="WebData\Server_Code\S_LoginChecker.aspx" />
     <Content Include="WebData\Server_Code\S_Logout.aspx" />
+    <Content Include="WebData\Server_Code\S_ParamInfo.aspx" />
+    <Content Include="WebData\Server_Code\S_SubjectData.aspx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.aspx.cs">
@@ -153,6 +156,13 @@
     <Compile Include="WebData\Server_Code\S_CheckAccountStatus.aspx.designer.cs">
       <DependentUpon>S_CheckAccountStatus.aspx</DependentUpon>
     </Compile>
+    <Compile Include="WebData\Server_Code\S_IncomeStateData.aspx.cs">
+      <DependentUpon>S_IncomeStateData.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_IncomeStateData.aspx.designer.cs">
+      <DependentUpon>S_IncomeStateData.aspx</DependentUpon>
+    </Compile>
     <Compile Include="WebData\Server_Code\S_InitialTable.aspx.cs">
       <DependentUpon>S_InitialTable.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -173,6 +183,20 @@
     </Compile>
     <Compile Include="WebData\Server_Code\S_Logout.aspx.designer.cs">
       <DependentUpon>S_Logout.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_ParamInfo.aspx.cs">
+      <DependentUpon>S_ParamInfo.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_ParamInfo.aspx.designer.cs">
+      <DependentUpon>S_ParamInfo.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_SubjectData.aspx.cs">
+      <DependentUpon>S_SubjectData.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_SubjectData.aspx.designer.cs">
+      <DependentUpon>S_SubjectData.aspx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
