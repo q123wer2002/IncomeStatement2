@@ -58,6 +58,10 @@
         small
         head-variant="dark"
       >
+        <div slot="table-busy" class="text-center text-danger my-2">
+          <b-spinner class="align-middle"></b-spinner>
+          <strong>Loading...</strong>
+        </div>
         <template slot="[selected]" slot-scope="{ rowSelected }">
           <b-form-checkbox
             v-model="rowSelected"

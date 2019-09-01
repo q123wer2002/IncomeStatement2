@@ -106,15 +106,15 @@
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="WebData\BundleResult\Login\PD_20190531_min_v1.js" />
-    <Content Include="WebData\BundleResult\Login\PD_20190531_min_v1_CSS.css" />
-    <Content Include="WebData\BundleResult\Main\PD_20190531_min_v1.js" />
-    <Content Include="WebData\BundleResult\Main\PD_20190531_min_v1_CSS.css" />
-    <Content Include="WebData\BundleResult\Permission\PD_20190531_min_v1.js" />
-    <Content Include="WebData\BundleResult\Permission\PD_20190531_min_v1_CSS.css" />
-    <Content Include="WebData\ConfigFile\connection.js" />
-    <Content Include="WebData\ConfigFile\dbConnection.js" />
+    <Content Include="WebData\BundleResult\Login\IS_20190901_min_v1.js" />
+    <Content Include="WebData\BundleResult\Login\IS_20190901_min_v1_CSS.css" />
+    <Content Include="WebData\BundleResult\Main\IS_20190901_min_v1.js" />
+    <Content Include="WebData\BundleResult\Main\IS_20190901_min_v1_CSS.css" />
+    <Content Include="WebData\CSS\External\googlefont.css" />
     <Content Include="WebData\Picture\error_message.png" />
+    <Content Include="WebData\Picture\icon\material-io\baseline_add_circle_black_48dp.png" />
+    <Content Include="WebData\Picture\icon\material-io\baseline_delete_forever_black_48dp.png" />
+    <Content Include="WebData\Picture\icon\material-io\sharp_arrow_drop_down_black_48dp.png" />
     <Content Include="WebData\Picture\loading.gif" />
     <Content Include="WebData\Picture\login\bottom_wave.png" />
     <Content Include="WebData\Picture\login\homepage_logo.png" />
@@ -210,14 +210,14 @@
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
+    <Content Include="WebData\ConfigFile\connection.json" />
+    <Content Include="WebData\ConfigFile\dbConnection.json" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="WebData\CSS\External\" />
     <Folder Include="WebData\JsFile\External\" />
-    <Folder Include="WebData\Picture\icon\material-io\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

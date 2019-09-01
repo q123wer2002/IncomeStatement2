@@ -105,7 +105,7 @@ function IVueInitialCreator() {
             },
           ],
         },
-        currentPageKey: `SubjectMaintain`,
+        currentPageKey: ``,
       },
       methods: {
         async checkAccountStatus() {

@@ -6,5 +6,119 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
+    <_PublishTargetUrl>C:\Users\Danny\Desktop\接案</_PublishTargetUrl>
   </PropertyGroup>
+  <ItemGroup>
+    <File Include="bin/Cryptography.dll">
+      <publishTime>06/03/2019 11:17:34</publishTime>
+    </File>
+    <File Include="bin/IncomeStatement.dll">
+      <publishTime>09/01/2019 22:15:14</publishTime>
+    </File>
+    <File Include="bin/IncomeStatement.pdb">
+      <publishTime>09/01/2019 22:15:14</publishTime>
+    </File>
+    <File Include="bin/jose-jwt.dll">
+      <publishTime>06/21/2017 19:57:54</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Threading.Tasks.dll">
+      <publishTime>04/07/2014 12:26:14</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Threading.Tasks.Extensions.Desktop.dll">
+      <publishTime>04/07/2014 12:26:14</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Threading.Tasks.Extensions.dll">
+      <publishTime>04/07/2014 12:26:14</publishTime>
+    </File>
+    <File Include="bin/Newtonsoft.Json.dll">
+      <publishTime>04/22/2019 01:06:16</publishTime>
+    </File>
+    <File Include="Error.html">
+      <publishTime>06/03/2019 11:17:30</publishTime>
+    </File>
+    <File Include="Global.asax">
+      <publishTime>06/03/2019 11:17:30</publishTime>
+    </File>
+    <File Include="Login.html">
+      <publishTime>09/01/2019 22:10:53</publishTime>
+    </File>
+    <File Include="Main.aspx">
+      <publishTime>09/01/2019 22:10:28</publishTime>
+    </File>
+    <File Include="packages.config">
+      <publishTime>06/03/2019 11:17:30</publishTime>
+    </File>
+    <File Include="Web.config">
+      <publishTime>06/03/2019 11:17:30</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Login/IS_20190901_min_v1.js">
+      <publishTime>09/01/2019 22:11:28</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Login/IS_20190901_min_v1_CSS.css">
+      <publishTime>09/01/2019 22:11:28</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Main/IS_20190901_min_v1.js">
+      <publishTime>09/01/2019 22:11:28</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Main/IS_20190901_min_v1_CSS.css">
+      <publishTime>09/01/2019 22:11:28</publishTime>
+    </File>
+    <File Include="WebData/ConfigFile/connection.json">
+      <publishTime>08/27/2019 22:47:14</publishTime>
+    </File>
+    <File Include="WebData/ConfigFile/dbConnection.json">
+      <publishTime>09/01/2019 14:21:47</publishTime>
+    </File>
+    <File Include="WebData/CSS/External/googlefont.css">
+      <publishTime>08/28/2019 00:12:06</publishTime>
+    </File>
+    <File Include="WebData/Picture/error_message.png">
+      <publishTime>06/03/2019 11:17:33</publishTime>
+    </File>
+    <File Include="WebData/Picture/icon/material-io/baseline_add_circle_black_48dp.png">
+      <publishTime>04/13/2018 05:44:35</publishTime>
+    </File>
+    <File Include="WebData/Picture/icon/material-io/baseline_delete_forever_black_48dp.png">
+      <publishTime>04/13/2018 06:49:27</publishTime>
+    </File>
+    <File Include="WebData/Picture/icon/material-io/sharp_arrow_drop_down_black_48dp.png">
+      <publishTime>04/13/2018 03:59:30</publishTime>
+    </File>
+    <File Include="WebData/Picture/loading.gif">
+      <publishTime>06/03/2019 11:17:33</publishTime>
+    </File>
+    <File Include="WebData/Picture/login/bottom_wave.png">
+      <publishTime>08/28/2019 01:01:01</publishTime>
+    </File>
+    <File Include="WebData/Picture/login/homepage_logo.png">
+      <publishTime>08/19/2019 14:52:49</publishTime>
+    </File>
+    <File Include="WebData/Picture/login/main_pic.png">
+      <publishTime>08/28/2019 01:02:07</publishTime>
+    </File>
+    <File Include="WebData/Picture/login/top_wave.png">
+      <publishTime>08/28/2019 01:01:38</publishTime>
+    </File>
+    <File Include="WebData/Server_Code/S_CheckAccountStatus.aspx">
+      <publishTime>08/29/2019 00:26:56</publishTime>
+    </File>
+    <File Include="WebData/Server_Code/S_IncomeStateData.aspx">
+      <publishTime>09/01/2019 13:02:48</publishTime>
+    </File>
+    <File Include="WebData/Server_Code/S_InitialTable.aspx">
+      <publishTime>08/27/2019 22:20:51</publishTime>
+    </File>
+    <File Include="WebData/Server_Code/S_LoginChecker.aspx">
+      <publishTime>08/27/2019 00:32:02</publishTime>
+    </File>
+    <File Include="WebData/Server_Code/S_Logout.aspx">
+      <publishTime>08/29/2019 22:59:07</publishTime>
+    </File>
+    <File Include="WebData/Server_Code/S_ParamInfo.aspx">
+      <publishTime>09/01/2019 21:20:36</publishTime>
+    </File>
+    <File Include="WebData/Server_Code/S_SubjectData.aspx">
+      <publishTime>09/01/2019 15:51:36</publishTime>
+    </File>
+  </ItemGroup>
 </Project>
