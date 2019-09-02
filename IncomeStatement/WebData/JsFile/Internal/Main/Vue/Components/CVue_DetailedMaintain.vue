@@ -100,7 +100,11 @@
 
     <!-- add data -->
     <b-modal ref="domModal" size="xl" title="明細維護" hide-footer>
-      <detailed-view :data="detailedData" @save="onSaveEvent"></detailed-view>
+      <detailed-view
+        :queryObject="addQueryObject"
+        :data="detailedData"
+        @save="onSaveEvent"
+      ></detailed-view>
     </b-modal>
   </div>
 </template>
@@ -132,6 +136,8 @@ export default {
       // for selector
       selectorModel: detailedModel,
       hintText: `請先查詢資料`,
+      queryObject: {},
+      addQueryObject: {},
 
       // for table
       fields: [],
@@ -149,31 +155,29 @@ export default {
   methods: {
     async searchEvent(filterObj) {
       const { date, duration, port, subjectCode } = filterObj;
-      const queryObject = {};
-
       // add date
       if (date.year !== 0 && date.month !== 0) {
-        queryObject.Year = date.year;
-        queryObject.Month = date.month;
+        this.queryObject.Year = date.year;
+        this.queryObject.Month = date.month;
       }
 
       // add duration
       if (duration.end > duration.start) {
-        queryObject.DurationStart = duration.start;
-        queryObject.DurationEnd = duration.end;
+        this.queryObject.DurationStart = duration.start;
+        this.queryObject.DurationEnd = duration.end;
       }
 
       // add port
       if (port.num > 0) {
-        queryObject.FamNo = port.num;
+        this.queryObject.FamNo = port.num;
       }
 
       // add subjectCode
       if (subjectCode.code_no > 0) {
-        queryObject.CodeNo = subjectCode.code_no;
+        this.queryObject.CodeNo = subjectCode.code_no;
       }
 
-      await this.queryDetailedData(queryObject);
+      await this.queryDetailedData(this.queryObject);
     },
     onRowSelected(items) {
       this.selected = items;
@@ -192,13 +196,13 @@ export default {
           )
         );
       } else {
-        this.detailedData = [
-          {
-            ie_year: 2018,
-            ie_month: 1,
-            fam_no: 123456,
-          },
-        ];
+        const { Year, Month, FamNo } = this.queryObject;
+        this.detailedData = [];
+        this.addQueryObject = {
+          Year,
+          Month,
+          FamNo,
+        };
       }
 
       this.$refs.domModal.show();

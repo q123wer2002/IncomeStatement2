@@ -112,6 +112,16 @@ namespace IncomeStatement.WebData.Server_Code
 						m_paramExpMList.Add($"{TableName.CoExpM}.ie_year={szYear} AND {TableName.CoExpM}.ie_mon={szMonth}");
 					}
 
+					if( Request.Form[ Param.Day ] != null ) {
+						string szDay = Request.Form[ Param.Day ].ToString();
+						if( int.TryParse(szDay, out nTempValue) == false ) {
+							return false;
+						}
+
+						m_paramExpDList.Add($"{TableName.CoExpD}.ie_day={szDay}");
+						m_paramExpMList.Add($"{TableName.CoExpM}.ie_day={szDay}");
+					}
+
 					// check duration
 					if( Request.Form[ Param.DurationStart ] != null && Request.Form[ Param.DurationEnd ] != null ) {
 						string szDurationStart = Request.Form[ Param.DurationStart ].ToString();

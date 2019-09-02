@@ -15,8 +15,8 @@ let connectionSetting = {
 let webpackSetting = {
 	mode: 'development',
 	entry: {
-		"Main/IS_20190901_min_v1": "../WebData/JsFile/Internal/Main/SystemInitial.js",
-		"Login/IS_20190901_min_v1": "../WebData/JsFile/Internal/Login/Login_SystemInitial.js",
+		"Main/IS_20190903_min_v1": "../WebData/JsFile/Internal/Main/SystemInitial.js",
+		"Login/IS_20190903_min_v1": "../WebData/JsFile/Internal/Login/Login_SystemInitial.js",
 	},
 	devtool: 'cheap-source-map',//dev used
 	devServer: {

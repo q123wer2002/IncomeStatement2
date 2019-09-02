@@ -15,6 +15,16 @@
         </b-col>
         <b-col>
           <span>{{ dataDate }}</span>
+          <div class="d-block-inline" v-if="isNeedSelectDay">
+            <input
+              v-model="queryObject.Day"
+              class="w-25"
+              type="number"
+              min="0"
+              max="31"
+            />
+            <span>日</span>
+          </div>
         </b-col>
       </b-row>
       <b-row class="my-1">
@@ -95,6 +105,10 @@ export default {
   name: 'DetailedView',
   components: {},
   props: {
+    queryObject: {
+      type: Object,
+      required: false,
+    },
     data: {
       type: Array,
       required: true,
@@ -155,9 +169,35 @@ export default {
 
       this.$emit(`save`, this.items);
     },
+    initialSubName() {
+      this.items.forEach(obj => {
+        if (obj.code_no !== undefined) {
+          const subObject = this.subjectArray.find(
+            subObj => subObj.code_no === obj.code_no
+          );
+          obj.code_name = subObject.code_name || ``;
+        }
+      });
+    },
+    async queryDetailedData(queryObject) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.detatiledData,
+        {
+          Action: `READ`,
+          ...queryObject,
+        }
+      );
+
+      this.items = resObject.data.CoExpD;
+      this.initialSubName();
+    },
   },
   created() {},
-  mounted() {},
+  mounted() {
+    if (this.data.length > 0) {
+      this.initialSubName();
+    }
+  },
   computed: {
     ...mapState([`paramArray`, `subjectArray`]),
     todayTotalCost: {
@@ -202,12 +242,22 @@ export default {
         return this.data[0].fam_no;
       }
 
+      const { FamNo } = this.queryObject;
+      if (FamNo) {
+        return FamNo;
+      }
+
       return ``;
     },
     dataDate() {
       if (this.data.length > 0) {
         const { ie_year, ie_mon, ie_day } = this.data[0];
         return `${ie_year}年${ie_mon}月${ie_day}日`;
+      }
+
+      const { Year, Month } = this.queryObject;
+      if (Year && Month) {
+        return `${Year}年${Month}月`;
       }
 
       return ``;
@@ -241,6 +291,26 @@ export default {
 
       // check empty
       return this.items.every(obj => obj.code_name.length !== 0);
+    },
+    isNeedSelectDay() {
+      if (this.data.length > 0) {
+        return false;
+      }
+
+      const { Year, Month, FamNo } = this.queryObject;
+      if (Year && Month && FamNo) {
+        return true;
+      }
+
+      return false;
+    },
+  },
+  watch: {
+    queryObject: {
+      async handler(value) {
+        await this.queryDetailedData(value);
+      },
+      deep: true,
     },
   },
   /* eslint-disable no-undef, no-param-reassign, camelcase */
