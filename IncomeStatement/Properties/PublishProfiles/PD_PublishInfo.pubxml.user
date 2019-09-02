@@ -6,7 +6,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
-    <_PublishTargetUrl>C:\Users\Danny\Desktop\接案</_PublishTargetUrl>
+    <_PublishTargetUrl>C:\Users\Danny\Desktop\接案\201908Bbigcase\Release</_PublishTargetUrl>
   </PropertyGroup>
   <ItemGroup>
     <File Include="bin/Cryptography.dll">
@@ -52,16 +52,16 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/03/2019 11:17:30</publishTime>
     </File>
     <File Include="WebData/BundleResult/Login/IS_20190901_min_v1.js">
-      <publishTime>09/01/2019 22:11:28</publishTime>
+      <publishTime>09/01/2019 22:18:56</publishTime>
     </File>
     <File Include="WebData/BundleResult/Login/IS_20190901_min_v1_CSS.css">
-      <publishTime>09/01/2019 22:11:28</publishTime>
+      <publishTime>09/01/2019 22:18:56</publishTime>
     </File>
     <File Include="WebData/BundleResult/Main/IS_20190901_min_v1.js">
-      <publishTime>09/01/2019 22:11:28</publishTime>
+      <publishTime>09/01/2019 22:18:56</publishTime>
     </File>
     <File Include="WebData/BundleResult/Main/IS_20190901_min_v1_CSS.css">
-      <publishTime>09/01/2019 22:11:28</publishTime>
+      <publishTime>09/01/2019 22:18:56</publishTime>
     </File>
     <File Include="WebData/ConfigFile/connection.json">
       <publishTime>08/27/2019 22:47:14</publishTime>

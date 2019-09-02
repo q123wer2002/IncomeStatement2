@@ -1,39 +1,49 @@
 <template>
   <div id="mainPage">
-    <div class="filterItem" v-for="item in items" :key="item.key">
-      <span>{{ item.text }}</span>
-      <span v-for="(typeValue, typeKey) in item.type" :key="typeKey">
-        <b-form-select
-          v-if="typeValue === `select`"
-          v-model="item.value[typeKey]"
-          :options="item.source[typeKey]"
-          class="d-inline w-25 h-10"
-          size="sm"
-          :state="item.valid[typeKey](item.value[typeKey])"
-        ></b-form-select>
-
-        <b-form-input
-          v-else
-          v-model="item.value[typeKey]"
-          :type="typeValue"
-          class="d-inline w-25 h-25"
-          size="sm"
-          :state="item.valid[typeKey](item.value[typeKey])"
-        ></b-form-input>
-
-        <span v-if="typeKey === `start`">~</span>
-      </span>
-    </div>
-
-    <b-button
-      variant="info"
-      id="btnSearch"
-      size="sm"
-      @click="search"
-      :disabled="!isBtnSearchDisabled"
+    <b-card-header header-tag="header" class="p-1" role="tab">
+      <b-button block href="#" v-b-toggle.accordion-1 variant="info" size="sm">
+        展開/收合篩選器
+      </b-button>
+    </b-card-header>
+    <b-collapse
+      id="accordion-1"
+      visible
+      accordion="my-accordion"
+      role="tabpanel"
     >
-      查詢
-    </b-button>
+      <div class="filterItem" v-for="item in items" :key="item.key">
+        <span>{{ item.text }}</span>
+        <span v-for="(typeValue, typeKey) in item.type" :key="typeKey">
+          <b-form-select
+            v-if="typeValue === `select`"
+            v-model="item.value[typeKey]"
+            :options="item.source[typeKey]"
+            class="d-inline w-25 h-10"
+            size="sm"
+          ></b-form-select>
+
+          <b-form-input
+            v-else
+            v-model="item.value[typeKey]"
+            :type="typeValue"
+            class="d-inline w-25 h-25"
+            size="sm"
+          ></b-form-input>
+
+          <span v-if="typeKey === `start`">~</span>
+        </span>
+      </div>
+
+      <b-button
+        variant="info"
+        id="btnSearch"
+        size="sm"
+        @click="search"
+        :disabled="!isBtnSearchDisabled"
+      >
+        查詢
+      </b-button>
+    </b-collapse>
   </div>
 </template>
 
@@ -47,6 +57,10 @@ export default {
       type: Array,
       required: true,
     },
+    isPreLoadData: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -54,6 +68,40 @@ export default {
     };
   },
   methods: {
+    async preProcessModel() {
+      await this.filterModel.forEach(async obj => {
+        // set detault as pre month
+        if (obj.key === `date`) {
+          const dtcurrent = new Date();
+          dtcurrent.setMonth(dtcurrent.getMonth() - 1);
+          obj.value.year = dtcurrent.getFullYear() - 1911;
+          obj.value.month = dtcurrent.getMonth() + 1;
+        }
+
+        // check dynamic options
+        Object.keys(obj.source).forEach(async tempObj => {
+          if (
+            !obj.source[tempObj] ||
+            !obj.source[tempObj].type ||
+            obj.source[tempObj].type !== `dynamic`
+          ) {
+            return;
+          }
+          const resObject = await this.mixinCallBackService(
+            this.mixinBackendService[obj.source[tempObj].api]
+          );
+
+          if (resObject.status === this.mixinBackendErrorCode.success) {
+            obj.source[tempObj] = resObject.data.map(apiObj => {
+              return {
+                text: apiObj.fam_no,
+                value: apiObj.fam_no,
+              };
+            });
+          }
+        });
+      });
+    },
     initialFilterItem() {
       // key, text, type, value, source
       this.items = this.filterModel;
@@ -69,7 +117,10 @@ export default {
     },
   },
   created() {},
-  mounted() {
+  async mounted() {
+    await this.preProcessModel();
+
+    // check filer model
     this.initialFilterItem();
   },
   computed: {
@@ -98,6 +149,7 @@ export default {
   margin: 8px auto;
   border-bottom: 1px solid #61c7d0;
   font-size: 16px;
+  overflow-y: hidden;
 }
 #hintTitle {
   text-align: left;

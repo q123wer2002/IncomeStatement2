@@ -15,16 +15,11 @@
           v-model="perPage"
           type="number"
           size="sm"
-          label="1234"
           class="d-inline-block"
         ></b-form-input>
       </div>
       <b-button-group class="my-3 float-sm-right" size="sm">
-        <b-button
-          variant="info"
-          :disabled="!selected.length > 0"
-          @click="confirm"
-        >
+        <b-button variant="info" :disabled="!enabledConfirm" @click="confirm">
           登入完成確認
         </b-button>
       </b-button-group>
@@ -58,7 +53,7 @@
           <span>{{ statusToString(item.state) }}</span>
         </template>
         <template slot="[btnIncomeDetail]" slot-scope="{ item }">
-          <a href="javascript:;">明細</a>
+          <a href="javascript:;" @click="showDetails(item.fam_no)">明細</a>
         </template>
       </b-table>
 
@@ -69,6 +64,13 @@
         size="sm"
         class="justify-content-center"
       ></b-pagination>
+
+      <b-modal ref="domModal" size="xl" hide-footer>
+        <detailed-maintain
+          :isShowFilter="false"
+          :inputedQueryObj="detailedQueryObj"
+        ></detailed-maintain>
+      </b-modal>
     </div>
   </div>
 </template>
@@ -77,17 +79,21 @@
 import { incomeDataModel } from '../DataModel/selectorModel.js';
 import Selector from './CVue_Selector.vue';
 import { statusMapToString } from '../DataModel/dataModel.js';
+import DetailedMaintain from './CVue_DetailedMaintain.vue';
 
 export default {
   /* eslint-disable no-undef, no-param-reassign, camelcase */
   name: 'IncomeDataMaintain',
   components: {
     Selector,
+    DetailedMaintain,
   },
   props: {},
   data() {
     return {
       selectorModel: incomeDataModel,
+      detailedQueryObj: {},
+      queryObject: {},
 
       fields: [],
       items: [],
@@ -100,26 +106,26 @@ export default {
   methods: {
     async searchEvent(filterObject) {
       const { date, loginman, port } = filterObject;
-      const queryObject = {};
+      this.queryObject = {};
 
       // add date
       if (date.year !== 0 && date.month !== 0) {
-        queryObject.Year = date.year;
-        queryObject.Month = date.month;
+        this.queryObject.Year = date.year;
+        this.queryObject.Month = date.month;
       }
 
       // add loginman
       if (loginman.id > 0) {
-        queryObject.RecNo = loginman.id;
+        this.queryObject.RecNo = loginman.id;
       }
 
       // add port
       if (port.end > port.start) {
-        queryObject.FamNoStart = port.start;
-        queryObject.FamNoEnd = port.end;
+        this.queryObject.FamNoStart = port.start;
+        this.queryObject.FamNoEnd = port.end;
       }
 
-      await this.queryIncomeStateData(queryObject);
+      await this.queryIncomeStateData(this.queryObject);
     },
     onRowSelected(items) {
       this.selected = items;
@@ -171,6 +177,16 @@ export default {
         this.clearSelected();
       }
     },
+    showDetails(famNo) {
+      const { Year, Month } = this.queryObject;
+      this.detailedQueryObj = {
+        Year,
+        Month,
+        FamNo: famNo,
+      };
+
+      this.$refs.domModal.show();
+    },
   },
   created() {
     this.fields = [
@@ -197,6 +213,13 @@ export default {
       return statusCode => {
         return statusMapToString[statusCode];
       };
+    },
+    enabledConfirm() {
+      if (this.selected.length === 0) {
+        return false;
+      }
+
+      return this.selected.some(obj => obj.state !== `2`);
     },
   },
   /* eslint-disable no-undef, no-param-reassign, camelcase */

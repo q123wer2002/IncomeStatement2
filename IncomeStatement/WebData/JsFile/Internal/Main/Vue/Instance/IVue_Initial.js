@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import { mapActions } from 'vuex';
 import BootstrapVue from 'bootstrap-vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
@@ -105,9 +106,10 @@ function IVueInitialCreator() {
             },
           ],
         },
-        currentPageKey: ``,
+        currentPageKey: `DetailedMaintain`,
       },
       methods: {
+        ...mapActions([`initialSubject`, `initialParam`]),
         async checkAccountStatus() {
           const { isErrorAuth } = await this.mixinAccountStatus();
 
@@ -123,21 +125,34 @@ function IVueInitialCreator() {
       updated() {},
       computed: {
         supportedComponent() {
-          return Object.keys(this.subMenu).reduce((tempAry, key) => {
-            this.subMenu[key].forEach(obj => {
-              if (obj.isSupport) {
-                tempAry.push(obj.key);
-              }
-            });
+          const supportedPages = Object.keys(this.subMenu).reduce(
+            (tempAry, key) => {
+              this.subMenu[key].forEach(obj => {
+                if (obj.isSupport) {
+                  tempAry.push(obj.key);
+                }
+              });
 
-            return tempAry;
-          }, []);
+              return tempAry;
+            },
+            []
+          );
+
+          return [...supportedPages, ``];
         },
       },
       created() {},
       async mounted() {
         // check account status
         await this.checkAccountStatus();
+
+        // init param
+        await this.initialParam();
+
+        // init subject
+        await this.initialSubject({
+          CodeNo: -1,
+        });
       },
       watch: {},
       beforeDestroy() {},

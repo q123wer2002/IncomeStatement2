@@ -155,13 +155,16 @@ export const detailedModel = [
     key: `port`,
     text: `戶號`,
     type: {
-      num: `number`,
+      num: `select`,
     },
     value: {
       num: 0,
     },
     source: {
-      num: null,
+      num: {
+        type: `dynamic`,
+        api: `myFamNo`,
+      },
     },
     valid: {
       num: value => {
@@ -185,8 +188,8 @@ export const detailedModel = [
       end: null,
     },
     valid: {
-      start: value => {
-        return value > 0;
+      start: () => {
+        return true;
       },
       end: value => {
         return value > 0;
@@ -225,42 +228,6 @@ export const detailedModel = [
     },
     valid: {
       code_name: value => {
-        return value.length > 0;
-      },
-    },
-  },
-  {
-    key: `checkData`,
-    text: `資料檢查`,
-    type: {
-      checker: `select`,
-    },
-    value: {
-      checker: ``,
-    },
-    source: {
-      checker: [],
-    },
-    valid: {
-      checker: value => {
-        return value.length > 0;
-      },
-    },
-  },
-  {
-    key: `noPaymentDate`,
-    text: `無支出日期`,
-    type: {
-      date: `text`,
-    },
-    value: {
-      date: ``,
-    },
-    source: {
-      date: null,
-    },
-    valid: {
-      date: value => {
         return value.length > 0;
       },
     },

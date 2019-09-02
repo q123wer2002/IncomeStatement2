@@ -121,10 +121,12 @@
     <Content Include="WebData\Picture\login\main_pic.png" />
     <Content Include="WebData\Picture\login\top_wave.png" />
     <Content Include="WebData\Server_Code\S_CheckAccountStatus.aspx" />
+    <Content Include="WebData\Server_Code\S_DetailedIncomeData.aspx" />
     <Content Include="WebData\Server_Code\S_IncomeStateData.aspx" />
     <Content Include="WebData\Server_Code\S_InitialTable.aspx" />
     <Content Include="WebData\Server_Code\S_LoginChecker.aspx" />
     <Content Include="WebData\Server_Code\S_Logout.aspx" />
+    <Content Include="WebData\Server_Code\S_MyFamInfo.aspx" />
     <Content Include="WebData\Server_Code\S_ParamInfo.aspx" />
     <Content Include="WebData\Server_Code\S_SubjectData.aspx" />
   </ItemGroup>
@@ -156,6 +158,13 @@
     <Compile Include="WebData\Server_Code\S_CheckAccountStatus.aspx.designer.cs">
       <DependentUpon>S_CheckAccountStatus.aspx</DependentUpon>
     </Compile>
+    <Compile Include="WebData\Server_Code\S_DetailedIncomeData.aspx.cs">
+      <DependentUpon>S_DetailedIncomeData.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_DetailedIncomeData.aspx.designer.cs">
+      <DependentUpon>S_DetailedIncomeData.aspx</DependentUpon>
+    </Compile>
     <Compile Include="WebData\Server_Code\S_IncomeStateData.aspx.cs">
       <DependentUpon>S_IncomeStateData.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -183,6 +192,13 @@
     </Compile>
     <Compile Include="WebData\Server_Code\S_Logout.aspx.designer.cs">
       <DependentUpon>S_Logout.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_MyFamInfo.aspx.cs">
+      <DependentUpon>S_MyFamInfo.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_MyFamInfo.aspx.designer.cs">
+      <DependentUpon>S_MyFamInfo.aspx</DependentUpon>
     </Compile>
     <Compile Include="WebData\Server_Code\S_ParamInfo.aspx.cs">
       <DependentUpon>S_ParamInfo.aspx</DependentUpon>

@@ -87,7 +87,13 @@ namespace IncomeStatement.WebData.Server_Code
 					if( Request.Form[ Param.CodeNo ] != null ) {
 						string szCodeNo = Request.Form[ Param.CodeNo ].ToString();
 						int nCode = int.Parse(szCodeNo);
-						m_paramList.Add($"code_no LIKE '{nCode}%'");
+						if( nCode != -1 ) {
+							m_paramList.Add($"code_no LIKE '{nCode}%'");
+						}
+						else {
+							m_paramList.Add($"code_no LIKE '%'");
+						}
+						
 					}
 
 					if( Request.Form[ Param.CodeName ] != null ) {

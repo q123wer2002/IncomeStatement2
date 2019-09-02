@@ -15,6 +15,8 @@ const CommonDataModel = {
     incomeData: `S_IncomeStateData.aspx`,
     subjectData: `S_SubjectData.aspx`,
     paramInfo: `S_ParamInfo.aspx`,
+    detatiledData: `S_DetailedIncomeData.aspx`,
+    myFamNo: `S_MyFamInfo.aspx`,
   },
 };
 

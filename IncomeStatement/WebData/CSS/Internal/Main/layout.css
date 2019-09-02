@@ -14,7 +14,7 @@ a, abbr, acronym, address, applet, article, aside, audio, big, blockquote, body,
 	margin: 0;
 	padding: 0;
 	border: 0;
-	transition: width .2s ease, background .2s ease;
+	transition: width .2s ease, background .2s ease, height .2s ease;
 	font-family: '微軟正黑體';
 	font-weight: 400;
 }

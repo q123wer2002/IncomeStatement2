@@ -127,12 +127,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      `initialParam`,
-      `initialSubject`,
-      `saveSubject`,
-      `deleteSubjects`,
-    ]),
+    ...mapActions([`initialSubject`, `saveSubject`, `deleteSubjects`]),
     async searchEvent(filterObject) {
       const { subjectCode, subjectName } = filterObject;
       // set default
@@ -251,9 +246,7 @@ export default {
       { key: `edit`, label: `` },
     ];
   },
-  async mounted() {
-    await this.initialParam();
-  },
+  mounted() {},
   computed: {
     ...mapState([`subjectArray`, `paramArray`]),
     items() {

@@ -94,7 +94,7 @@ namespace IncomeStatement.WebData.Server_Code
 							return false;
 						}
 
-						m_paramList.Add($"ie_year={szYear} AND ie_mon={szMonth}");
+						m_paramExpDList.Add($"ie_year={szYear} AND ie_mon={szMonth}");
 					}
 
 					// check family no
@@ -109,7 +109,7 @@ namespace IncomeStatement.WebData.Server_Code
 							return false;
 						}
 
-						m_paramList.Add($"fam_no BETWEEN {szFamNoStart} AND {szFamNoEnd}");
+						m_paramExpDList.Add($"fam_no BETWEEN {szFamNoStart} AND {szFamNoEnd}");
 					}
 
 					// check record no
@@ -120,11 +120,11 @@ namespace IncomeStatement.WebData.Server_Code
 							return false;
 						}
 
-						m_paramList.Add($"rec_user = {szRecNo}");
+						m_paramExpDList.Add($"rec_user = {szRecNo}");
 					}
 					
 					// no param
-					if( m_paramList.Count == 0 ) {
+					if( m_paramExpDList.Count == 0 ) {
 						return false;
 					}
 
@@ -158,9 +158,9 @@ namespace IncomeStatement.WebData.Server_Code
 		{
 			// get param
 			string szSQL = $"SELECT * FROM {TableName.CoFam} WHERE";
-			for( int i = 0; i < m_paramList.Count; i++ ) {
-				szSQL += $" {m_paramList[ i ]}";
-				szSQL += i == m_paramList.Count - 1 ? " " : " AND";
+			for( int i = 0; i < m_paramExpDList.Count; i++ ) {
+				szSQL += $" {m_paramExpDList[ i ]}";
+				szSQL += i == m_paramExpDList.Count - 1 ? " " : " AND";
 			}
 			JArray result;
 			bool isSuccess = m_mssql.TryQuery(szSQL, out result);
@@ -258,7 +258,7 @@ namespace IncomeStatement.WebData.Server_Code
 			}
 		}
 		MSSQL m_mssql = new MSSQL();
-		List<string> m_paramList = new List<string>();
+		List<string> m_paramExpDList = new List<string>();
 		#endregion
 	}
 }

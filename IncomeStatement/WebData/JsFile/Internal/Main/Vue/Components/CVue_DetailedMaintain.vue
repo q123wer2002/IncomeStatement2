@@ -1,10 +1,14 @@
 <template>
   <div id="mainPage">
     <h5>收支明細維護</h5>
-    <selector :filterModel="selectorModel" @search="searchEvent"></selector>
+    <selector
+      v-if="isShowFilter"
+      :filterModel="selectorModel"
+      @search="searchEvent"
+    ></selector>
 
     <!-- filtered data -->
-    <div id="tableData">
+    <div id="tableData" v-if="items.length > 0">
       <b-button-group class="my-3 float-sm-left" size="sm">
         <b-button @click="selectAllRows">全選</b-button>
         <b-button @click="clearSelected">取消全選</b-button>
@@ -27,10 +31,25 @@
         >
           新增
         </b-button>
-        <b-button variant="info" :disabled="!selected.length > 0">
+        <b-button
+          variant="info"
+          :disabled="!selected.length > 0"
+          @click="deleteItems"
+        >
           刪除
         </b-button>
       </b-button-group>
+
+      <div>
+        <div class="m-50 d-inline-block mx-2 my-2">
+          <span>資料檢查</span>
+          <b-form-select :options="errorDaysOpts"></b-form-select>
+        </div>
+        <div class="m-50 d-inline-block mx-2 my-2">
+          <span>無支出日期</span>
+          <b-form-input v-model="noPaymentDays" disabled></b-form-input>
+        </div>
+      </div>
 
       <b-table
         ref="domDatatable"
@@ -47,11 +66,21 @@
         small
         head-variant="dark"
       >
+        <div slot="table-busy" class="text-center text-danger my-2">
+          <b-spinner class="align-middle"></b-spinner>
+          <strong>Loading...</strong>
+        </div>
+        <div slot="empty" class="text-center text-danger my-2">
+          <strong>資料不存在</strong>
+        </div>
         <template slot="[selected]" slot-scope="{ rowSelected }">
           <b-form-checkbox
             v-model="rowSelected"
             button-variant="info"
           ></b-form-checkbox>
+        </template>
+        <template slot="[place]" slot-scope="{ item }">
+          <span>{{ placeName(item.place) }}</span>
         </template>
         <template slot="[edit]" slot-scope="{ item }">
           <a href="javascript:;" @click="openDetailedView(item)">編輯</a>
@@ -67,33 +96,47 @@
       ></b-pagination>
     </div>
 
+    <span v-else>{{ hintText }}</span>
+
     <!-- add data -->
     <b-modal ref="domModal" size="xl" title="明細維護" hide-footer>
-      <detailed-view :data="detailedData"></detailed-view>
+      <detailed-view :data="detailedData" @save="onSaveEvent"></detailed-view>
     </b-modal>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import { detailedModel } from '../DataModel/selectorModel.js';
 import Selector from './CVue_Selector.vue';
 import DetailedView from './CVue_DetailedView.vue';
 
 export default {
+  /* eslint-disable no-undef, no-param-reassign, camelcase */
   name: 'DetailedMaintain',
   components: {
     Selector,
     DetailedView,
   },
-  props: {},
+  props: {
+    isShowFilter: {
+      type: Boolean,
+      default: true,
+    },
+    inputedQueryObj: {
+      type: Object,
+    },
+  },
   data() {
     return {
       // for selector
       selectorModel: detailedModel,
+      hintText: `請先查詢資料`,
 
       // for table
       fields: [],
       items: [],
+      coExpMitems: [],
       currentPage: 1,
       perPage: 20,
       selected: [],
@@ -104,8 +147,33 @@ export default {
     };
   },
   methods: {
-    searchEvent(message) {
-      console.log(message);
+    async searchEvent(filterObj) {
+      const { date, duration, port, subjectCode } = filterObj;
+      const queryObject = {};
+
+      // add date
+      if (date.year !== 0 && date.month !== 0) {
+        queryObject.Year = date.year;
+        queryObject.Month = date.month;
+      }
+
+      // add duration
+      if (duration.end > duration.start) {
+        queryObject.DurationStart = duration.start;
+        queryObject.DurationEnd = duration.end;
+      }
+
+      // add port
+      if (port.num > 0) {
+        queryObject.FamNo = port.num;
+      }
+
+      // add subjectCode
+      if (subjectCode.code_no > 0) {
+        queryObject.CodeNo = subjectCode.code_no;
+      }
+
+      await this.queryDetailedData(queryObject);
     },
     onRowSelected(items) {
       this.selected = items;
@@ -118,8 +186,10 @@ export default {
     },
     openDetailedView(dataObj) {
       if (dataObj) {
-        this.detailedData = this.items.filter(
-          item => item.ie_day === dataObj.ie_day
+        this.detailedData = JSON.parse(
+          JSON.stringify(
+            this.items.filter(item => item.ie_day === dataObj.ie_day)
+          )
         );
       } else {
         this.detailedData = [
@@ -136,6 +206,115 @@ export default {
     onDetailedDataChanged(detailedObj) {
       console.log(detailedObj);
     },
+    async queryDetailedData(queryObject) {
+      this.isBusy = true;
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.detatiledData,
+        {
+          Action: `READ`,
+          ...queryObject,
+        }
+      );
+
+      if (resObject.status === this.mixinBackendErrorCode.success) {
+        if (resObject.data.CoExpD.length === 0) {
+          this.hintText = `無資料`;
+        }
+
+        this.items = resObject.data.CoExpD || [];
+
+        // set code_name
+        this.items.forEach(obj => {
+          if (obj.code_no !== undefined) {
+            const subObject = this.subjectArray.find(
+              subObj => subObj.code_no === obj.code_no
+            );
+            obj.code_name = subObject.code_name || ``;
+          }
+        });
+
+        this.coExpMitems = resObject.data.CoExpM || [];
+      } else {
+        this.hintText = `查詢錯誤發生，請確認有輸入必要參數`;
+      }
+
+      this.isBusy = false;
+      return resObject;
+    },
+    async onSaveEvent(items) {
+      const { ie_year, ie_mon, ie_day, fam_no } = items[0];
+      const filteredItems = this.items.filter(
+        obj =>
+          obj.ie_year === ie_year &&
+          obj.ie_mon === ie_mon &&
+          obj.ie_day === ie_day &&
+          obj.fam_no === fam_no
+      );
+
+      const updateItems = items.filter(obj => obj.item_no !== undefined);
+      const insertItems = items.filter(obj => !obj.item_no);
+      const deleteItems = filteredItems.filter(
+        obj =>
+          updateItems.map(obj2 => obj2.item_no).includes(obj.item_no) === false
+      );
+
+      await this.deleteItems(deleteItems);
+      await this.saveItems(updateItems, insertItems);
+
+      this.$refs.domModal.hide();
+    },
+    async saveItems(updateItems, insertItems) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.detatiledData,
+        {
+          Action: `WRITE`,
+          UpdateItems: JSON.stringify(updateItems),
+          InsertItems: JSON.stringify(insertItems),
+          FamNo: updateItems[0].fam_no,
+          Year: updateItems[0].ie_year,
+          Month: updateItems[0].ie_mon,
+          Day: updateItems[0].ie_day,
+          TotalCost: updateItems[0].exp_amt,
+        }
+      );
+
+      if (resObject.status === this.mixinBackendErrorCode.success) {
+        for (let i = 0; i < updateItems.length; i++) {
+          const itemIdx = this.items.findIndex(
+            obj => obj.item_no === updateItems[i].item_no
+          );
+          this.$set(this.items, itemIdx, updateItems[i]);
+        }
+        this.items = [...insertItems, ...this.items];
+      }
+    },
+    async deleteItems(items) {
+      const tempItems = items.length > 0 ? items : this.selected;
+      if (!tempItems || tempItems.length === 0) {
+        return;
+      }
+
+      const deleteItemNoAry = tempItems.map(obj => obj.item_no);
+
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.detatiledData,
+        {
+          Action: `DELETE`,
+          ItemArray: JSON.stringify(deleteItemNoAry),
+          FamNo: tempItems[0].fam_no,
+        }
+      );
+
+      if (resObject.status === this.mixinBackendErrorCode.success) {
+        // delete item in local var
+        for (let i = 0; i < tempItems.length; i++) {
+          const itemIdx = this.items.findIndex(
+            obj => obj.item_no === tempItems[i].item_no
+          );
+          this.$delete(this.items, itemIdx);
+        }
+      }
+    },
   },
   created() {
     this.fields = [
@@ -148,33 +327,76 @@ export default {
       { key: `code_name`, label: `科目名稱` },
       { key: `edit`, label: `` },
     ];
-    this.items = [
-      {
-        ie_year: 2018,
-        ie_month: 1,
-        ie_day: 1,
-        exp_amt: 300,
-        place: 5,
-        code_amt: 300,
-        code_no: 32101,
-        code_name: `水費`,
-        fam_no: 123456,
-      },
-      {
-        ie_year: 2018,
-        ie_month: 1,
-        ie_day: 1,
-        exp_amt: 500,
-        place: 8,
-        code_amt: 200,
-        code_no: 92101,
-        code_name: `中式米食`,
-        fam_no: 123456,
-      },
-    ];
   },
-  mounted() {},
-  computed: {},
+  async mounted() {
+    if (this.inputedQueryObj) {
+      await this.queryDetailedData(this.inputedQueryObj);
+    }
+  },
+  computed: {
+    ...mapState([`paramArray`, `subjectArray`]),
+    placeName() {
+      return placeNo => {
+        if (!placeNo || placeNo === 0) {
+          return ``;
+        }
+
+        if (this.paramArray.length === 0) {
+          return ``;
+        }
+
+        const paramObj = this.paramArray.find(
+          obj => obj.par_typ === `A` && obj.par_no === placeNo
+        );
+        if (!paramObj) {
+          return ``;
+        }
+
+        return paramObj.par_name;
+      };
+    },
+    noPaymentDays() {
+      if (this.coExpMitems.length === 0) {
+        return ``;
+      }
+
+      return this.coExpMitems
+        .filter(obj => obj.exp_amt.length === 0)
+        .map(obj => obj.ie_day)
+        .join(', ');
+    },
+    errorDaysOpts() {
+      if (this.items.length === 0 || this.coExpMitems.length === 0) {
+        return [];
+      }
+
+      return this.coExpMitems
+        .reduce((tempAry, mObj) => {
+          const ieDay = mObj.ie_day;
+          const totalCost = parseInt(mObj.exp_amt, 10);
+          const realCost = this.items
+            .filter(dObj => dObj.ie_day === ieDay)
+            .reduce((total, dObj) => {
+              if (dObj.code_amt) {
+                total += parseInt(dObj.code_amt, 10);
+              }
+              return total;
+            }, 0);
+          if (totalCost !== realCost) {
+            tempAry.push(ieDay);
+          }
+
+          return tempAry;
+        }, [])
+        .map(day => {
+          return {
+            value: day,
+            text: `錯誤日期:${day}`,
+          };
+        });
+    },
+  },
+  /* eslint-disable no-undef, no-param-reassign, camelcase */
 };
 </script>
 

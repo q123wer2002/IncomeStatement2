@@ -19,10 +19,18 @@
       </b-row>
       <b-row class="my-1">
         <b-col>
-          <label>本日支出總和：</label>
+          <label>輸入本日總和：</label>
         </b-col>
         <b-col>
-          <span>{{ totalCost }}</span>
+          <b-form-input v-model="todayTotalCost" type="number"></b-form-input>
+        </b-col>
+      </b-row>
+      <b-row class="my-1">
+        <b-col>
+          <label>本日實際總和：</label>
+        </b-col>
+        <b-col>
+          <span :style="costStyle">{{ totalCost }}</span>
         </b-col>
       </b-row>
     </b-container>
@@ -39,13 +47,23 @@
         {{ data.index + 1 }}
       </template>
       <template slot="[place]" slot-scope="{ item }">
-        <b-form-input v-model="item.place"></b-form-input>
+        <b-form-select
+          v-model="item.place"
+          :options="placeOpts"
+        ></b-form-select>
       </template>
       <template slot="[code_amt]" slot-scope="{ item }">
-        <b-form-input v-model="item.code_amt"></b-form-input>
+        <b-form-input v-model="item.code_amt" type="number"></b-form-input>
       </template>
-      <template slot="[code_no]" slot-scope="{ item }">
-        <b-form-input v-model="item.code_no"></b-form-input>
+      <template slot="[code_no]" slot-scope="data">
+        <b-form-input
+          v-model="data.item.code_no"
+          @update="onCodeChanged(data.index)"
+          type="number"
+        ></b-form-input>
+      </template>
+      <template slot="[code_name]" slot-scope="{ item }">
+        <b-form-input v-model="item.code_name"></b-form-input>
       </template>
       <template slot="bottom-row">
         <b-td colspan="6">
@@ -58,12 +76,15 @@
     </b-table>
 
     <hr />
-    <b-button variant="danger">結束</b-button>
-    <b-button variant="info">儲存</b-button>
+    <b-button variant="info" :disabled="!isEnabledSave" @click="saveItems">
+      儲存
+    </b-button>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
   /* eslint-disable no-undef, no-param-reassign, camelcase */
   imgSrc: {
@@ -81,7 +102,7 @@ export default {
   },
   data() {
     return {
-      // local var
+      tempCost: 0,
 
       // table
       fields: [
@@ -103,7 +124,7 @@ export default {
       this.items.push({
         fam_no: 123456,
         ie_year: 2018,
-        ie_month: 1,
+        ie_mon: 1,
         ie_day: 1,
         place: 0,
         code_amt: 0,
@@ -111,10 +132,71 @@ export default {
         code_name: ``,
       });
     },
+    onCodeChanged(index) {
+      const tempItem = this.items[index];
+      const codeObj = this.subjectArray.find(
+        obj => obj.code_no === tempItem.code_no
+      );
+      let newName = ``;
+      if (codeObj) {
+        newName = codeObj.code_name;
+      }
+
+      this.$set(this.items[index], `code_name`, newName);
+    },
+    saveItems() {
+      const { ie_year, ie_mon, ie_day, fam_no } = this.data[0];
+      this.items.forEach(obj => {
+        obj.ie_year = ie_year;
+        obj.ie_mon = ie_mon;
+        obj.ie_day = ie_day;
+        obj.fam_no = fam_no;
+      });
+
+      this.$emit(`save`, this.items);
+    },
   },
   created() {},
   mounted() {},
   computed: {
+    ...mapState([`paramArray`, `subjectArray`]),
+    todayTotalCost: {
+      get() {
+        if (this.items.length > 0) {
+          return parseInt(this.items[0].exp_amt, 10);
+        }
+
+        return this.tempCost;
+      },
+      set(value) {
+        if (this.items.length === 0) {
+          this.tempCost = value;
+          return;
+        }
+
+        this.items.forEach(obj => {
+          obj.exp_amt = value;
+        });
+      },
+    },
+    placeOpts() {
+      return this.paramArray
+        .filter(obj => obj.par_typ === `A`)
+        .map(obj => {
+          return {
+            text: obj.par_name,
+            value: obj.par_no,
+          };
+        });
+    },
+    subjectOpts() {
+      return this.subjectArray.map(obj => {
+        return {
+          text: obj.code_name,
+          value: obj.code_no,
+        };
+      });
+    },
     familyNo() {
       if (this.data.length > 0) {
         return this.data[0].fam_no;
@@ -124,21 +206,41 @@ export default {
     },
     dataDate() {
       if (this.data.length > 0) {
-        const { ie_year, ie_month, ie_day } = this.data[0];
-        return `${ie_year}年${ie_month}月${ie_day}日`;
+        const { ie_year, ie_mon, ie_day } = this.data[0];
+        return `${ie_year}年${ie_mon}月${ie_day}日`;
       }
 
       return ``;
     },
     totalCost() {
-      if (this.data.length > 0) {
-        return this.data.reduce((totalCost, itemObj) => {
-          totalCost += itemObj.code_amt;
+      if (this.items.length > 0) {
+        return this.items.reduce((totalCost, itemObj) => {
+          totalCost += parseInt(itemObj.code_amt, 10);
           return totalCost;
         }, 0);
       }
 
       return 0;
+    },
+    costStyle() {
+      if (this.totalCost !== this.todayTotalCost) {
+        return {
+          color: `red`,
+        };
+      }
+
+      return {
+        color: `green`,
+      };
+    },
+    isEnabledSave() {
+      // check cost
+      if (this.totalCost !== this.todayTotalCost) {
+        return false;
+      }
+
+      // check empty
+      return this.items.every(obj => obj.code_name.length !== 0);
     },
   },
   /* eslint-disable no-undef, no-param-reassign, camelcase */
