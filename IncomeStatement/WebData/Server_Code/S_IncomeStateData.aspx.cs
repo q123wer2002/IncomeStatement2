@@ -170,14 +170,20 @@ namespace IncomeStatement.WebData.Server_Code
 		{
 			// get all need to confirm data
 			List<JObject> jObjectList = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.ConfirmList ].ToString());
+			string szWhere = $"fam_no IN({string.Join(", ", jObjectList.Select(data => $"'{data[ "fam_no" ]}'").ToArray())}) ";
+			szWhere += $"AND ie_year={jObjectList[ 0 ][ "ie_year" ]} AND ie_mon={jObjectList[ 0 ][ "ie_mon" ]}";
+			string szErrorMsg;
+
+			// insert into log
+			string szInertCoFamLog = $"INSERT INTO {TableName.CoFamLog} SELECT 'M', CURRENT_TIMESTAMP, 'SYS', * FROM {TableName.CoFam} WHERE {szWhere}";
+			string szInsertExMLog = $"INSERT INTO {TableName.CoExpMLog} SELECT 'M', CURRENT_TIMESTAMP, 'SYS', * FROM {TableName.CoExpM} WHERE {szWhere}";
+			m_mssql.TryQuery(szInertCoFamLog, out szErrorMsg);
+			m_mssql.TryQuery(szInsertExMLog, out szErrorMsg);
 
 			// update co_fam
 			string szUpdateCoFam = $"UPDATE {TableName.CoFam} " +
 				$"SET state=2 " +
-				$"WHERE ie_year={jObjectList[0][ "ie_year" ]} " +
-				$"AND ie_mon={jObjectList[0][ "ie_mon" ]} " +
-				$"AND fam_no IN ({string.Join(", ", jObjectList.Select(data => $"'{data[ "fam_no" ]}'").ToArray())})";
-			string szErrorMsg;
+				$"WHERE {szWhere}";
 			bool isSuccess = m_mssql.TryQuery(szUpdateCoFam, out szErrorMsg);
 			if( isSuccess == false ) {
 				return false;
@@ -186,9 +192,7 @@ namespace IncomeStatement.WebData.Server_Code
 			// update co_exp_m
 			string szUpdateCoExpM = $"UPDATE {TableName.CoExpM} " +
 				$"SET state=2 " +
-				$"WHERE ie_year={jObjectList[ 0 ][ "ie_year" ]} " +
-				$"AND ie_mon={jObjectList[ 0 ][ "ie_mon" ]} " +
-				$"AND fam_no IN ({string.Join(", ", jObjectList.Select(data => $"'{data[ "fam_no" ]}'").ToArray())})";
+				$"WHERE {szWhere}";
 			isSuccess = m_mssql.TryQuery(szUpdateCoFam, out szErrorMsg);
 			return isSuccess;
 		}
