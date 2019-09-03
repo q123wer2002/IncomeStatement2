@@ -2,18 +2,18 @@
   <div id="mainPage">
     <b-container fluid>
       <b-row class="my-1">
-        <b-col>
+        <b-col style="text-align: right;" col lg="2">
           <label>戶號：</label>
         </b-col>
-        <b-col>
+        <b-col style="text-align: left" col lg="8">
           <span>{{ familyNo }}</span>
         </b-col>
       </b-row>
       <b-row class="my-1">
-        <b-col>
+        <b-col style="text-align: right;" col lg="2">
           <label>日期：</label>
         </b-col>
-        <b-col>
+        <b-col style="text-align: left" col lg="8">
           <span>{{ dataDate }}</span>
           <div class="d-block-inline" v-if="isNeedSelectDay">
             <input
@@ -28,19 +28,31 @@
         </b-col>
       </b-row>
       <b-row class="my-1">
-        <b-col>
-          <label>輸入本日總和：</label>
+        <b-col style="text-align: right;" col lg="2">
+          <label>輸入金額合計：</label>
         </b-col>
-        <b-col>
-          <b-form-input v-model="todayTotalCost" type="number"></b-form-input>
+        <b-col style="text-align: left" col lg="8">
+          <span :style="costStyle">{{ totalCost }}</span>
         </b-col>
       </b-row>
       <b-row class="my-1">
-        <b-col>
-          <label>本日實際總和：</label>
+        <b-col style="text-align: right;" col lg="2">
+          <label>本日支出合計：</label>
         </b-col>
-        <b-col>
-          <span :style="costStyle">{{ totalCost }}</span>
+        <b-col style="text-align: left" col lg="8">
+          <b-form-input
+            size="sm"
+            v-model="todayTotalCost"
+            type="number"
+          ></b-form-input>
+        </b-col>
+      </b-row>
+      <b-row class="my-1">
+        <b-col style="text-align: right;" col lg="2">
+          <label>備註：</label>
+        </b-col>
+        <b-col style="text-align: left" col lg="8">
+          <b-form-input v-model="tempRemark" size="sm"></b-form-input>
         </b-col>
       </b-row>
     </b-container>
@@ -57,23 +69,33 @@
         {{ data.index + 1 }}
       </template>
       <template slot="[place]" slot-scope="{ item }">
-        <b-form-select
-          v-model="item.place"
-          :options="placeOpts"
-        ></b-form-select>
+        <b-form-input v-model="item.place"></b-form-input>
       </template>
       <template slot="[code_amt]" slot-scope="{ item }">
-        <b-form-input v-model="item.code_amt" type="number"></b-form-input>
+        <b-form-input v-model="item.code_amt"></b-form-input>
       </template>
       <template slot="[code_no]" slot-scope="data">
         <b-form-input
           v-model="data.item.code_no"
           @update="onCodeChanged(data.index)"
-          type="number"
+          list="subjectNolist"
         ></b-form-input>
+        <datalist id="subjectNolist">
+          <option v-for="(obj, index) in subjectOpts" :key="index">
+            {{ obj.value }}
+          </option>
+        </datalist>
       </template>
       <template slot="[code_name]" slot-scope="{ item }">
-        <b-form-input v-model="item.code_name"></b-form-input>
+        <b-form-input
+          v-model="item.code_name"
+          list="subjectNamelist"
+        ></b-form-input>
+        <datalist id="subjectNamelist">
+          <option v-for="(obj, index) in subjectOpts" :key="index">
+            {{ obj.text }}
+          </option>
+        </datalist>
       </template>
       <template slot="bottom-row">
         <b-td colspan="6">
@@ -86,6 +108,7 @@
     </b-table>
 
     <hr />
+    <span style="color: red">{{ cantSaveHint }}</span>
     <b-button variant="info" :disabled="!isEnabledSave" @click="saveItems">
       儲存
     </b-button>
@@ -96,7 +119,7 @@
 import { mapState } from 'vuex';
 
 export default {
-  /* eslint-disable no-undef, no-param-reassign, camelcase */
+  /* eslint-disable no-undef, no-param-reassign, camelcase, vue/no-side-effects-in-computed-properties */
   imgSrc: {
     trash: `/${webpackDashboardName}/WebData/Picture/icon/material-io/baseline_delete_forever_black_48dp.png`,
     add: `/${webpackDashboardName}/WebData/Picture/icon/material-io/baseline_add_circle_black_48dp.png`,
@@ -113,10 +136,15 @@ export default {
       type: Array,
       required: true,
     },
+    remark: {
+      type: String,
+      required: false,
+    },
   },
   data() {
     return {
       tempCost: 0,
+      tempRemark: ``,
 
       // table
       fields: [
@@ -128,6 +156,7 @@ export default {
         { key: `code_name`, label: `科目名稱` },
       ],
       items: this.data,
+      cantSaveHint: ``,
     };
   },
   methods: {
@@ -140,9 +169,9 @@ export default {
         ie_year: 2018,
         ie_mon: 1,
         ie_day: 1,
-        place: 0,
-        code_amt: 0,
-        code_no: 0,
+        place: ``,
+        code_amt: ``,
+        code_no: ``,
         code_name: ``,
       });
     },
@@ -167,15 +196,18 @@ export default {
         obj.fam_no = fam_no;
       });
 
-      this.$emit(`save`, this.items);
+      this.$emit(`save`, {
+        items: this.items,
+        remark: this.tempRemark,
+      });
     },
     initialSubName() {
       this.items.forEach(obj => {
-        if (obj.code_no !== undefined) {
+        if (obj.code_no !== undefined && obj.code_name.length === 0) {
           const subObject = this.subjectArray.find(
             subObj => subObj.code_no === obj.code_no
           );
-          obj.code_name = subObject.code_name || ``;
+          obj.code_name = subObject ? subObject.code_name : ``;
         }
       });
     },
@@ -196,6 +228,10 @@ export default {
   mounted() {
     if (this.data.length > 0) {
       this.initialSubName();
+    }
+
+    if (this.remark.length !== 0) {
+      this.tempRemark = this.remark;
     }
   },
   computed: {
@@ -219,23 +255,22 @@ export default {
         });
       },
     },
-    placeOpts() {
-      return this.paramArray
-        .filter(obj => obj.par_typ === `A`)
+    subjectOpts() {
+      return this.subjectArray
+        .reduce((tempArray, obj) => {
+          const idx = tempArray.findIndex(obj2 => obj2.code_no === obj.code_no);
+          if (idx === -1) {
+            tempArray.push(obj);
+          }
+
+          return tempArray;
+        }, [])
         .map(obj => {
           return {
-            text: obj.par_name,
-            value: obj.par_no,
+            text: obj.code_name,
+            value: obj.code_no,
           };
         });
-    },
-    subjectOpts() {
-      return this.subjectArray.map(obj => {
-        return {
-          text: obj.code_name,
-          value: obj.code_no,
-        };
-      });
     },
     familyNo() {
       if (this.data.length > 0) {
@@ -265,7 +300,12 @@ export default {
     totalCost() {
       if (this.items.length > 0) {
         return this.items.reduce((totalCost, itemObj) => {
-          totalCost += parseInt(itemObj.code_amt, 10);
+          const cost = parseInt(itemObj.code_amt, 10);
+          if (!cost) {
+            return totalCost;
+          }
+
+          totalCost += cost;
           return totalCost;
         }, 0);
       }
@@ -286,11 +326,19 @@ export default {
     isEnabledSave() {
       // check cost
       if (this.totalCost !== this.todayTotalCost) {
+        this.cantSaveHint = `金額不一致`;
         return false;
       }
 
       // check empty
-      return this.items.every(obj => obj.code_name.length !== 0);
+      const isNoEmpty = this.items.every(obj => obj.code_name.length !== 0);
+      if (isNoEmpty === false) {
+        this.cantSaveHint = `有科目欄位為空`;
+        return false;
+      }
+
+      this.cantSaveHint = ``;
+      return true;
     },
     isNeedSelectDay() {
       if (this.data.length > 0) {
@@ -313,7 +361,7 @@ export default {
       deep: true,
     },
   },
-  /* eslint-disable no-undef, no-param-reassign, camelcase */
+  /* eslint-disable no-undef, no-param-reassign, camelcase, vue/no-side-effects-in-computed-properties */
 };
 </script>
 

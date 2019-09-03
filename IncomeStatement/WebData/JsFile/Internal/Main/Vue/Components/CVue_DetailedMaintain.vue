@@ -19,7 +19,6 @@
           v-model="perPage"
           type="number"
           size="sm"
-          label="1234"
           class="d-inline-block"
         ></b-form-input>
       </div>
@@ -40,14 +39,17 @@
         </b-button>
       </b-button-group>
 
-      <div>
-        <div class="m-50 d-inline-block mx-2 my-2">
+      <div class="d-flex flex-row">
+        <div class="my-2 mx-2">
           <span>資料檢查</span>
-          <b-form-select :options="errorDaysOpts"></b-form-select>
+          <b-form-select
+            v-model="checkKey"
+            :options="checkOpts"
+          ></b-form-select>
         </div>
-        <div class="m-50 d-inline-block mx-2 my-2">
-          <span>無支出日期</span>
-          <b-form-input v-model="noPaymentDays" disabled></b-form-input>
+        <div class="my-2 mx-2">
+          <span>資料異常日期</span>
+          <b-form-input v-model="errorDays" disabled></b-form-input>
         </div>
       </div>
 
@@ -73,14 +75,17 @@
         <div slot="empty" class="text-center text-danger my-2">
           <strong>資料不存在</strong>
         </div>
-        <template slot="[selected]" slot-scope="{ rowSelected }">
+        <template slot="[code_name]" slot-scope="{ item }">
+          <div style="text-align: left;">{{ item.code_name }}</div>
+        </template>
+        <template slot="[selected]" slot-scope="{ rowSelected, index }">
           <b-form-checkbox
             v-model="rowSelected"
-            button-variant="info"
+            @change="selectOneItem(index)"
           ></b-form-checkbox>
         </template>
         <template slot="[place]" slot-scope="{ item }">
-          <span>{{ placeName(item.place) }}</span>
+          <div style="text-align: left;">{{ placeName(item.place) }}</div>
         </template>
         <template slot="[edit]" slot-scope="{ item }">
           <a href="javascript:;" @click="openDetailedView(item)">編輯</a>
@@ -103,6 +108,7 @@
       <detailed-view
         :queryObject="addQueryObject"
         :data="detailedData"
+        :remark="passRemark"
         @save="onSaveEvent"
       ></detailed-view>
     </b-modal>
@@ -138,6 +144,9 @@ export default {
       hintText: `請先查詢資料`,
       queryObject: {},
       addQueryObject: {},
+      checkKey: -1,
+      errorDays: ``,
+      isSelectAll: false,
 
       // for table
       fields: [],
@@ -150,11 +159,14 @@ export default {
 
       // for edit, and new one
       detailedData: [],
+      passRemark: ``,
     };
   },
   methods: {
     async searchEvent(filterObj) {
       const { date, duration, port, subjectCode } = filterObj;
+      this.queryObject = {};
+
       // add date
       if (date.year !== 0 && date.month !== 0) {
         this.queryObject.Year = date.year;
@@ -162,7 +174,11 @@ export default {
       }
 
       // add duration
-      if (duration.end > duration.start) {
+      if (
+        duration.start.length > 0 &&
+        duration.end.length > 0 &&
+        duration.end >= duration.start
+      ) {
         this.queryObject.DurationStart = duration.start;
         this.queryObject.DurationEnd = duration.end;
       }
@@ -184,9 +200,20 @@ export default {
     },
     selectAllRows() {
       this.$refs.domDatatable.selectAllRows();
+      this.isSelectAll = true;
     },
     clearSelected() {
       this.$refs.domDatatable.clearSelected();
+      this.isSelectAll = false;
+    },
+    selectOneItem(index) {
+      const isSelected = this.$refs.domDatatable.isRowSelected(index);
+      if (isSelected) {
+        this.$refs.domDatatable.unselectRow(index);
+        return;
+      }
+
+      this.$refs.domDatatable.selectRow(index);
     },
     openDetailedView(dataObj) {
       if (dataObj) {
@@ -195,6 +222,9 @@ export default {
             this.items.filter(item => item.ie_day === dataObj.ie_day)
           )
         );
+        this.passRemark = this.coExpMitems.find(
+          obj => obj.ie_day === dataObj.ie_day
+        ).day_rem;
       } else {
         const { Year, Month, FamNo } = this.queryObject;
         this.detailedData = [];
@@ -206,9 +236,6 @@ export default {
       }
 
       this.$refs.domModal.show();
-    },
-    onDetailedDataChanged(detailedObj) {
-      console.log(detailedObj);
     },
     async queryDetailedData(queryObject) {
       this.isBusy = true;
@@ -229,11 +256,11 @@ export default {
 
         // set code_name
         this.items.forEach(obj => {
-          if (obj.code_no !== undefined) {
+          if (obj.code_no !== undefined && obj.code_name.length === 0) {
             const subObject = this.subjectArray.find(
               subObj => subObj.code_no === obj.code_no
             );
-            obj.code_name = subObject.code_name || ``;
+            obj.code_name = subObject ? subObject.code_name : ``;
           }
         });
 
@@ -245,7 +272,7 @@ export default {
       this.isBusy = false;
       return resObject;
     },
-    async onSaveEvent(items) {
+    async onSaveEvent({ items, remark }) {
       const { ie_year, ie_mon, ie_day, fam_no } = items[0];
       const filteredItems = this.items.filter(
         obj =>
@@ -263,11 +290,11 @@ export default {
       );
 
       await this.deleteItems(deleteItems);
-      await this.saveItems(updateItems, insertItems);
+      await this.saveItems(updateItems, insertItems, remark);
 
       this.$refs.domModal.hide();
     },
-    async saveItems(updateItems, insertItems) {
+    async saveItems(updateItems, insertItems, remark) {
       const resObject = await this.mixinCallBackService(
         this.mixinBackendService.detatiledData,
         {
@@ -279,6 +306,7 @@ export default {
           Month: updateItems[0].ie_mon,
           Day: updateItems[0].ie_day,
           TotalCost: updateItems[0].exp_amt,
+          Remark: remark,
         }
       );
 
@@ -356,48 +384,75 @@ export default {
           return ``;
         }
 
-        return paramObj.par_name;
+        return `${paramObj.par_no} ${paramObj.par_name}`;
       };
     },
-    noPaymentDays() {
-      if (this.coExpMitems.length === 0) {
-        return ``;
-      }
-
-      return this.coExpMitems
-        .filter(obj => obj.exp_amt.length === 0)
-        .map(obj => obj.ie_day)
-        .join(', ');
+    checkOpts() {
+      return [
+        {
+          value: 0,
+          text: `無支出日期`,
+        },
+        {
+          value: 1,
+          text: `每日支出合計金額不符`,
+        },
+      ];
     },
-    errorDaysOpts() {
-      if (this.items.length === 0 || this.coExpMitems.length === 0) {
-        return [];
-      }
+  },
+  watch: {
+    checkKey: {
+      handler(value) {
+        if (value === 0) {
+          const days = Object.keys(this.coExpMitems);
+          // check no payment data
+          this.errorDays = days
+            .filter(day => {
+              return this.items
+                .filter(obj => obj.ie_day === day)
+                .some(obj => {
+                  const cost = parseInt(obj.code_amt, 10);
+                  if (!cost || cost === 0) {
+                    return false;
+                  }
 
-      return this.coExpMitems
-        .reduce((tempAry, mObj) => {
-          const ieDay = mObj.ie_day;
-          const totalCost = parseInt(mObj.exp_amt, 10);
-          const realCost = this.items
-            .filter(dObj => dObj.ie_day === ieDay)
-            .reduce((total, dObj) => {
-              if (dObj.code_amt) {
-                total += parseInt(dObj.code_amt, 10);
+                  return true;
+                });
+            })
+            .join(', ');
+        }
+
+        if (value === 1) {
+          // check cost compare
+          this.errorDays = this.coExpMitems
+            .reduce((tempAry, mObj) => {
+              const ieDay = mObj.ie_day;
+              const totalCost = parseInt(mObj.exp_amt, 10);
+              const realCost = this.items
+                .filter(dObj => dObj.ie_day === ieDay)
+                .reduce((total, dObj) => {
+                  if (dObj.code_amt) {
+                    total += parseInt(dObj.code_amt, 10);
+                  }
+                  return total;
+                }, 0);
+              if (totalCost !== realCost) {
+                tempAry.push(ieDay);
               }
-              return total;
-            }, 0);
-          if (totalCost !== realCost) {
-            tempAry.push(ieDay);
+              return tempAry;
+            }, [])
+            .join(', ');
+        }
+      },
+    },
+    currentPage: {
+      handler() {
+        this.$nextTick(() => {
+          if (this.isSelectAll) {
+            this.selectAllRows();
           }
-
-          return tempAry;
-        }, [])
-        .map(day => {
-          return {
-            value: day,
-            text: `錯誤日期:${day}`,
-          };
         });
+      },
     },
   },
   /* eslint-disable no-undef, no-param-reassign, camelcase */

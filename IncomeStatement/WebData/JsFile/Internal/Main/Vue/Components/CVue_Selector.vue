@@ -22,13 +22,20 @@
             size="sm"
           ></b-form-select>
 
-          <b-form-input
-            v-else
-            v-model="item.value[typeKey]"
-            :type="typeValue"
-            class="d-inline w-25 h-25"
-            size="sm"
-          ></b-form-input>
+          <template v-else>
+            <b-form-input
+              v-model="item.value[typeKey]"
+              :type="typeValue"
+              :list="typeKey"
+              class="d-inline w-25 h-25"
+              size="sm"
+            ></b-form-input>
+            <datalist :id="typeKey">
+              <option v-for="obj in item.source[typeKey]" :key="obj.key">
+                {{ obj }}
+              </option>
+            </datalist>
+          </template>
 
           <span v-if="typeKey === `start`">~</span>
         </span>
@@ -92,12 +99,7 @@ export default {
           );
 
           if (resObject.status === this.mixinBackendErrorCode.success) {
-            obj.source[tempObj] = resObject.data.map(apiObj => {
-              return {
-                text: apiObj.fam_no,
-                value: apiObj.fam_no,
-              };
-            });
+            obj.source[tempObj] = resObject.data.map(apiObj => apiObj.fam_no);
           }
         });
       });

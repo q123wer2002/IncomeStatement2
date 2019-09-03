@@ -142,7 +142,13 @@ namespace IncomeStatement.WebData.Server_Code
 					if( Request.Form[ Param.CodeNo ] != null ) {
 						string szCodeNo = Request.Form[ Param.CodeNo ].ToString();
 						int nCode = int.Parse(szCodeNo);
-						m_paramExpDList.Add($"{TableName.CoExpD}.code_no={nCode}");
+						m_paramExpDList.Add($"{TableName.CoExpD}.code_no LIKE '{nCode}%'");
+					}
+
+					// check no
+					if( Request.Form[ Param.CodeName ] != null ) {
+						string szCodeName = Request.Form[ Param.CodeName ].ToString();
+						m_paramExpDList.Add($"{TableName.CoExpD}.code_name LIKE '%{szCodeName}%'");
 					}
 
 					if( m_paramExpDList.Count == 0 ) {
@@ -171,6 +177,9 @@ namespace IncomeStatement.WebData.Server_Code
 					// check total cosst
 					string szTotalCost = Request.Form[ Param.TotalCost ].ToString();
 					int.Parse(szTotalCost);
+
+					// check remark
+					string szRemark = Request.Form[ Param.DayRemark ].ToString();
 					return true;
 				}
 				if( action == ApiAction.DELETE ) {
@@ -247,13 +256,14 @@ namespace IncomeStatement.WebData.Server_Code
 			// update cost
 			string szErrorMsg;
 			int nTotalCosst = int.Parse(Request.Form[ Param.TotalCost ].ToString());
+			string szRemark = Request.Form[ Param.DayRemark ].ToString();
 			string szWhere = "";
 			for( int i = 0; i < m_paramExpMList.Count; i++ ) {
 				szWhere += $" {m_paramExpMList[ i ]}";
 				szWhere += i == m_paramExpMList.Count - 1 ? " " : " AND";
 			}
 			string szInsertSql = $"INSERT INTO {TableName.CoExpMLog} SELECT 'M', CURRENT_TIMESTAMP, 'SYS', * FROM {TableName.CoExpM} WHERE {szWhere}";
-			string szUpdate = $"UPDATE {TableName.CoExpM} SET exp_amt='{nTotalCosst}' WHERE {szWhere}";
+			string szUpdate = $"UPDATE {TableName.CoExpM} SET exp_amt='{nTotalCosst}', day_rem='{szRemark}' WHERE {szWhere}";
 			m_mssql.TryQuery(szInsertSql, out szErrorMsg);
 			m_mssql.TryQuery(szUpdate, out szErrorMsg);
 
@@ -404,6 +414,13 @@ namespace IncomeStatement.WebData.Server_Code
 				get
 				{
 					return "TotalCost";
+				}
+			}
+			public static string DayRemark
+			{
+				get
+				{
+					return "Remark";
 				}
 			}
 

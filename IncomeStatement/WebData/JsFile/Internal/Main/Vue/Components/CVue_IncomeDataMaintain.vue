@@ -43,10 +43,10 @@
           <b-spinner class="align-middle"></b-spinner>
           <strong>Loading...</strong>
         </div>
-        <template slot="[selected]" slot-scope="{ rowSelected }">
+        <template slot="[selected]" slot-scope="{ rowSelected, index }">
           <b-form-checkbox
             v-model="rowSelected"
-            button-variant="info"
+            @change="selectOneItem(index)"
           ></b-form-checkbox>
         </template>
         <template slot="[state]" slot-scope="{ item }">
@@ -94,6 +94,7 @@ export default {
       selectorModel: incomeDataModel,
       detailedQueryObj: {},
       queryObject: {},
+      isSelectAll: false,
 
       fields: [],
       items: [],
@@ -132,9 +133,20 @@ export default {
     },
     selectAllRows() {
       this.$refs.domDatatable.selectAllRows();
+      this.isSelectAll = true;
     },
     clearSelected() {
       this.$refs.domDatatable.clearSelected();
+      this.isSelectAll = false;
+    },
+    selectOneItem(index) {
+      const isSelected = this.$refs.domDatatable.isRowSelected(index);
+      if (isSelected) {
+        this.$refs.domDatatable.unselectRow(index);
+        return;
+      }
+
+      this.$refs.domDatatable.selectRow(index);
     },
     async queryIncomeStateData(queryObject) {
       this.isBusy = true;
@@ -220,6 +232,17 @@ export default {
       }
 
       return this.selected.some(obj => obj.state !== `2`);
+    },
+  },
+  watch: {
+    currentPage: {
+      handler() {
+        this.$nextTick(() => {
+          if (this.isSelectAll) {
+            this.selectAllRows();
+          }
+        });
+      },
     },
   },
   /* eslint-disable no-undef, no-param-reassign, camelcase */

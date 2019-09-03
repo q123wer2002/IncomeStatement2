@@ -65,7 +65,7 @@
         <template slot="[code_name]" slot-scope="{ item }">
           <div style="text-align: left;">{{ item.code_name }}</div>
         </template>
-        <template slot="[selected]" slot-scope="{ item, rowSelected, index }">
+        <template slot="[selected]" slot-scope="{ rowSelected, index }">
           <b-form-checkbox
             v-model="rowSelected"
             @change="selectOneItem(index)"

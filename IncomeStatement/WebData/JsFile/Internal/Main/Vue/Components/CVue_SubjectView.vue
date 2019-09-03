@@ -137,7 +137,7 @@ export default {
         .map(obj => {
           return {
             value: obj.par_no,
-            text: `${obj.par_no}_${obj.par_name}`,
+            text: `${obj.par_no} ${obj.par_name}`,
           };
         });
     },
