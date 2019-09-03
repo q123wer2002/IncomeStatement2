@@ -82,10 +82,10 @@ export const subjectModel = [
     key: `subjectCode`,
     text: `科目代碼`,
     type: {
-      code_no: `number`,
+      code_no: `text`,
     },
     value: {
-      code_no: 0,
+      code_no: ``,
     },
     source: {
       code_no: null,

@@ -2,10 +2,10 @@
   <div id="mainPage">
     <b-container fluid>
       <b-row class="my-1" v-for="item in itemKeys" :key="item.key">
-        <b-col>
+        <b-col style="text-align: right;" col lg="2">
           <label>{{ item.text }}</label>
         </b-col>
-        <b-col>
+        <b-col style="text-align: left;" cols="8">
           <template>
             <b-form-select
               v-if="item.type === `select`"
@@ -21,8 +21,8 @@
             <b-form-input
               v-if="inputType.includes(item.type)"
               v-model="subjectData[item.key]"
-              :type="item.type"
               size="sm"
+              value="null"
             ></b-form-input>
           </template>
         </b-col>
@@ -102,8 +102,8 @@ export default {
     setDefaultKeys() {
       this.subjectData.code_no = this.subjectData.code_no || ``;
       this.subjectData.code_name = this.subjectData.code_name || ``;
-      this.subjectData.upp_lim = this.subjectData.upp_lim || 0;
-      this.subjectData.low_lim = this.subjectData.low_lim || 0;
+      this.subjectData.upp_lim = this.subjectData.upp_lim || `null`;
+      this.subjectData.low_lim = this.subjectData.low_lim || `null`;
       this.subjectData.place = this.subjectData.place || ``;
       this.subjectData.param1 = this.subjectData.param1 || ``;
       this.subjectData.param2 = this.subjectData.param2 || ``;
@@ -137,7 +137,7 @@ export default {
         .map(obj => {
           return {
             value: obj.par_no,
-            text: obj.par_name,
+            text: `${obj.par_no}_${obj.par_name}`,
           };
         });
     },

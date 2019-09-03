@@ -62,10 +62,13 @@
           <b-spinner class="align-middle"></b-spinner>
           <strong>Loading...</strong>
         </div>
-        <template slot="[selected]" slot-scope="{ rowSelected }">
+        <template slot="[code_name]" slot-scope="{ item }">
+          <div style="text-align: left;">{{ item.code_name }}</div>
+        </template>
+        <template slot="[selected]" slot-scope="{ item, rowSelected, index }">
           <b-form-checkbox
             v-model="rowSelected"
-            button-variant="info"
+            @change="selectOneItem(index)"
           ></b-form-checkbox>
         </template>
         <template slot="[stop_fg]" slot-scope="{ item }">
@@ -74,6 +77,12 @@
         </template>
         <template slot="[place]" slot-scope="{ item }">
           <span>{{ placeName(item.place) }}</span>
+        </template>
+        <template slot="[upp_lim]" slot-scope="{ item }">
+          <span>{{ !!item.upp_lim ? item.upp_lim : `null` }}</span>
+        </template>
+        <template slot="[low_lim]" slot-scope="{ item }">
+          <span>{{ !!item.low_lim ? item.low_lim : `null` }}</span>
         </template>
         <template slot="[edit]" slot-scope="{ item }">
           <a href="javascript:;" @click="openDetailedView(item)">編輯</a>
@@ -90,7 +99,7 @@
     </div>
 
     <!-- add data -->
-    <b-modal ref="domModal" size="xl" title="科目維護" hide-footer>
+    <b-modal ref="domModal" size="lg" title="科目維護" hide-footer>
       <subject-view
         :subjectData="subjectData"
         @changed="onChange"
@@ -117,6 +126,8 @@ export default {
     return {
       selectorModel: subjectModel,
       subjectData: {},
+      isSelectAll: false,
+      selectedData: null,
 
       fields: [],
       queryObject: {},
@@ -127,7 +138,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions([`initialSubject`, `saveSubject`, `deleteSubjects`]),
+    ...mapActions([`updateSubject`, `deleteSubjects`, `saveSubject`]),
     async searchEvent(filterObject) {
       const { subjectCode, subjectName } = filterObject;
       // set default
@@ -139,31 +150,37 @@ export default {
       if (subjectName.code_name.length > 0) {
         this.queryObject.CodeName = subjectName.code_name;
       }
-
-      await this.queryIncomeStateData();
     },
     onRowSelected(items) {
       this.selected = items;
     },
     selectAllRows() {
       this.$refs.domDatatable.selectAllRows();
+      this.isSelectAll = true;
     },
     clearSelected() {
       this.$refs.domDatatable.clearSelected();
+      this.isSelectAll = false;
     },
     openDetailedView(dataObj) {
       if (dataObj) {
+        this.selectedData = dataObj;
         this.subjectData = JSON.parse(JSON.stringify(dataObj));
       } else {
+        this.selectedData = null;
         this.subjectData = {};
       }
 
       this.$refs.domModal.show();
     },
-    async queryIncomeStateData() {
-      this.isBusy = true;
-      await this.initialSubject(this.queryObject);
-      this.isBusy = false;
+    selectOneItem(index) {
+      const isSelected = this.$refs.domDatatable.isRowSelected(index);
+      if (isSelected) {
+        this.$refs.domDatatable.unselectRow(index);
+        return;
+      }
+
+      this.$refs.domDatatable.selectRow(index);
     },
     async onChange(subjectObj) {
       // set object keys
@@ -172,20 +189,27 @@ export default {
         subjectObj.code2 = subjectObj.code_no.toString().substring(3);
       }
 
-      if (!subjectObj.code_des) {
-        subjectObj.code_des = subjectObj.code_no + subjectObj.code_name;
-      }
+      subjectObj.code_desc = subjectObj.code_no + subjectObj.code_name;
 
       // save this subject
-      await this.saveSubject(subjectObj);
+      if (this.selectedData === null) {
+        await this.saveSubject(subjectObj);
+      } else {
+        await this.updateSubject({
+          preSubjectObj: this.selectedData,
+          newSubjectObj: subjectObj,
+        });
+      }
+
       this.$refs.domModal.hide();
     },
     async deleteItems() {
       await this.deleteSubjects(
         this.selected.map(obj => {
-          const { code_no } = obj;
+          const { code_no, code_name } = obj;
           return {
             code_no,
+            code_name,
           };
         })
       );
@@ -255,11 +279,10 @@ export default {
       }
 
       return this.subjectArray.filter(obj => {
-        let isCorrect = false;
-        if (this.queryObject.CodeName && this.queryObject.CodeNamelength > 0) {
-          isCorrect = obj.code_name === this.queryObject.CodeName;
-          if (isCorrect === false) {
-            return false;
+        if (this.queryObject.CodeName && this.queryObject.CodeName.length > 0) {
+          const idx = obj.code_name.indexOf(this.queryObject.CodeName);
+          if (idx !== -1) {
+            return true;
           }
         }
 
@@ -280,6 +303,17 @@ export default {
           obj => obj.par_typ === `A` && obj.par_no === placeNo
         ).par_name;
       };
+    },
+  },
+  watch: {
+    currentPage: {
+      handler() {
+        this.$nextTick(() => {
+          if (this.isSelectAll) {
+            this.selectAllRows();
+          }
+        });
+      },
     },
   },
   /* eslint-disable no-undef, no-param-reassign, camelcase */

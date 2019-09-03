@@ -12,24 +12,29 @@ const vueStore = new Vuex.Store({
     paramArray: [],
   },
   mutations: {
-    fnUpdateSubject(state, tempArry) {
-      for (let i = 0; i < tempArry.length; i++) {
-        const subIdx = state.subjectArray.findIndex(
-          obj => obj.code_no === tempArry[i].code_no
-        );
+    fnInitialSubject(state, tempArry) {
+      state.subjectArray = tempArry;
+    },
+    fnInsertSubject(state, subjectObject) {
+      console.log(subjectObject);
+      Vue.set(state.subjectArray, state.subjectArray.length, subjectObject);
+    },
+    fnUpdateSubject(state, object) {
+      const { preSubjectObj, newSubjectObj } = object;
+      const idx = state.subjectArray.findIndex(
+        obj =>
+          obj.code_no === preSubjectObj.code_no &&
+          obj.code_name === preSubjectObj.code_name
+      );
 
-        if (subIdx === -1) {
-          Vue.set(state.subjectArray, state.subjectArray.length, tempArry[i]);
-          continue;
-        }
-
-        Vue.set(state.subjectArray, subIdx, tempArry[i]);
-      }
+      Vue.set(state.subjectArray, idx, newSubjectObj);
     },
     fnDeleteSubject(state, deleteAry) {
       for (let i = 0; i < deleteAry.length; i++) {
         const subIdx = state.subjectArray.findIndex(
-          obj => obj.code_no === deleteAry[i].code_no
+          obj =>
+            obj.code_no === deleteAry[i].code_no &&
+            obj.code_name === deleteAry[i].code_name
         );
 
         if (subIdx === -1) {
@@ -55,20 +60,35 @@ const vueStore = new Vuex.Store({
       );
 
       if (resObject.status === UtilData.mixinBackendErrorCode.success) {
-        context.commit(`fnUpdateSubject`, resObject.data || []);
+        context.commit(`fnInitialSubject`, resObject.data || []);
+      }
+    },
+    async updateSubject(context, queryObject) {
+      const { preSubjectObj, newSubjectObj } = queryObject;
+      const resObject = await UtilFn.mixinCallBackService(
+        UtilData.mixinBackendService.subjectData,
+        {
+          Action: `UPDATE`,
+          PreSubject: JSON.stringify(preSubjectObj),
+          NewSubject: JSON.stringify(newSubjectObj),
+        }
+      );
+
+      if (resObject.status === UtilData.mixinBackendErrorCode.success) {
+        context.commit(`fnUpdateSubject`, { preSubjectObj, newSubjectObj });
       }
     },
     async saveSubject(context, subjectObject) {
       const resObject = await UtilFn.mixinCallBackService(
         UtilData.mixinBackendService.subjectData,
         {
-          Action: `WRITE`,
+          Action: `INSERT`,
           Subject: JSON.stringify(subjectObject),
         }
       );
 
       if (resObject.status === UtilData.mixinBackendErrorCode.success) {
-        context.commit(`fnUpdateSubject`, [subjectObject]);
+        context.commit(`fnInsertSubject`, subjectObject);
       }
     },
     async deleteSubjects(context, subjectArray) {

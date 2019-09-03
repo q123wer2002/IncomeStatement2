@@ -106,7 +106,7 @@ function IVueInitialCreator() {
             },
           ],
         },
-        currentPageKey: ``,
+        currentPageKey: `SubjectMaintain`,
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),
