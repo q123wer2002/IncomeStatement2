@@ -70,10 +70,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>09/04/2019 01:24:44</publishTime>
     </File>
     <File Include="WebData/BundleResult/Login/IS_20190905_min_v1.js">
-      <publishTime>09/05/2019 02:11:07</publishTime>
+      <publishTime>09/05/2019 02:15:10</publishTime>
     </File>
     <File Include="WebData/BundleResult/Login/IS_20190905_min_v1_CSS.css">
-      <publishTime>09/05/2019 02:11:07</publishTime>
+      <publishTime>09/05/2019 02:15:10</publishTime>
     </File>
     <File Include="WebData/BundleResult/Main/IS_20190901_min_v1.js">
       <publishTime>09/01/2019 22:18:56</publishTime>
@@ -94,10 +94,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>09/04/2019 01:24:44</publishTime>
     </File>
     <File Include="WebData/BundleResult/Main/IS_20190905_min_v1.js">
-      <publishTime>09/05/2019 02:11:07</publishTime>
+      <publishTime>09/05/2019 02:15:10</publishTime>
     </File>
     <File Include="WebData/BundleResult/Main/IS_20190905_min_v1_CSS.css">
-      <publishTime>09/05/2019 02:11:07</publishTime>
+      <publishTime>09/05/2019 02:15:10</publishTime>
     </File>
     <File Include="WebData/ConfigFile/connection.json">
       <publishTime>08/27/2019 22:47:14</publishTime>
