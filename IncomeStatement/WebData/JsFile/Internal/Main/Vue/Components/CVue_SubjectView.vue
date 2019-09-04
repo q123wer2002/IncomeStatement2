@@ -134,6 +134,20 @@ export default {
     placeOpts() {
       return this.paramArray
         .filter(obj => obj.par_typ === `A`)
+        .sort((obj1, obj2) => {
+          const n1 = parseInt(obj1.par_no, 10);
+          const n2 = parseInt(obj2.par_no, 10);
+
+          if (n1 > n2) {
+            return 1;
+          }
+
+          if (n1 === n2) {
+            return 0;
+          }
+
+          return -1;
+        })
         .map(obj => {
           return {
             value: obj.par_no,

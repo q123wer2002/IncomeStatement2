@@ -94,7 +94,7 @@ namespace IncomeStatement.WebData.Server_Code
 							return false;
 						}
 
-						m_paramExpDList.Add($"ie_year={szYear} AND ie_mon={szMonth}");
+						m_paramExpDList.Add($"{TableName.CoFam}.ie_year={szYear} AND {TableName.CoFam}.ie_mon={szMonth}");
 					}
 
 					// check family no
@@ -109,7 +109,7 @@ namespace IncomeStatement.WebData.Server_Code
 							return false;
 						}
 
-						m_paramExpDList.Add($"fam_no BETWEEN {szFamNoStart} AND {szFamNoEnd}");
+						m_paramExpDList.Add($"{TableName.CoFam}.fam_no BETWEEN {szFamNoStart} AND {szFamNoEnd}");
 					}
 
 					// check record no
@@ -120,9 +120,21 @@ namespace IncomeStatement.WebData.Server_Code
 							return false;
 						}
 
-						m_paramExpDList.Add($"rec_user = {szRecNo}");
+						m_paramExpDList.Add($"{TableName.CoFam}.rec_user LIKE '%{szRecNo}%'");
 					}
-					
+
+					// check record no
+					if( Request.Form[ Param.AdiUser ] != null ) {
+						string szAdiUser = Request.Form[ Param.AdiUser ].ToString();
+						m_paramExpDList.Add($"{TableName.CoExpM}.adi_user LIKE '%{szAdiUser}%'");
+					}
+
+					// check record no
+					if( Request.Form[ Param.State ] != null ) {
+						string szState = Request.Form[ Param.State ].ToString();
+						m_paramExpDList.Add($"{TableName.CoFam}.state = {szState}");
+					}
+
 					// no param
 					if( m_paramExpDList.Count == 0 ) {
 						return false;
@@ -132,6 +144,8 @@ namespace IncomeStatement.WebData.Server_Code
 				}
 				if( action == ApiAction.CONFIRM ) {
 					string szConfirmList = Request.Form[ Param.ConfirmList ].ToString();
+					string szConfirmType = Request.Form[ Param.ConfirmType ].ToString();
+					int.Parse(szConfirmType);
 					JArray.Parse(szConfirmList);
 					return true;
 				}
@@ -149,7 +163,8 @@ namespace IncomeStatement.WebData.Server_Code
 			}
 
 			if( action == ApiAction.CONFIRM ) {
-				return isConfirmData();
+				int nType = int.Parse(Request.Form[ Param.ConfirmType ].ToString());
+				return isConfirmData(codeToEnum(nType));
 			}
 
 			return null;
@@ -157,7 +172,9 @@ namespace IncomeStatement.WebData.Server_Code
 		dynamic ReadData()
 		{
 			// get param
-			string szSQL = $"SELECT * FROM {TableName.CoFam} WHERE";
+			string szSQL = $"SELECT {TableName.CoFamMem}.job_typ_no, {TableName.CoFamMem}.job_no, {TableName.CoFam}.* FROM {TableName.CoFam} " +
+				$"LEFT JOIN {TableName.CoFamMem} ON {TableName.CoFamMem}.ie_year={TableName.CoFam}.ie_year AND {TableName.CoFamMem}.ie_mon={TableName.CoFam}.ie_mon AND {TableName.CoFamMem}.fam_no={TableName.CoFam}.fam_no " +
+				$" WHERE {TableName.CoFamMem}.title='戶長' AND ";
 			for( int i = 0; i < m_paramExpDList.Count; i++ ) {
 				szSQL += $" {m_paramExpDList[ i ]}";
 				szSQL += i == m_paramExpDList.Count - 1 ? " " : " AND";
@@ -166,7 +183,7 @@ namespace IncomeStatement.WebData.Server_Code
 			bool isSuccess = m_mssql.TryQuery(szSQL, out result);
 			return result;
 		}
-		bool isConfirmData()
+		bool isConfirmData( status state )
 		{
 			// get all need to confirm data
 			List<JObject> jObjectList = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.ConfirmList ].ToString());
@@ -182,16 +199,24 @@ namespace IncomeStatement.WebData.Server_Code
 
 			// update co_fam
 			string szUpdateCoFam = $"UPDATE {TableName.CoFam} " +
-				$"SET state=2 " +
+				$"SET state={(int)state} " +
 				$"WHERE {szWhere}";
 			bool isSuccess = m_mssql.TryQuery(szUpdateCoFam, out szErrorMsg);
 			if( isSuccess == false ) {
 				return false;
 			}
 
+			string szOtherSetting = "";
+			if( state == status.RecordConfirm ) {
+				szOtherSetting = ", rec_date=CURRENT_TIMESTAMP";
+			}
+			else if( state == status.ReviewConfirm ) {
+				szOtherSetting = ", adi_date=CURRENT_TIMESTAMP";
+			}
+
 			// update co_exp_m
 			string szUpdateCoExpM = $"UPDATE {TableName.CoExpM} " +
-				$"SET state=2 " +
+				$"SET state={(int)state}{szOtherSetting} " +
 				$"WHERE {szWhere}";
 			isSuccess = m_mssql.TryQuery(szUpdateCoFam, out szErrorMsg);
 			return isSuccess;
@@ -204,6 +229,24 @@ namespace IncomeStatement.WebData.Server_Code
 			READ,
 			CONFIRM,
 			UNKNOW,
+		}
+		enum status:int
+		{
+			Inprogress = 1,
+			RecordConfirm = 2,
+			ReviewConfirm = 3,
+		}
+		status codeToEnum( int nCode)
+		{
+			if( nCode == 1 ) {
+				return status.Inprogress;
+			}
+
+			if( nCode == 2 ) {
+				return status.RecordConfirm;
+			}
+
+			return status.ReviewConfirm;
 		}
 		class Param
 		{
@@ -251,6 +294,20 @@ namespace IncomeStatement.WebData.Server_Code
 					return "RecNo";
 				}
 			}
+			public static string AdiUser
+			{
+				get
+				{
+					return "AdiUser";
+				}
+			}
+			public static string State
+			{
+				get
+				{
+					return "State";
+				}
+			}
 
 			// for confirm data
 			public static string ConfirmList
@@ -258,6 +315,13 @@ namespace IncomeStatement.WebData.Server_Code
 				get
 				{
 					return "ConfirmList";
+				}
+			}
+			public static string ConfirmType
+			{
+				get
+				{
+					return "ConfirmType";
 				}
 			}
 		}

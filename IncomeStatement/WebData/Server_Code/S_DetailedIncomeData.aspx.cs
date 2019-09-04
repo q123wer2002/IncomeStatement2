@@ -300,10 +300,16 @@ namespace IncomeStatement.WebData.Server_Code
 			int nNextItemNo = 0;
 			if( isOwnItemNo == false ) {
 				// get the newest item_no
-				string szGetItemNo = $"SELECT TOP(1) item_no FROM {TableName.CoExpD} WHERE fam_no='{Request.Form[ Param.FamNo ].ToString()}' ORDER BY item_no DESC";
+				JObject jItem = items[ 0 ];
+				string szGetItemNo = $"SELECT TOP(1) item_no FROM {TableName.CoExpD} WHERE ie_year={jItem[ "ie_year" ].ToString()} AND ie_mon={jItem[ "ie_mon" ].ToString()} AND ie_day={jItem[ "ie_day" ].ToString()} ORDER BY item_no DESC";
 				JArray result;
 				m_mssql.TryQuery(szGetItemNo, out result);
-				nNextItemNo = int.Parse(((JObject)result[ 0 ])[ "item_no" ].ToString());
+				if( result.Count == 0 ) {
+					nNextItemNo = 1;
+				}
+				else {
+					nNextItemNo = int.Parse(((JObject)result[ 0 ])[ "item_no" ].ToString());
+				}
 			}
 
 			string szFamNo = Request.Form[ Param.FamNo ].ToString();

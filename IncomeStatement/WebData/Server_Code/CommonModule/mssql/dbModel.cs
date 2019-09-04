@@ -84,5 +84,12 @@
 				return "co_rec_fam";
 			}
 		}
+		public static string CoFamMem
+		{
+			get
+			{
+				return "co_fam_mem";
+			}
+		}
 	}
 }

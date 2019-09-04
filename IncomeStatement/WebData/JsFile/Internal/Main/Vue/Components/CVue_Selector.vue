@@ -12,6 +12,7 @@
       role="tabpanel"
     >
       <div class="filterItem" v-for="item in items" :key="item.key">
+        <span v-if="item.required" style="color: red">*</span>
         <span>{{ item.text }}</span>
         <span v-for="(typeValue, typeKey) in item.type" :key="typeKey">
           <b-form-select
@@ -41,15 +42,36 @@
         </span>
       </div>
 
-      <b-button
-        variant="info"
-        id="btnSearch"
-        size="sm"
-        @click="search"
-        :disabled="!isBtnSearchDisabled"
-      >
-        查詢
-      </b-button>
+      <div class="filterItem" v-if="isDetailed">
+        <span>資料異常日期</span>
+        <b-form-input
+          v-model="daysError"
+          type="text"
+          disabled
+          class="d-inline w-25 h-25"
+          size="sm"
+        ></b-form-input>
+      </div>
+
+      <b-button-group id="btnSearch">
+        <b-button
+          variant="info"
+          size="sm"
+          v-if="isDetailed"
+          :disabled="!isAddEnabled"
+          @click="addDetails"
+        >
+          新增
+        </b-button>
+        <b-button
+          variant="info"
+          size="sm"
+          @click="search"
+          :disabled="!isBtnSearchDisabled"
+        >
+          查詢
+        </b-button>
+      </b-button-group>
     </b-collapse>
   </div>
 </template>
@@ -66,11 +88,22 @@ export default {
     },
     isPreLoadData: {
       type: Boolean,
+      required: false,
       default: false,
+    },
+    isDetailed: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    daysError: {
+      type: String,
+      required: false,
     },
   },
   data() {
     return {
+      isAddEnabled: false,
       items: [],
     };
   },
@@ -117,6 +150,10 @@ export default {
       // emit
       this.$emit(`search`, itemValueObj);
     },
+    addDetails() {
+      this.search();
+      this.$emit(`additem`);
+    },
   },
   created() {},
   async mounted() {
@@ -137,6 +174,23 @@ export default {
           return itemObj.valid[key](value);
         });
       });
+    },
+  },
+  watch: {
+    items: {
+      handler(newValue) {
+        const requiredKeys = [`date`, `port`];
+        this.isAddEnabled = newValue
+          .filter(obj => requiredKeys.includes(obj.key))
+          .every(obj => {
+            return Object.keys(obj.value).every(subKey => {
+              const value = obj.value[subKey];
+              const fnValid = obj.valid[subKey];
+              return fnValid(value);
+            });
+          });
+      },
+      deep: true,
     },
   },
   /* eslint-disable no-undef, no-param-reassign */

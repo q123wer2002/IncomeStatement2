@@ -106,10 +106,10 @@
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="WebData\BundleResult\Login\IS_20190904_min_v1.js" />
-    <Content Include="WebData\BundleResult\Login\IS_20190904_min_v1_CSS.css" />
-    <Content Include="WebData\BundleResult\Main\IS_20190904_min_v1.js" />
-    <Content Include="WebData\BundleResult\Main\IS_20190904_min_v1_CSS.css" />
+    <Content Include="WebData\BundleResult\Login\IS_20190905_min_v1.js" />
+    <Content Include="WebData\BundleResult\Login\IS_20190905_min_v1_CSS.css" />
+    <Content Include="WebData\BundleResult\Main\IS_20190905_min_v1.js" />
+    <Content Include="WebData\BundleResult\Main\IS_20190905_min_v1_CSS.css" />
     <Content Include="WebData\CSS\External\googlefont.css" />
     <Content Include="WebData\Picture\error_message.png" />
     <Content Include="WebData\Picture\icon\material-io\baseline_add_circle_black_48dp.png" />

@@ -130,7 +130,7 @@ export default {
       selectedData: null,
 
       fields: [],
-      queryObject: {},
+      queryObject: null,
       currentPage: 1,
       perPage: 20,
       selected: [],
@@ -226,9 +226,15 @@ export default {
         `購買地點`,
         `是否停用`,
       ];
+
+      let exportData = this.selected;
+      if (this.isSelectAll) {
+        exportData = this.subjectArray;
+      }
+
       const csvData = [
         filedName,
-        ...this.selected.map(obj => {
+        ...exportData.map(obj => {
           const { code_no, code_name, upp_lim, low_lim, place, stop_fg } = obj;
           return [
             code_no,
@@ -274,8 +280,12 @@ export default {
   computed: {
     ...mapState([`subjectArray`, `paramArray`]),
     items() {
-      if (Object.keys(this.queryObject) === 0) {
+      if (!this.queryObject) {
         return [];
+      }
+
+      if (Object.keys(this.queryObject).length === 0) {
+        return this.subjectArray;
       }
 
       return this.subjectArray.filter(obj => {

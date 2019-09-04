@@ -19,8 +19,36 @@
         ></b-form-input>
       </div>
       <b-button-group class="my-3 float-sm-right" size="sm">
-        <b-button variant="info" :disabled="!enabledConfirm" @click="confirm">
-          登入完成確認
+        <b-button
+          variant="info"
+          :disabled="!enabledConfirm"
+          @click="confirm(`2`)"
+        >
+          登錄確認
+        </b-button>
+        <b-button
+          variant="info"
+          :disabled="!enabledReview"
+          @click="confirm(`3`)"
+        >
+          審核確認
+        </b-button>
+        <b-button
+          variant="info"
+          :disabled="!isSelectedItems"
+          @click="confirm(`1`)"
+        >
+          狀態回復
+        </b-button>
+        <b-button variant="info" disabled>
+          收支匯入
+        </b-button>
+        <b-button
+          variant="info"
+          :disabled="!isSelectedItems"
+          @click="exportCSV"
+        >
+          收支匯出
         </b-button>
       </b-button-group>
 
@@ -106,7 +134,7 @@ export default {
   },
   methods: {
     async searchEvent(filterObject) {
-      const { date, loginman, port } = filterObject;
+      const { date, loginman, port, status, receivemane } = filterObject;
       this.queryObject = {};
 
       // add date
@@ -124,6 +152,14 @@ export default {
       if (port.end > port.start) {
         this.queryObject.FamNoStart = port.start;
         this.queryObject.FamNoEnd = port.end;
+      }
+
+      if (receivemane && receivemane.id.length !== 0) {
+        this.queryObject.AdiUser = receivemane.id;
+      }
+
+      if (status.code > 0) {
+        this.queryObject.State = status.code;
       }
 
       await this.queryIncomeStateData(this.queryObject);
@@ -164,7 +200,7 @@ export default {
       this.isBusy = false;
       return resObject;
     },
-    async confirm() {
+    async confirm(confirmType) {
       const paramList = this.selected.map(famObj => {
         const { ie_year, ie_mon, fam_no } = famObj;
         return {
@@ -179,15 +215,87 @@ export default {
         {
           Action: `CONFIRM`,
           ConfirmList: JSON.stringify(paramList),
+          ConfirmType: confirmType,
         }
       );
       if (resObject.status === this.mixinBackendErrorCode.success) {
         this.selected.forEach(obj => {
-          obj.state = 2;
+          obj.state = confirmType;
         });
 
         this.clearSelected();
       }
+    },
+    exportCSV() {
+      // create csv data
+      const filedName = [
+        `類別`,
+        `登打日期`,
+        `記帳帳戶號`,
+        `科目代碼`,
+        `設算別`,
+        `未使用欄位`,
+        `未使用欄位`,
+        `戶內人數`,
+        `就業人數`,
+        `本業：行業編號`,
+        `本業：職業編號`,
+        `金額`,
+        `流水號`,
+        `購買地`,
+      ];
+
+      let exportData = this.selected;
+      if (this.isSelectAll) {
+        exportData = this.items;
+      }
+
+      const csvData = [
+        filedName,
+        ...exportData.map(obj => {
+          const {
+            ie_year,
+            ie_mon,
+            fam_no,
+            fam_cnt,
+            job_cnt,
+            job_type_no,
+            job_no,
+          } = obj;
+          return [
+            `1`,
+            `${ie_year}${ie_mon}`,
+            fam_no,
+            `code_no`,
+            `0`,
+            ` `,
+            `0`,
+            fam_cnt,
+            job_cnt,
+            job_type_no,
+            job_no,
+            `code_amt`,
+            `${fam_no}${ie_year}${ie_mon}`,
+            `place`,
+          ];
+        }),
+      ];
+      const csvDataString = csvData.map(col => col.join(`,`)).join('\n');
+      const encodedUri = URL.createObjectURL(
+        new Blob([`\uFEFF${csvDataString}`], {
+          type: `text/csv;charset=utf-8;`,
+        })
+      );
+
+      // create link
+      const link = document.createElement(`a`);
+      link.setAttribute(`href`, encodedUri);
+      link.setAttribute(`download`, `incomestatement.csv`);
+      document.body.appendChild(link);
+      link.click();
+
+      // clear
+      this.clearSelected();
     },
     showDetails(famNo) {
       const { Year, Month } = this.queryObject;
@@ -231,7 +339,21 @@ export default {
         return false;
       }
 
-      return this.selected.some(obj => obj.state !== `2`);
+      return this.selected.every(obj => obj.state === `1`);
+    },
+    enabledReview() {
+      if (this.selected.length === 0) {
+        return false;
+      }
+
+      return this.selected.every(obj => obj.state === `2`);
+    },
+    isSelectedItems() {
+      if (this.selected.length === 0) {
+        return false;
+      }
+
+      return this.selected.length > 0;
     },
   },
   watch: {

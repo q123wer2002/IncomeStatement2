@@ -32,6 +32,7 @@ export const incomeDataModel = [
         return true;
       },
     },
+    required: true,
   },
   {
     key: `port`,
@@ -41,37 +42,86 @@ export const incomeDataModel = [
       end: `number`,
     },
     value: {
-      start: 0,
-      end: 0,
+      start: ``,
+      end: ``,
     },
     source: {
       start: null,
       end: null,
     },
     valid: {
-      start: value => {
-        return value > 0;
+      start: () => {
+        return true;
       },
-      end: value => {
-        return value > 0;
+      end: () => {
+        return true;
       },
     },
   },
   {
     key: `loginman`,
-    text: `登入人員`,
+    text: `登錄人員`,
     type: {
       id: `number`,
     },
     value: {
-      id: 0,
+      id: ``,
     },
     source: {
       id: null,
     },
     valid: {
-      id: value => {
-        return value > 0;
+      id: () => {
+        return true;
+      },
+    },
+  },
+  {
+    key: `reviewman`,
+    text: `審核人員`,
+    type: {
+      id: `number`,
+    },
+    value: {
+      id: ``,
+    },
+    source: {
+      id: null,
+    },
+    valid: {
+      id: () => {
+        return true;
+      },
+    },
+  },
+  {
+    key: `status`,
+    text: `資料狀態`,
+    type: {
+      code: `select`,
+    },
+    value: {
+      code: 1,
+    },
+    source: {
+      code: [
+        {
+          value: 1,
+          text: `處理中`,
+        },
+        {
+          value: 2,
+          text: `已登錄`,
+        },
+        {
+          value: 3,
+          text: `已審核`,
+        },
+      ],
+    },
+    valid: {
+      code: () => {
+        return true;
       },
     },
   },
@@ -91,8 +141,8 @@ export const subjectModel = [
       code_no: null,
     },
     valid: {
-      code_no: value => {
-        return value > 0;
+      code_no: () => {
+        return true;
       },
     },
   },
@@ -109,8 +159,8 @@ export const subjectModel = [
       code_name: null,
     },
     valid: {
-      code_name: value => {
-        return value.length > 0;
+      code_name: () => {
+        return true;
       },
     },
   },
@@ -143,13 +193,14 @@ export const detailedModel = [
       }),
     },
     valid: {
-      year: () => {
-        return true;
+      year: value => {
+        return value > 0 || value.length > 0;
       },
-      month: () => {
-        return true;
+      month: value => {
+        return value > 0 || value.length > 0;
       },
     },
+    required: true,
   },
   {
     key: `port`,
@@ -158,7 +209,7 @@ export const detailedModel = [
       num: `text`,
     },
     value: {
-      num: 0,
+      num: ``,
     },
     source: {
       num: {
@@ -168,9 +219,10 @@ export const detailedModel = [
     },
     valid: {
       num: value => {
-        return value > 0;
+        return value > 0 || value.length > 0;
       },
     },
+    required: true,
   },
   {
     key: `duration`,
@@ -295,6 +347,37 @@ export const detailedModel = [
     valid: {
       code_name: value => {
         return value.length > 0;
+      },
+    },
+  },
+  {
+    key: `dataChecker`,
+    text: `資料檢查`,
+    type: {
+      checker: `select`,
+    },
+    value: {
+      checker: null,
+    },
+    source: {
+      checker: [
+        {
+          value: null,
+          text: `無`,
+        },
+        {
+          value: 0,
+          text: `無支出日期`,
+        },
+        {
+          value: 1,
+          text: `每日支出合計金額不符`,
+        },
+      ],
+    },
+    valid: {
+      checker: () => {
+        return true;
       },
     },
   },

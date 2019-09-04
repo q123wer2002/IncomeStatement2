@@ -42,7 +42,8 @@
         <b-col style="text-align: left" col lg="8">
           <b-form-input
             size="sm"
-            v-model="todayTotalCost"
+            v-model="tempCost"
+            @update="checkIsEnableSave"
             type="number"
           ></b-form-input>
         </b-col>
@@ -140,6 +141,10 @@ export default {
       type: String,
       required: false,
     },
+    totalDayCost: {
+      type: Number,
+      required: false,
+    },
   },
   data() {
     return {
@@ -157,6 +162,7 @@ export default {
       ],
       items: this.data,
       cantSaveHint: ``,
+      isEnabledSave: false,
     };
   },
   methods: {
@@ -165,12 +171,11 @@ export default {
     },
     addItem() {
       this.items.push({
-        fam_no: 123456,
-        ie_year: 2018,
-        ie_mon: 1,
-        ie_day: 1,
+        fam_no: this.queryObject.FamNo || `123456`,
+        ie_year: this.queryObject.Year || 2018,
+        ie_mon: this.queryObject.Month || 1,
+        ie_day: this.queryObject.Day || 1,
         place: ``,
-        code_amt: ``,
         code_no: ``,
         code_name: ``,
       });
@@ -188,17 +193,23 @@ export default {
       this.$set(this.items[index], `code_name`, newName);
     },
     saveItems() {
-      const { ie_year, ie_mon, ie_day, fam_no } = this.data[0];
+      const fnTwoDigit = n => {
+        const number = parseInt(n, 10);
+        return number > 9 ? `${number}` : `0${number}`;
+      };
+      const { ie_year, ie_mon, ie_day, fam_no } = this.data[0] || this.items[0];
       this.items.forEach(obj => {
         obj.ie_year = ie_year;
         obj.ie_mon = ie_mon;
-        obj.ie_day = ie_day;
+        obj.ie_day = fnTwoDigit(ie_day);
         obj.fam_no = fam_no;
+        obj.exp_amt = this.tempCost;
       });
 
       this.$emit(`save`, {
         items: this.items,
         remark: this.tempRemark,
+        totalCost: this.tempCost,
       });
     },
     initialSubName() {
@@ -221,7 +232,29 @@ export default {
       );
 
       this.items = resObject.data.CoExpD;
+      const { exp_amt, day_rem } = resObject.data.CoExpM[0];
+      this.tempCost = exp_amt;
+      this.tempRemark = day_rem;
       this.initialSubName();
+    },
+    checkIsEnableSave() {
+      // check cost
+      if (parseInt(this.totalCost, 10) !== parseInt(this.tempCost, 10)) {
+        this.cantSaveHint = `金額不一致`;
+        this.isEnabledSave = false;
+        return;
+      }
+
+      // check empty
+      const isNoEmpty = this.items.every(obj => obj.code_name.length !== 0);
+      if (isNoEmpty === false) {
+        this.cantSaveHint = `有科目欄位為空`;
+        this.isEnabledSave = false;
+        return;
+      }
+
+      this.cantSaveHint = ``;
+      this.isEnabledSave = true;
     },
   },
   created() {},
@@ -233,44 +266,20 @@ export default {
     if (this.remark.length !== 0) {
       this.tempRemark = this.remark;
     }
+
+    if (this.totalDayCost !== 0) {
+      this.tempCost = this.totalDayCost;
+    }
   },
   computed: {
     ...mapState([`paramArray`, `subjectArray`]),
-    todayTotalCost: {
-      get() {
-        if (this.items.length > 0) {
-          return parseInt(this.items[0].exp_amt, 10);
-        }
-
-        return this.tempCost;
-      },
-      set(value) {
-        if (this.items.length === 0) {
-          this.tempCost = value;
-          return;
-        }
-
-        this.items.forEach(obj => {
-          obj.exp_amt = value;
-        });
-      },
-    },
     subjectOpts() {
-      return this.subjectArray
-        .reduce((tempArray, obj) => {
-          const idx = tempArray.findIndex(obj2 => obj2.code_no === obj.code_no);
-          if (idx === -1) {
-            tempArray.push(obj);
-          }
-
-          return tempArray;
-        }, [])
-        .map(obj => {
-          return {
-            text: obj.code_name,
-            value: obj.code_no,
-          };
-        });
+      return this.subjectArray.map(obj => {
+        return {
+          text: obj.code_name,
+          value: obj.code_no,
+        };
+      });
     },
     familyNo() {
       if (this.data.length > 0) {
@@ -313,7 +322,7 @@ export default {
       return 0;
     },
     costStyle() {
-      if (this.totalCost !== this.todayTotalCost) {
+      if (parseInt(this.totalCost, 10) !== parseInt(this.tempCost, 10)) {
         return {
           color: `red`,
         };
@@ -322,23 +331,6 @@ export default {
       return {
         color: `green`,
       };
-    },
-    isEnabledSave() {
-      // check cost
-      if (this.totalCost !== this.todayTotalCost) {
-        this.cantSaveHint = `金額不一致`;
-        return false;
-      }
-
-      // check empty
-      const isNoEmpty = this.items.every(obj => obj.code_name.length !== 0);
-      if (isNoEmpty === false) {
-        this.cantSaveHint = `有科目欄位為空`;
-        return false;
-      }
-
-      this.cantSaveHint = ``;
-      return true;
     },
     isNeedSelectDay() {
       if (this.data.length > 0) {
@@ -357,6 +349,12 @@ export default {
     queryObject: {
       async handler(value) {
         await this.queryDetailedData(value);
+      },
+      deep: true,
+    },
+    items: {
+      handler() {
+        this.checkIsEnableSave();
       },
       deep: true,
     },

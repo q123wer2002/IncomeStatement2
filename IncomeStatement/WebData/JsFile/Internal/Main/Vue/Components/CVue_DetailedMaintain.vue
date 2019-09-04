@@ -4,8 +4,12 @@
     <selector
       v-if="isShowFilter"
       :filterModel="selectorModel"
+      :daysError="daysError"
+      :isDetailed="true"
       @search="searchEvent"
+      @additem="openDetailedView"
     ></selector>
+    <b v-else class="my-2">{{ title }}</b>
 
     <!-- filtered data -->
     <div id="tableData" v-if="items.length > 0">
@@ -25,33 +29,12 @@
       <b-button-group class="my-3 float-sm-right" size="sm">
         <b-button
           variant="info"
-          :disabled="selected.length > 0"
-          @click="openDetailedView()"
-        >
-          新增
-        </b-button>
-        <b-button
-          variant="info"
           :disabled="!selected.length > 0"
           @click="deleteItems"
         >
           刪除
         </b-button>
       </b-button-group>
-
-      <div class="d-flex flex-row">
-        <div class="my-2 mx-2">
-          <span>資料檢查</span>
-          <b-form-select
-            v-model="checkKey"
-            :options="checkOpts"
-          ></b-form-select>
-        </div>
-        <div class="my-2 mx-2">
-          <span>資料異常日期</span>
-          <b-form-input v-model="errorDays" disabled></b-form-input>
-        </div>
-      </div>
 
       <b-table
         ref="domDatatable"
@@ -109,6 +92,7 @@
         :queryObject="addQueryObject"
         :data="detailedData"
         :remark="passRemark"
+        :totalDayCost="totalCost"
         @save="onSaveEvent"
       ></detailed-view>
     </b-modal>
@@ -145,8 +129,11 @@ export default {
       queryObject: {},
       addQueryObject: {},
       checkKey: -1,
-      errorDays: ``,
+      daysError: ``,
+
+      // for select
       isSelectAll: false,
+      selectedIndex: [],
 
       // for table
       fields: [],
@@ -160,11 +147,12 @@ export default {
       // for edit, and new one
       detailedData: [],
       passRemark: ``,
+      totalCost: 0,
     };
   },
   methods: {
     async searchEvent(filterObj) {
-      const { date, duration, port, subjectCode } = filterObj;
+      const { date, duration, port, subjectCode, dataChecker } = filterObj;
       this.queryObject = {};
 
       // add date
@@ -193,6 +181,8 @@ export default {
         this.queryObject.CodeNo = subjectCode.code_no;
       }
 
+      // check data
+      this.checkKey = dataChecker.checker === null ? -1 : dataChecker.checker;
       await this.queryDetailedData(this.queryObject);
     },
     onRowSelected(items) {
@@ -222,9 +212,11 @@ export default {
             this.items.filter(item => item.ie_day === dataObj.ie_day)
           )
         );
-        this.passRemark = this.coExpMitems.find(
+        const { day_rem, exp_amt } = this.coExpMitems.find(
           obj => obj.ie_day === dataObj.ie_day
-        ).day_rem;
+        );
+        this.totalCost = parseInt(exp_amt, 10);
+        this.passRemark = day_rem;
       } else {
         const { Year, Month, FamNo } = this.queryObject;
         this.detailedData = [];
@@ -253,6 +245,18 @@ export default {
         }
 
         this.items = resObject.data.CoExpD || [];
+        // sort
+        this.items.sort((obj1, obj2) => {
+          if (obj1.ie_day > obj2.ie_day) {
+            return 1;
+          }
+
+          if (obj1.ie_day < obj2.ie_day) {
+            return -1;
+          }
+
+          return 0;
+        });
 
         // set code_name
         this.items.forEach(obj => {
@@ -265,6 +269,13 @@ export default {
         });
 
         this.coExpMitems = resObject.data.CoExpM || [];
+
+        // add checker
+        if (this.checkKey !== -1) {
+          this.doChecker(this.checkKey);
+        } else {
+          this.daysError = ``;
+        }
       } else {
         this.hintText = `查詢錯誤發生，請確認有輸入必要參數`;
       }
@@ -272,7 +283,7 @@ export default {
       this.isBusy = false;
       return resObject;
     },
-    async onSaveEvent({ items, remark }) {
+    async onSaveEvent({ items, remark, totalCost }) {
       const { ie_year, ie_mon, ie_day, fam_no } = items[0];
       const filteredItems = this.items.filter(
         obj =>
@@ -290,22 +301,38 @@ export default {
       );
 
       await this.deleteItems(deleteItems);
-      await this.saveItems(updateItems, insertItems, remark);
+      await this.saveItems(updateItems, insertItems, remark, totalCost);
 
       this.$refs.domModal.hide();
     },
-    async saveItems(updateItems, insertItems, remark) {
+    async saveItems(updateItems, insertItems, remark, totalCost) {
+      let famNo;
+      let ieYear;
+      let ieMon;
+      let ieDay;
+      if (updateItems.length === 0) {
+        famNo = insertItems[0].fam_no;
+        ieYear = insertItems[0].ie_year;
+        ieMon = insertItems[0].ie_mon;
+        ieDay = insertItems[0].ie_day;
+      } else {
+        famNo = updateItems[0].fam_no;
+        ieYear = updateItems[0].ie_year;
+        ieMon = updateItems[0].ie_mon;
+        ieDay = updateItems[0].ie_day;
+      }
+
       const resObject = await this.mixinCallBackService(
         this.mixinBackendService.detatiledData,
         {
           Action: `WRITE`,
           UpdateItems: JSON.stringify(updateItems),
           InsertItems: JSON.stringify(insertItems),
-          FamNo: updateItems[0].fam_no,
-          Year: updateItems[0].ie_year,
-          Month: updateItems[0].ie_mon,
-          Day: updateItems[0].ie_day,
-          TotalCost: updateItems[0].exp_amt,
+          FamNo: famNo,
+          Year: ieYear,
+          Month: ieMon,
+          Day: ieDay,
+          TotalCost: totalCost,
           Remark: remark,
         }
       );
@@ -346,6 +373,61 @@ export default {
           this.$delete(this.items, itemIdx);
         }
       }
+    },
+    doChecker(value) {
+      let errorDays;
+
+      // get error days
+      if (value === 0) {
+        const days = Object.keys(this.coExpMitems).map(key =>
+          parseInt(key, 10)
+        );
+        // check no payment data
+        errorDays = days.filter(day => {
+          const currentDaItems = this.items.filter(
+            obj => parseInt(obj.ie_day, 10) === day
+          );
+          if (currentDaItems.length === 0) {
+            return true;
+          }
+
+          return currentDaItems.some(obj => {
+            const cost = parseInt(obj.code_amt, 10);
+            if (!cost || cost === 0) {
+              return true;
+            }
+
+            return false;
+          });
+        });
+      } else if (value === 1) {
+        // check cost compare
+        errorDays = this.coExpMitems.reduce((tempAry, mObj) => {
+          const ieDay = mObj.ie_day;
+          const totalCost = parseInt(mObj.exp_amt, 10);
+          const realCost = this.items
+            .filter(dObj => dObj.ie_day === ieDay)
+            .reduce((total, dObj) => {
+              if (dObj.code_amt) {
+                total += parseInt(dObj.code_amt, 10);
+              }
+              return total;
+            }, 0);
+          if (totalCost !== realCost) {
+            tempAry.push(parseInt(ieDay, 10));
+          }
+          return tempAry;
+        }, []);
+      }
+
+      // filter
+      this.items = this.items.filter(obj =>
+        errorDays.includes(parseInt(obj.ie_day, 10))
+      );
+      if (this.items.length === 0) {
+        this.hintText = `無資料`;
+      }
+      this.daysError = errorDays.join(', ');
     },
   },
   created() {
@@ -399,57 +481,27 @@ export default {
         },
       ];
     },
+    title() {
+      if (this.isShowFilter) {
+        return ``;
+      }
+
+      const { Year, Month, FamNo } = this.inputedQueryObj;
+      return `${Year}年${Month}月, 戶號:${FamNo}`;
+    },
   },
   watch: {
-    checkKey: {
-      handler(value) {
-        if (value === 0) {
-          const days = Object.keys(this.coExpMitems);
-          // check no payment data
-          this.errorDays = days
-            .filter(day => {
-              return this.items
-                .filter(obj => obj.ie_day === day)
-                .some(obj => {
-                  const cost = parseInt(obj.code_amt, 10);
-                  if (!cost || cost === 0) {
-                    return false;
-                  }
-
-                  return true;
-                });
-            })
-            .join(', ');
-        }
-
-        if (value === 1) {
-          // check cost compare
-          this.errorDays = this.coExpMitems
-            .reduce((tempAry, mObj) => {
-              const ieDay = mObj.ie_day;
-              const totalCost = parseInt(mObj.exp_amt, 10);
-              const realCost = this.items
-                .filter(dObj => dObj.ie_day === ieDay)
-                .reduce((total, dObj) => {
-                  if (dObj.code_amt) {
-                    total += parseInt(dObj.code_amt, 10);
-                  }
-                  return total;
-                }, 0);
-              if (totalCost !== realCost) {
-                tempAry.push(ieDay);
-              }
-              return tempAry;
-            }, [])
-            .join(', ');
-        }
-      },
-    },
     currentPage: {
       handler() {
         this.$nextTick(() => {
           if (this.isSelectAll) {
             this.selectAllRows();
+          }
+
+          if (this.selectedIndex.length !== 0) {
+            for (let i = 0; i < this.selectedIndex.length; i++) {
+              this.$refs.domDatatable.selectRow(i);
+            }
           }
         });
       },

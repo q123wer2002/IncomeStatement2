@@ -106,7 +106,7 @@ function IVueInitialCreator() {
             },
           ],
         },
-        currentPageKey: `DetailedMaintain`,
+        currentPageKey: `IncomeDataMaintain`,
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),
