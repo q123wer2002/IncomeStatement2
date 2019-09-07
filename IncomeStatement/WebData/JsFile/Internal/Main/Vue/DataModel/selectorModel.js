@@ -350,35 +350,4 @@ export const detailedModel = [
       },
     },
   },
-  {
-    key: `dataChecker`,
-    text: `資料檢查`,
-    type: {
-      checker: `select`,
-    },
-    value: {
-      checker: null,
-    },
-    source: {
-      checker: [
-        {
-          value: null,
-          text: `無`,
-        },
-        {
-          value: 0,
-          text: `無支出日期`,
-        },
-        {
-          value: 1,
-          text: `每日支出合計金額不符`,
-        },
-      ],
-    },
-    valid: {
-      checker: () => {
-        return true;
-      },
-    },
-  },
 ];

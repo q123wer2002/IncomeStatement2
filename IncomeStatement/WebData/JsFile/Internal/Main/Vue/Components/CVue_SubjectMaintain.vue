@@ -62,27 +62,24 @@
           <b-spinner class="align-middle"></b-spinner>
           <strong>Loading...</strong>
         </div>
-        <template slot="[code_name]" slot-scope="{ item }">
-          <div style="text-align: left;">{{ item.code_name }}</div>
-        </template>
         <template slot="[selected]" slot-scope="{ rowSelected, index }">
           <b-form-checkbox
             v-model="rowSelected"
             @change="selectOneItem(index)"
           ></b-form-checkbox>
         </template>
-        <template slot="[stop_fg]" slot-scope="{ item }">
-          <span v-if="item.stop_fg === `Y`">是</span>
-          <span v-else>否</span>
+        <template slot="[code_name]" slot-scope="{ item }">
+          <div style="text-align: left;">{{ item.code_name }}</div>
         </template>
         <template slot="[place]" slot-scope="{ item }">
           <span>{{ placeName(item.place) }}</span>
         </template>
-        <template slot="[upp_lim]" slot-scope="{ item }">
-          <span>{{ !!item.upp_lim ? item.upp_lim : `null` }}</span>
+        <template slot="[stop_fg]" slot-scope="{ item }">
+          <span v-if="item.stop_fg === `Y`">是</span>
+          <span v-else>否</span>
         </template>
-        <template slot="[low_lim]" slot-scope="{ item }">
-          <span>{{ !!item.low_lim ? item.low_lim : `null` }}</span>
+        <template slot="[def_fg]" slot-scope="{ item }">
+          <span v-if="item.def_fg === `Y`">是</span>
         </template>
         <template slot="[edit]" slot-scope="{ item }">
           <a href="javascript:;" @click="openDetailedView(item)">編輯</a>
@@ -125,9 +122,11 @@ export default {
   data() {
     return {
       selectorModel: subjectModel,
-      subjectData: {},
       isSelectAll: false,
       selectedData: null,
+
+      // subject model
+      subjectData: {},
 
       fields: [],
       queryObject: null,
@@ -138,7 +137,12 @@ export default {
     };
   },
   methods: {
-    ...mapActions([`updateSubject`, `deleteSubjects`, `saveSubject`]),
+    ...mapActions([
+      `updateSubject`,
+      `deleteSubjects`,
+      `saveSubject`,
+      `setSubjectDefaultName`,
+    ]),
     async searchEvent(filterObject) {
       const { subjectCode, subjectName } = filterObject;
       // set default
@@ -182,13 +186,14 @@ export default {
 
       this.$refs.domDatatable.selectRow(index);
     },
-    async onChange(subjectObj) {
+    async onChange({ subjectObj, isDefaultName }) {
       // set object keys
       if (!subjectObj.code1 || !subjectObj.code2) {
         subjectObj.code1 = subjectObj.code_no.toString().substring(0, 3);
         subjectObj.code2 = subjectObj.code_no.toString().substring(3);
       }
 
+      // set desc
       subjectObj.code_desc = subjectObj.code_no + subjectObj.code_name;
 
       // save this subject
@@ -199,6 +204,12 @@ export default {
           preSubjectObj: this.selectedData,
           newSubjectObj: subjectObj,
         });
+      }
+
+      // check is default name
+      if (isDefaultName) {
+        // do something
+        await this.setSubjectDefaultName(subjectObj);
       }
 
       this.$refs.domModal.hide();
@@ -271,8 +282,11 @@ export default {
       { key: `code_name`, label: `科目名稱` },
       { key: `upp_lim`, label: `金額上限` },
       { key: `low_lim`, label: `金額下限` },
+      { key: `upp_sys`, label: `系統金額上限` },
+      { key: `low_sys`, label: `系統金額下限` },
       { key: `place`, label: `購買地點` },
       { key: `stop_fg`, label: `是否停用` },
+      { key: `def_fg`, label: `預設名稱註記` },
       { key: `edit`, label: `` },
     ];
   },

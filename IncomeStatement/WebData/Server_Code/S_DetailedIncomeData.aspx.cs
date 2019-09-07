@@ -318,11 +318,24 @@ namespace IncomeStatement.WebData.Server_Code
 			for( int i = 0; i < items.Count; i++ ) {
 				JObject jItem = items[ i ];
 				int nItemNo = isOwnItemNo == false ? nNextItemNo + 1 : int.Parse(jItem[ "item_no" ].ToString());
-				szInsert += $"('{jItem[ "ie_year" ].ToString()}', '{jItem[ "ie_mon" ].ToString()}', '{jItem[ "ie_day" ].ToString()}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', '{jItem[ "code_name" ].ToString()}', NULL, NULL, CURRENT_TIMESTAMP, NULL )";
+				szInsert += $"('{parse2TwoDigital(jItem[ "ie_year" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_mon" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_day" ].ToString())}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', '{jItem[ "code_name" ].ToString()}', NULL, NULL, CURRENT_TIMESTAMP, NULL )";
 				szInsert += i == items.Count - 1 ? " " : ", ";
 			}
 			bool isSuccess = m_mssql.TryQuery(szInsert, out szErrorMsg);
 			return isSuccess;
+		}
+		public string parse2TwoDigital(string szNumber)
+		{
+			int nTemp;
+			if( int.TryParse(szNumber, out nTemp) == false ) {
+				return string.Empty;
+			}
+
+			if( nTemp < 10 ) {
+				return $"0{nTemp}";
+			}
+
+			return nTemp.ToString();
 		}
 
 		enum ApiAction

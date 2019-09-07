@@ -42,17 +42,6 @@
         </span>
       </div>
 
-      <div class="filterItem" v-if="isDetailed">
-        <span>資料異常日期</span>
-        <b-form-input
-          v-model="daysError"
-          type="text"
-          disabled
-          class="d-inline w-25 h-25"
-          size="sm"
-        ></b-form-input>
-      </div>
-
       <b-button-group id="btnSearch">
         <b-button
           variant="info"
@@ -95,10 +84,6 @@ export default {
       type: Boolean,
       required: false,
       default: false,
-    },
-    daysError: {
-      type: String,
-      required: false,
     },
   },
   data() {

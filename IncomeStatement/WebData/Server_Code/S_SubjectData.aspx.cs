@@ -78,6 +78,10 @@ namespace IncomeStatement.WebData.Server_Code
 					return ApiAction.DELETE;
 				}
 
+				if( szAction.ToUpper() == "SETDEFAULTNAME" ) {
+					return ApiAction.SETDEFAULTNAME;
+				}
+
 				return ApiAction.UNKNOW;
 			}
 			catch {
@@ -127,6 +131,11 @@ namespace IncomeStatement.WebData.Server_Code
 					JArray.Parse(szSubjectAry);
 					return true;
 				}
+				if( action == ApiAction.SETDEFAULTNAME ) {
+					string szSubject = Request.Form[ Param.Subject ].ToString();
+					JObject.Parse(szSubject);
+					return true;
+				}
 				return false;
 			}
 			catch {
@@ -151,6 +160,10 @@ namespace IncomeStatement.WebData.Server_Code
 				return Delete();
 			}
 
+			if( action == ApiAction.SETDEFAULTNAME ) {
+				return SetDefaultName();
+			}
+
 			return null;
 		}
 		JArray ReadData()
@@ -170,16 +183,22 @@ namespace IncomeStatement.WebData.Server_Code
 			// get subject object
 			JObject jSubject = JObject.Parse(Request.Form[ Param.Subject ].ToString());
 
-			int nUpLim, nLowLim;
-			if( int.TryParse(jSubject[ "upp_lim" ].ToString(), out nUpLim) == false ) {
+			int nUpLim, nLowLim, nUppSys, nLowSys;
+			if(int.TryParse(jSubject[ "upp_lim" ].ToString(), out nUpLim) == false ) {
 				nUpLim = -1;
 			}
 			if( int.TryParse(jSubject[ "low_lim" ].ToString(), out nLowLim) == false ) {
 				nLowLim = -1;
 			}
+			if( int.TryParse(jSubject[ "upp_sys" ].ToString(), out nUppSys) == false ) {
+				nUppSys = -1;
+			}
+			if( int.TryParse(jSubject[ "low_sys" ].ToString(), out nLowSys) == false ) {
+				nLowSys = -1;
+			}
 
 			// insert or update
-			string szInsertOrUpdate = $"INSERT INTO {TableName.CoExpCode} VALUES ({jSubject[ "code_no" ]}, N'{jSubject[ "code_name" ]}', N'{jSubject[ "code_desc" ]}', {jSubject[ "code1" ]}, {jSubject[ "code2" ]}, N'{jSubject[ "code_rem" ]}', {(nUpLim >= 0 ? nUpLim.ToString() : "NULL")}, {(nLowLim >= 0 ? nLowLim.ToString() : "NULL")}, '{jSubject[ "place" ]}', N'{jSubject[ "param1" ]}', N'{jSubject[ "param2" ]}', '{jSubject[ "stop_fg" ]}', CURRENT_TIMESTAMP, 'SYS')";
+			string szInsertOrUpdate = $"INSERT INTO {TableName.CoExpCode} VALUES ({jSubject[ "code_no" ]}, N'{jSubject[ "code_name" ]}', N'{jSubject[ "code_desc" ]}', {jSubject[ "code1" ]}, {parse2TwoDigital(jSubject[ "code2" ].ToString())}, N'{jSubject[ "code_rem" ]}', {(nUpLim >= 0 ? nUpLim.ToString() : "NULL")}, {(nLowLim >= 0 ? nLowLim.ToString() : "NULL")}, '{jSubject[ "place" ]}', N'{jSubject[ "param1" ]}', N'{jSubject[ "param2" ]}', '{jSubject[ "stop_fg" ]}', CURRENT_TIMESTAMP, 'SYS', {(nUppSys >= 0 ? nUppSys.ToString() : "NULL")}, {(nLowSys >= 0 ? nLowSys.ToString() : "NULL")}, N'{jSubject[ "def_fg" ]}')";
 			string szErrorMsg;
 			return m_mssql.TryQuery(szInsertOrUpdate, out szErrorMsg);
 		}
@@ -211,6 +230,37 @@ namespace IncomeStatement.WebData.Server_Code
 			string szErrorMsg;
 			return m_mssql.TryQuery(szUpdate, out szErrorMsg);
 		}
+		bool SetDefaultName()
+		{
+			// get subject object
+			JObject jSubject = JObject.Parse(Request.Form[ Param.Subject ].ToString());
+			string szCode = jSubject[ "code_no" ].ToString();
+			string szCodeName = jSubject[ "code_name" ].ToString();
+			string szErrorMsg;
+
+			// set all code are empty
+			string szEmptySQL = $"UPDATE {TableName.CoExpCode} SET def_fg='' WHERE code_no='{szCode}'";
+			if( m_mssql.TryQuery(szEmptySQL, out szErrorMsg) == false ) {
+				return false;
+			}
+
+			// set the subject is the default name
+			string szSetDefaultName = $"UPDATE {TableName.CoExpCode} SET def_fg = 'Y' WHERE code_no='{szCode}' AND code_name='{szCodeName}'";
+			return m_mssql.TryQuery(szSetDefaultName, out szErrorMsg);
+		}
+		public string parse2TwoDigital( string szNumber )
+		{
+			int nTemp;
+			if( int.TryParse(szNumber, out nTemp) == false ) {
+				return string.Empty;
+			}
+
+			if( nTemp < 10 ) {
+				return $"0{nTemp}";
+			}
+
+			return nTemp.ToString();
+		}
 		#endregion
 
 		#region Private Attribute
@@ -220,6 +270,7 @@ namespace IncomeStatement.WebData.Server_Code
 			UPDATE,
 			INSERT,
 			DELETE,
+			SETDEFAULTNAME,
 			UNKNOW
 		}
 		class Param

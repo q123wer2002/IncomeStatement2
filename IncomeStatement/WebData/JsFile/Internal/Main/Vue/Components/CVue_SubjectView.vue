@@ -12,17 +12,27 @@
               v-model="subjectData[item.key]"
               :options="placeOpts"
               size="sm"
+              :disabled="item.isDisabled"
             ></b-form-select>
-            <b-form-checkbox
-              v-if="item.type === `checkbox`"
-              v-model="isDisabled"
-              size="sm"
-            ></b-form-checkbox>
+            <template v-if="item.type === `checkbox`">
+              <b-form-checkbox
+                v-if="item.key === `def_fg`"
+                v-model="isDefaultName"
+                size="sm"
+              ></b-form-checkbox>
+              <b-form-checkbox
+                v-else
+                v-model="isDisabled"
+                size="sm"
+                :disabled="item.isDisabled"
+              ></b-form-checkbox>
+            </template>
             <b-form-input
               v-if="inputType.includes(item.type)"
               v-model="subjectData[item.key]"
               size="sm"
               value="null"
+              :disabled="item.isDisabled"
             ></b-form-input>
           </template>
         </b-col>
@@ -44,7 +54,7 @@ export default {
   props: {
     subjectData: {
       type: Object,
-      required: false,
+      required: true,
     },
   },
   data() {
@@ -71,6 +81,16 @@ export default {
           type: `number`,
         },
         {
+          key: `upp_sys`,
+          text: `系統金額上限`,
+          type: `text`,
+        },
+        {
+          key: `low_sys`,
+          text: `系統金額下限`,
+          type: `text`,
+        },
+        {
           key: `place`,
           text: `購買地點`,
           type: `select`,
@@ -91,27 +111,48 @@ export default {
           type: `checkbox`,
         },
         {
+          key: `def_fg`,
+          text: `預設名稱註記`,
+          type: `checkbox`,
+        },
+        {
           key: `code_rem`,
           text: `備註`,
           type: `text`,
         },
       ],
+      isColDisabled: false,
     };
   },
   methods: {
     setDefaultKeys() {
       this.subjectData.code_no = this.subjectData.code_no || ``;
       this.subjectData.code_name = this.subjectData.code_name || ``;
-      this.subjectData.upp_lim = this.subjectData.upp_lim || `null`;
-      this.subjectData.low_lim = this.subjectData.low_lim || `null`;
+      this.subjectData.upp_lim = this.subjectData.upp_lim || ``;
+      this.subjectData.low_lim = this.subjectData.low_lim || ``;
       this.subjectData.place = this.subjectData.place || ``;
       this.subjectData.param1 = this.subjectData.param1 || ``;
       this.subjectData.param2 = this.subjectData.param2 || ``;
       this.subjectData.stop_fg = this.subjectData.stop_fg || `N`;
       this.subjectData.code_rem = this.subjectData.code_rem || ``;
+      this.subjectData.upp_sys = this.subjectData.upp_sys || ``;
+      this.subjectData.low_sys = this.subjectData.low_sys || ``;
+      this.subjectData.def_fg = this.subjectData.def_fg || ``;
+    },
+    initialColEnable() {
+      for (let i = 0; i < this.itemKeys.length; i++) {
+        const { key } = this.itemKeys[i];
+        this.$set(this.itemKeys[i], `isDisabled`, this.isColDisabled);
+        if (key === `def_fg` && this.isColDisabled) {
+          this.$set(this.itemKeys[i], `isDisabled`, false);
+        }
+      }
     },
     save() {
-      this.$emit(`changed`, this.subjectData);
+      this.$emit(`changed`, {
+        subjectObj: this.subjectData,
+        isDefaultName: this.isDefaultName,
+      });
     },
     cancel() {
       this.$el.hide();
@@ -119,7 +160,12 @@ export default {
   },
   created() {},
   mounted() {
+    if (Object.keys(this.subjectData).length !== 0) {
+      this.isColDisabled = true;
+    }
+
     this.setDefaultKeys();
+    this.initialColEnable();
   },
   computed: {
     ...mapState([`paramArray`]),
@@ -129,6 +175,14 @@ export default {
       },
       set(value) {
         this.subjectData.stop_fg = value ? `Y` : `N`;
+      },
+    },
+    isDefaultName: {
+      get() {
+        return this.subjectData.def_fg === `Y`;
+      },
+      set(value) {
+        this.subjectData.def_fg = value ? `Y` : ``;
       },
     },
     placeOpts() {
@@ -159,6 +213,7 @@ export default {
       return [`text`, `number`];
     },
   },
+  watch: {},
 };
 </script>
 

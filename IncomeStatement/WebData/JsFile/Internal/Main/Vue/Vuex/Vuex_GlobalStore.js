@@ -16,7 +16,6 @@ const vueStore = new Vuex.Store({
       state.subjectArray = tempArry;
     },
     fnInsertSubject(state, subjectObject) {
-      console.log(subjectObject);
       Vue.set(state.subjectArray, state.subjectArray.length, subjectObject);
     },
     fnUpdateSubject(state, object) {
@@ -43,6 +42,16 @@ const vueStore = new Vuex.Store({
 
         Vue.delete(state.subjectArray, subIdx);
       }
+    },
+    fnSetDetaultName(state, subjectObj) {
+      state.subjectArray.forEach((obj, index) => {
+        if (obj.code_no === subjectObj.code_no) {
+          if (obj.code_name !== subjectObj.code_name) {
+            // set empty for all same code
+            Vue.set(state.subjectArray[index], `def_fg`, ``);
+          }
+        }
+      });
     },
     fnUpdateParam(state, placeArray) {
       state.paramArray = placeArray;
@@ -102,6 +111,19 @@ const vueStore = new Vuex.Store({
 
       if (resObject.status === UtilData.mixinBackendErrorCode.success) {
         context.commit(`fnDeleteSubject`, subjectArray);
+      }
+    },
+    async setSubjectDefaultName(context, subjectObj) {
+      const resObject = await UtilFn.mixinCallBackService(
+        UtilData.mixinBackendService.subjectData,
+        {
+          Action: `SETDEFAULTNAME`,
+          Subject: JSON.stringify(subjectObj),
+        }
+      );
+
+      if (resObject.status === UtilData.mixinBackendErrorCode.success) {
+        context.commit(`fnSetDetaultName`, subjectObj);
       }
     },
 

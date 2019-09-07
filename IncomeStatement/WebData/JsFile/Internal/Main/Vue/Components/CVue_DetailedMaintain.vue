@@ -4,7 +4,6 @@
     <selector
       v-if="isShowFilter"
       :filterModel="selectorModel"
-      :daysError="daysError"
       :isDetailed="true"
       @search="searchEvent"
       @additem="openDetailedView"
@@ -128,8 +127,6 @@ export default {
       hintText: `請先查詢資料`,
       queryObject: {},
       addQueryObject: {},
-      checkKey: -1,
-      daysError: ``,
 
       // for select
       isSelectAll: false,
@@ -152,7 +149,7 @@ export default {
   },
   methods: {
     async searchEvent(filterObj) {
-      const { date, duration, port, subjectCode, dataChecker } = filterObj;
+      const { date, duration, port, subjectCode, subjectName } = filterObj;
       this.queryObject = {};
 
       // add date
@@ -181,8 +178,11 @@ export default {
         this.queryObject.CodeNo = subjectCode.code_no;
       }
 
-      // check data
-      this.checkKey = dataChecker.checker === null ? -1 : dataChecker.checker;
+      // add subject name
+      if (subjectName.code_name.length > 0) {
+        this.queryObject.CodeName = subjectName.code_name;
+      }
+
       await this.queryDetailedData(this.queryObject);
     },
     onRowSelected(items) {
@@ -269,13 +269,6 @@ export default {
         });
 
         this.coExpMitems = resObject.data.CoExpM || [];
-
-        // add checker
-        if (this.checkKey !== -1) {
-          this.doChecker(this.checkKey);
-        } else {
-          this.daysError = ``;
-        }
       } else {
         this.hintText = `查詢錯誤發生，請確認有輸入必要參數`;
       }
@@ -374,61 +367,6 @@ export default {
         }
       }
     },
-    doChecker(value) {
-      let errorDays;
-
-      // get error days
-      if (value === 0) {
-        const days = Object.keys(this.coExpMitems).map(key =>
-          parseInt(key, 10)
-        );
-        // check no payment data
-        errorDays = days.filter(day => {
-          const currentDaItems = this.items.filter(
-            obj => parseInt(obj.ie_day, 10) === day
-          );
-          if (currentDaItems.length === 0) {
-            return true;
-          }
-
-          return currentDaItems.some(obj => {
-            const cost = parseInt(obj.code_amt, 10);
-            if (!cost || cost === 0) {
-              return true;
-            }
-
-            return false;
-          });
-        });
-      } else if (value === 1) {
-        // check cost compare
-        errorDays = this.coExpMitems.reduce((tempAry, mObj) => {
-          const ieDay = mObj.ie_day;
-          const totalCost = parseInt(mObj.exp_amt, 10);
-          const realCost = this.items
-            .filter(dObj => dObj.ie_day === ieDay)
-            .reduce((total, dObj) => {
-              if (dObj.code_amt) {
-                total += parseInt(dObj.code_amt, 10);
-              }
-              return total;
-            }, 0);
-          if (totalCost !== realCost) {
-            tempAry.push(parseInt(ieDay, 10));
-          }
-          return tempAry;
-        }, []);
-      }
-
-      // filter
-      this.items = this.items.filter(obj =>
-        errorDays.includes(parseInt(obj.ie_day, 10))
-      );
-      if (this.items.length === 0) {
-        this.hintText = `無資料`;
-      }
-      this.daysError = errorDays.join(', ');
-    },
   },
   created() {
     this.fields = [
@@ -468,18 +406,6 @@ export default {
 
         return `${paramObj.par_no} ${paramObj.par_name}`;
       };
-    },
-    checkOpts() {
-      return [
-        {
-          value: 0,
-          text: `無支出日期`,
-        },
-        {
-          value: 1,
-          text: `每日支出合計金額不符`,
-        },
-      ];
     },
     title() {
       if (this.isShowFilter) {
