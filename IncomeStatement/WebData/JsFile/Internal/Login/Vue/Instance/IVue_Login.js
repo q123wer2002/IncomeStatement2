@@ -5,6 +5,8 @@ import 'bootstrap-vue/dist/bootstrap-vue.css';
 import vueStore from '../Vuex/Vuex_GlobalStore';
 import '../Mixins/Vue_GlobalMixins.js';
 
+const sha256 = require('js-sha256');
+
 Vue.use(BootstrapVue);
 
 function IVueInitalLogin() {
@@ -26,6 +28,9 @@ function IVueInitalLogin() {
       computed: {},
       methods: {
         async login() {
+          // default
+          this.loginErrorMsg = ``;
+
           // check is empty
           const { account, password } = this.userInput;
           if (account.length === 0 || password.length === 0) {
@@ -35,14 +40,19 @@ function IVueInitalLogin() {
 
           const resObject = await this.mixinCallBackService(
             this.mixinBackendService.login,
-            { Username: account, Password: password },
-            false
+            {
+              Username: account,
+              Password: sha256(password),
+            }
           );
 
           if (resObject.status === this.mixinBackendErrorCode.success) {
             // re-direct to home page
             this.mixinToHomePage();
           }
+
+          console.log(resObject);
+          this.loginErrorMsg = `登入失敗，帳號或密碼錯誤`;
         },
         async checkAccountStatus() {
           const { isSuccess } = await this.mixinAccountStatus();

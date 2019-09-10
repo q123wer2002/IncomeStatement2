@@ -69,6 +69,9 @@
         <template slot="[place]" slot-scope="{ item }">
           <div style="text-align: left;">{{ placeName(item.place) }}</div>
         </template>
+        <template slot="[exp_amt]" slot-scope="{ item }">
+          <div>{{ totalCost(item) }}</div>
+        </template>
         <template slot="[edit]" slot-scope="{ item }">
           <a href="javascript:;" @click="openDetailedView(item)">編輯</a>
         </template>
@@ -91,7 +94,6 @@
         :queryObject="addQueryObject"
         :data="detailedData"
         :remark="passRemark"
-        :totalDayCost="totalCost"
         @save="onSaveEvent"
       ></detailed-view>
     </b-modal>
@@ -144,7 +146,6 @@ export default {
       // for edit, and new one
       detailedData: [],
       passRemark: ``,
-      totalCost: 0,
     };
   },
   methods: {
@@ -212,10 +213,9 @@ export default {
             this.items.filter(item => item.ie_day === dataObj.ie_day)
           )
         );
-        const { day_rem, exp_amt } = this.coExpMitems.find(
+        const { day_rem } = this.coExpMitems.find(
           obj => obj.ie_day === dataObj.ie_day
         );
-        this.totalCost = parseInt(exp_amt, 10);
         this.passRemark = day_rem;
       } else {
         const { Year, Month, FamNo } = this.queryObject;
@@ -240,35 +240,35 @@ export default {
       );
 
       if (resObject.status === this.mixinBackendErrorCode.success) {
-        if (resObject.data.CoExpD.length === 0) {
-          this.hintText = `無資料`;
-        }
-
-        this.items = resObject.data.CoExpD || [];
-        // sort
-        this.items.sort((obj1, obj2) => {
-          if (obj1.ie_day > obj2.ie_day) {
-            return 1;
-          }
-
-          if (obj1.ie_day < obj2.ie_day) {
-            return -1;
-          }
-
-          return 0;
-        });
-
-        // set code_name
-        this.items.forEach(obj => {
-          if (obj.code_no !== undefined && obj.code_name.length === 0) {
-            const subObject = this.subjectArray.find(
-              subObj => subObj.code_no === obj.code_no
-            );
-            obj.code_name = subObject ? subObject.code_name : ``;
-          }
-        });
-
         this.coExpMitems = resObject.data.CoExpM || [];
+        this.items = resObject.data.CoExpD || [];
+
+        if (this.items.length === 0) {
+          this.hintText = `無資料`;
+        } else {
+          // sort
+          this.items.sort((obj1, obj2) => {
+            if (obj1.ie_day > obj2.ie_day) {
+              return 1;
+            }
+
+            if (obj1.ie_day < obj2.ie_day) {
+              return -1;
+            }
+
+            return 0;
+          });
+
+          // set code_name
+          this.items.forEach(obj => {
+            if (obj.code_no !== undefined && obj.code_name.length === 0) {
+              const subObject = this.subjectArray.find(
+                subObj => subObj.code_no === obj.code_no
+              );
+              obj.code_name = subObject ? subObject.code_name : ``;
+            }
+          });
+        }
       } else {
         this.hintText = `查詢錯誤發生，請確認有輸入必要參數`;
       }
@@ -414,6 +414,9 @@ export default {
 
       const { Year, Month, FamNo } = this.inputedQueryObj;
       return `${Year}年${Month}月, 戶號:${FamNo}`;
+    },
+    totalCost() {
+      return 0;
     },
   },
   watch: {

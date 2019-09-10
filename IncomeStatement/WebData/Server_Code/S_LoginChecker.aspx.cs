@@ -1,4 +1,6 @@
 ﻿using IncomeStatement.WebData.Server_Code.CommonModule;
+using IncomeStatement.WebData.Server_Code.CommonModule.mssql;
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace IncomeStatement.WebData.Server_Code
@@ -21,6 +23,12 @@ namespace IncomeStatement.WebData.Server_Code
 			DateTime ExpireTime = DateTime.Now.AddDays( 1d );
 
 			//TODO: check username and password
+			JObject jUserInfo;
+			if( isLoginSuccess(szUserName, szUserPassword, out jUserInfo) == false ) {
+				m_requestHandler.StatusCode = (int)ErrorCode.Error;
+				Response.Write(m_requestHandler.GetReturnResult());
+				return;
+			}
 
 			//create token 
 			string szJWTToken = "";
@@ -45,6 +53,32 @@ namespace IncomeStatement.WebData.Server_Code
 			catch {
 				return false;
 			}
+		}
+		bool isLoginSuccess( string szUserName, string szUserPassword, out JObject jUserInfo )
+		{
+			jUserInfo = new JObject();
+
+			// get account info
+			string szAccountInfo = $"SELECT * FROM {TableName.CoSysAuth} WHERE login_id='{szUserName}'";
+			JArray jResult;
+			m_mssql.TryQuery(szAccountInfo, out jResult);
+			if( jResult == null || jResult.Count != 1 ) {
+				return false;
+			}
+
+			// check password
+			jUserInfo["account"] = (JObject)jResult[ 0 ];
+			string szDBPassword = jUserInfo[ "account" ][ "pwd" ].ToString();
+			if( szDBPassword != szUserPassword ) {
+				return false;
+			}
+
+			// get user info
+			string szUserInfo = $"SELECT * FROM {TableName.CoSysUser} WHERE user_id='{szUserName}'";
+			m_mssql.TryQuery(szAccountInfo, out jResult);
+			jUserInfo[ "user" ] = (jResult == null) ? null : (JObject)jResult[ 0 ];
+
+			return true;
 		}
 		class Param
 		{
@@ -75,5 +109,7 @@ namespace IncomeStatement.WebData.Server_Code
 			Response.Write( m_requestHandler.GetReturnResult() );
 			Server.ClearError();
 		}
+
+		MSSQL m_mssql = new MSSQL();
 	}
 }

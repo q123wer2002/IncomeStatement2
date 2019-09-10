@@ -91,5 +91,28 @@
 				return "co_fam_mem";
 			}
 		}
+
+		// system
+		public static string CoSysAuth
+		{
+			get
+			{
+				return "co_sys_auth";
+			}
+		}
+		public static string CoSysUser
+		{
+			get
+			{
+				return "co_sys_user";
+			}
+		}
+		public static string CoSysLog
+		{
+			get
+			{
+				return "co_sys_log";
+			}
+		}
 	}
 }

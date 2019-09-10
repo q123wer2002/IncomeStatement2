@@ -32,20 +32,7 @@
           <label>輸入金額合計：</label>
         </b-col>
         <b-col style="text-align: left" col lg="8">
-          <span :style="costStyle">{{ totalCost }}</span>
-        </b-col>
-      </b-row>
-      <b-row class="my-1">
-        <b-col style="text-align: right;" col lg="2">
-          <label>本日支出合計：</label>
-        </b-col>
-        <b-col style="text-align: left" col lg="8">
-          <b-form-input
-            size="sm"
-            v-model="tempCost"
-            @update="checkIsEnableSave"
-            type="number"
-          ></b-form-input>
+          <span>{{ totalCost }}</span>
         </b-col>
       </b-row>
       <b-row class="my-1">
@@ -141,14 +128,9 @@ export default {
       type: String,
       required: false,
     },
-    totalDayCost: {
-      type: Number,
-      required: false,
-    },
   },
   data() {
     return {
-      tempCost: 0,
       tempRemark: ``,
 
       // table
@@ -193,23 +175,18 @@ export default {
       this.$set(this.items[index], `code_name`, newName);
     },
     saveItems() {
-      const fnTwoDigit = n => {
-        const number = parseInt(n, 10);
-        return number > 9 ? `${number}` : `0${number}`;
-      };
       const { ie_year, ie_mon, ie_day, fam_no } = this.data[0] || this.items[0];
       this.items.forEach(obj => {
         obj.ie_year = ie_year;
         obj.ie_mon = ie_mon;
-        obj.ie_day = fnTwoDigit(ie_day);
+        obj.ie_day = ie_day;
         obj.fam_no = fam_no;
-        obj.exp_amt = this.tempCost;
       });
 
       this.$emit(`save`, {
         items: this.items,
         remark: this.tempRemark,
-        totalCost: this.tempCost,
+        totalCost: this.totalCost,
       });
     },
     initialSubName() {
@@ -232,19 +209,11 @@ export default {
       );
 
       this.items = resObject.data.CoExpD;
-      const { exp_amt, day_rem } = resObject.data.CoExpM[0];
-      this.tempCost = exp_amt;
+      const { day_rem } = resObject.data.CoExpM[0];
       this.tempRemark = day_rem;
       this.initialSubName();
     },
     checkIsEnableSave() {
-      // check cost
-      if (parseInt(this.totalCost, 10) !== parseInt(this.tempCost, 10)) {
-        this.cantSaveHint = `金額不一致`;
-        this.isEnabledSave = false;
-        return;
-      }
-
       // check empty
       const isNoEmpty = this.items.every(obj => obj.code_name.length !== 0);
       if (isNoEmpty === false) {
@@ -265,10 +234,6 @@ export default {
 
     if (this.remark.length !== 0) {
       this.tempRemark = this.remark;
-    }
-
-    if (this.totalDayCost !== 0) {
-      this.tempCost = this.totalDayCost;
     }
   },
   computed: {
@@ -320,17 +285,6 @@ export default {
       }
 
       return 0;
-    },
-    costStyle() {
-      if (parseInt(this.totalCost, 10) !== parseInt(this.tempCost, 10)) {
-        return {
-          color: `red`,
-        };
-      }
-
-      return {
-        color: `green`,
-      };
     },
     isNeedSelectDay() {
       if (this.data.length > 0) {
