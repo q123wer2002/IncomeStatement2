@@ -46,13 +46,13 @@ function IVueInitalLogin() {
             }
           );
 
-          if (resObject.status === this.mixinBackendErrorCode.success) {
-            // re-direct to home page
-            this.mixinToHomePage();
+          if (resObject.status !== this.mixinBackendErrorCode.success) {
+            this.loginErrorMsg = `登入失敗，帳號或密碼錯誤`;
+            return;
           }
 
-          console.log(resObject);
-          this.loginErrorMsg = `登入失敗，帳號或密碼錯誤`;
+          // re-direct to home page
+          this.mixinToHomePage();
         },
         async checkAccountStatus() {
           const { isSuccess } = await this.mixinAccountStatus();

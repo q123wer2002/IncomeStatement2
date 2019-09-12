@@ -56,8 +56,11 @@
       <template slot="[no]" slot-scope="data">
         {{ data.index + 1 }}
       </template>
-      <template slot="[place]" slot-scope="{ item }">
-        <b-form-input v-model="item.place"></b-form-input>
+      <template slot="[place]" slot-scope="data">
+        <b-form-input
+          v-model="data.item.place"
+          @blur="onChangeSubName(data.index)"
+        ></b-form-input>
       </template>
       <template slot="[code_amt]" slot-scope="{ item }">
         <b-form-input v-model="item.code_amt"></b-form-input>
@@ -69,19 +72,22 @@
           list="subjectNolist"
         ></b-form-input>
         <datalist id="subjectNolist">
-          <option v-for="(obj, index) in subjectOpts" :key="index">
-            {{ obj.value }}
+          <option v-for="(code, index) in subjectCodeOpts" :key="index">
+            {{ code }}
           </option>
         </datalist>
       </template>
-      <template slot="[code_name]" slot-scope="{ item }">
+      <template slot="[code_name]" slot-scope="data">
         <b-form-input
-          v-model="item.code_name"
+          v-model="data.item.code_name"
           list="subjectNamelist"
         ></b-form-input>
         <datalist id="subjectNamelist">
-          <option v-for="(obj, index) in subjectOpts" :key="index">
-            {{ obj.text }}
+          <option
+            v-for="(name, index) in mapSubjectNameOpts(data.item.code_no)"
+            :key="index"
+          >
+            {{ name }}
           </option>
         </datalist>
       </template>
@@ -164,9 +170,19 @@ export default {
     },
     onCodeChanged(index) {
       const tempItem = this.items[index];
-      const codeObj = this.subjectArray.find(
+
+      // get subject name with def_fg
+      let codeObj = this.subjectWithDEFFG.find(
         obj => obj.code_no === tempItem.code_no
       );
+
+      // get subject name by first item
+      if (!codeObj) {
+        codeObj = this.subjectArray.find(
+          obj => obj.code_no === tempItem.code_no
+        );
+      }
+
       let newName = ``;
       if (codeObj) {
         newName = codeObj.code_name;
@@ -189,16 +205,6 @@ export default {
         totalCost: this.totalCost,
       });
     },
-    initialSubName() {
-      this.items.forEach(obj => {
-        if (obj.code_no !== undefined && obj.code_name.length === 0) {
-          const subObject = this.subjectArray.find(
-            subObj => subObj.code_no === obj.code_no
-          );
-          obj.code_name = subObject ? subObject.code_name : ``;
-        }
-      });
-    },
     async queryDetailedData(queryObject) {
       const resObject = await this.mixinCallBackService(
         this.mixinBackendService.detatiledData,
@@ -211,9 +217,21 @@ export default {
       this.items = resObject.data.CoExpD;
       const { day_rem } = resObject.data.CoExpM[0];
       this.tempRemark = day_rem;
-      this.initialSubName();
     },
     checkIsEnableSave() {
+      // check code no
+      const isExistCodeNo = this.items
+        .map(obj => obj.code_no)
+        .every(
+          code =>
+            this.subjectArray.findIndex(obj => obj.code_no === code) !== -1
+        );
+      if (isExistCodeNo === false) {
+        this.cantSaveHint = `有科目代碼不存在`;
+        this.isEnabledSave = false;
+        return;
+      }
+
       // check empty
       const isNoEmpty = this.items.every(obj => obj.code_name.length !== 0);
       if (isNoEmpty === false) {
@@ -225,26 +243,48 @@ export default {
       this.cantSaveHint = ``;
       this.isEnabledSave = true;
     },
+    onChangeSubName(index) {
+      const totalNum = this.items.length - 1;
+      if (totalNum !== index) {
+        return;
+      }
+
+      this.addItem();
+    },
   },
   created() {},
   mounted() {
-    if (this.data.length > 0) {
-      this.initialSubName();
-    }
-
     if (this.remark.length !== 0) {
       this.tempRemark = this.remark;
     }
   },
   computed: {
     ...mapState([`paramArray`, `subjectArray`]),
-    subjectOpts() {
-      return this.subjectArray.map(obj => {
-        return {
-          text: obj.code_name,
-          value: obj.code_no,
-        };
-      });
+    subjectWithDEFFG() {
+      return this.subjectArray.filter(obj => obj.def_fg.length !== 0);
+    },
+    subjectCodeOpts() {
+      return this.subjectArray
+        .map(obj => obj.code_no)
+        .reduce((tempArray, code) => {
+          if (tempArray.includes(code) === false) {
+            tempArray.push(code);
+          }
+
+          return tempArray;
+        }, []);
+    },
+    mapSubjectNameOpts() {
+      return codeNo => {
+        console.log(codeNo);
+        if (!codeNo) {
+          return this.subjectArray.map(obj => obj.code_name);
+        }
+
+        return this.subjectArray
+          .filter(obj => obj.code_no === codeNo)
+          .map(obj => obj.code_name);
+      };
     },
     familyNo() {
       if (this.data.length > 0) {

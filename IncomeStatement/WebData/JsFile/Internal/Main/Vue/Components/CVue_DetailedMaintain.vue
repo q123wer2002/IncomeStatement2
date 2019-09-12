@@ -258,16 +258,6 @@ export default {
 
             return 0;
           });
-
-          // set code_name
-          this.items.forEach(obj => {
-            if (obj.code_no !== undefined && obj.code_name.length === 0) {
-              const subObject = this.subjectArray.find(
-                subObj => subObj.code_no === obj.code_no
-              );
-              obj.code_name = subObject ? subObject.code_name : ``;
-            }
-          });
         }
       } else {
         this.hintText = `查詢錯誤發生，請確認有輸入必要參數`;
@@ -416,7 +406,16 @@ export default {
       return `${Year}年${Month}月, 戶號:${FamNo}`;
     },
     totalCost() {
-      return 0;
+      return item => {
+        const itemDay = item.ie_day;
+        return this.items.reduce((cost, obj) => {
+          if (obj.ie_day === itemDay) {
+            cost += parseInt(obj.code_amt, 10);
+          }
+
+          return cost;
+        }, 0);
+      };
     },
   },
   watch: {
