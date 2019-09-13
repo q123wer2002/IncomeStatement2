@@ -18,14 +18,16 @@
           class="d-inline-block"
         ></b-form-input>
       </div>
+      <b-button
+        variant="info"
+        :disabled="!enabledConfirm"
+        @click="confirm(`2`)"
+        class="my-3 mx-1 float-sm-right"
+        size="sm"
+      >
+        登錄確認
+      </b-button>
       <b-button-group class="my-3 float-sm-right" size="sm">
-        <b-button
-          variant="info"
-          :disabled="!enabledConfirm"
-          @click="confirm(`2`)"
-        >
-          登錄確認
-        </b-button>
         <b-button
           variant="info"
           :disabled="!enabledReview"
@@ -134,7 +136,7 @@ export default {
   },
   methods: {
     async searchEvent(filterObject) {
-      const { date, loginman, port, status, receivemane } = filterObject;
+      const { date, loginman, port, status, reviewman } = filterObject;
       this.queryObject = {};
 
       // add date
@@ -154,8 +156,8 @@ export default {
         this.queryObject.FamNoEnd = port.end;
       }
 
-      if (receivemane && receivemane.id.length !== 0) {
-        this.queryObject.AdiUser = receivemane.id;
+      if (reviewman && reviewman.id.length !== 0) {
+        this.queryObject.AdiUser = reviewman.id;
       }
 
       if (status.code > 0) {
@@ -195,7 +197,7 @@ export default {
       );
 
       if (resObject.status === this.mixinBackendErrorCode.success) {
-        this.items = resObject.data;
+        this.items = resObject.data || [];
       }
       this.isBusy = false;
       return resObject;
@@ -249,7 +251,7 @@ export default {
       if (this.isSelectAll) {
         exportData = this.items;
       }
-
+      console.log(exportData);
       const csvData = [
         filedName,
         ...exportData.map(obj => {
@@ -313,7 +315,8 @@ export default {
       { key: `selected`, label: `勾選` },
       { key: `ie_year`, label: `年` },
       { key: `ie_mon`, label: `月` },
-      { key: `rec_name`, label: `登入人員`, sortable: true },
+      { key: `rec_name`, label: `登錄人員`, sortable: true },
+      { key: `adi_name`, label: `審核人員`, sortable: true },
       { key: `fam_no`, label: `戶號`, sortable: true },
       { key: `state`, label: `資料狀態`, sortable: true },
       { key: `btnIncomeDetail`, label: `收支資料` },

@@ -59,11 +59,14 @@
       <template slot="[place]" slot-scope="data">
         <b-form-input
           v-model="data.item.place"
-          @blur="onChangeSubName(data.index)"
+          @focus="onChangeSubName(data.index)"
         ></b-form-input>
       </template>
-      <template slot="[code_amt]" slot-scope="{ item }">
-        <b-form-input v-model="item.code_amt"></b-form-input>
+      <template slot="[code_amt]" slot-scope="data">
+        <b-form-input
+          v-model="data.item.code_amt"
+          @focus="onChangeSubName(data.index)"
+        ></b-form-input>
       </template>
       <template slot="[code_no]" slot-scope="data">
         <b-form-input
@@ -81,12 +84,10 @@
         <b-form-input
           v-model="data.item.code_name"
           list="subjectNamelist"
+          @focus="changeSubjectOpts(data.item.code_no)"
         ></b-form-input>
         <datalist id="subjectNamelist">
-          <option
-            v-for="(name, index) in mapSubjectNameOpts(data.item.code_no)"
-            :key="index"
-          >
+          <option v-for="(name, index) in tempSubjectArray" :key="index">
             {{ name }}
           </option>
         </datalist>
@@ -151,6 +152,7 @@ export default {
       items: this.data,
       cantSaveHint: ``,
       isEnabledSave: false,
+      tempSubjectArray: [],
     };
   },
   methods: {
@@ -251,6 +253,16 @@ export default {
 
       this.addItem();
     },
+    changeSubjectOpts(codeNo) {
+      if (!codeNo) {
+        this.tempSubjectArray = this.subjectArray.map(obj => obj.code_name);
+        return;
+      }
+
+      this.tempSubjectArray = this.subjectArray
+        .filter(obj => obj.code_no === codeNo)
+        .map(obj => obj.code_name);
+    },
   },
   created() {},
   mounted() {
@@ -273,18 +285,6 @@ export default {
 
           return tempArray;
         }, []);
-    },
-    mapSubjectNameOpts() {
-      return codeNo => {
-        console.log(codeNo);
-        if (!codeNo) {
-          return this.subjectArray.map(obj => obj.code_name);
-        }
-
-        return this.subjectArray
-          .filter(obj => obj.code_no === codeNo)
-          .map(obj => obj.code_name);
-      };
     },
     familyNo() {
       if (this.data.length > 0) {

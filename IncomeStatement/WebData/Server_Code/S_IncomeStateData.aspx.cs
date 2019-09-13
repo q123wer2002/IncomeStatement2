@@ -126,13 +126,15 @@ namespace IncomeStatement.WebData.Server_Code
 					// check record no
 					if( Request.Form[ Param.AdiUser ] != null ) {
 						string szAdiUser = Request.Form[ Param.AdiUser ].ToString();
-						m_paramExpDList.Add($"{TableName.CoExpM}.adi_user LIKE '%{szAdiUser}%'");
+						m_paramExpDList.Add($"{TableName.CoFam}.adi_user LIKE '%{szAdiUser}%'");
 					}
 
 					// check record no
 					if( Request.Form[ Param.State ] != null ) {
 						string szState = Request.Form[ Param.State ].ToString();
-						m_paramExpDList.Add($"{TableName.CoFam}.state = {szState}");
+						if( szState != "0" ) {
+							m_paramExpDList.Add($"{TableName.CoFam}.state = {szState}");
+						}
 					}
 
 					// no param
@@ -232,6 +234,7 @@ namespace IncomeStatement.WebData.Server_Code
 		}
 		enum status:int
 		{
+			All = 0,
 			Inprogress = 1,
 			RecordConfirm = 2,
 			ReviewConfirm = 3,

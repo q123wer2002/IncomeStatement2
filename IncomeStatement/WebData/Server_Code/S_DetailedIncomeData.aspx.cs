@@ -301,7 +301,7 @@ namespace IncomeStatement.WebData.Server_Code
 			if( isOwnItemNo == false ) {
 				// get the newest item_no
 				JObject jItem = items[ 0 ];
-				string szGetItemNo = $"SELECT TOP(1) item_no FROM {TableName.CoExpD} WHERE ie_year={jItem[ "ie_year" ].ToString()} AND ie_mon={jItem[ "ie_mon" ].ToString()} AND ie_day={jItem[ "ie_day" ].ToString()} ORDER BY item_no DESC";
+				string szGetItemNo = $"SELECT TOP(1) item_no FROM {TableName.CoExpD} WHERE ie_year={jItem[ "ie_year" ].ToString()} AND ie_mon={jItem[ "ie_mon" ].ToString()} ORDER BY item_no DESC";
 				JArray result;
 				m_mssql.TryQuery(szGetItemNo, out result);
 				if( result.Count == 0 ) {

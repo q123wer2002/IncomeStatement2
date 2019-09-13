@@ -101,10 +101,14 @@ export const incomeDataModel = [
       code: `select`,
     },
     value: {
-      code: 1,
+      code: 0,
     },
     source: {
       code: [
+        {
+          value: 0,
+          text: `全部`,
+        },
         {
           value: 1,
           text: `處理中`,
