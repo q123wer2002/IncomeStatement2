@@ -11,6 +11,8 @@ namespace IncomeStatement.WebData.Server_Code
 	public partial class S_IncomeStateData : System.Web.UI.Page
 	{
 		RequestHandler m_requestHandler;
+		string szUserCode;
+		string szUserName;
 		protected void Page_Load( object sender, EventArgs e )
 		{
 			// check status, set default
@@ -25,6 +27,10 @@ namespace IncomeStatement.WebData.Server_Code
 				Response.Write(m_requestHandler.GetReturnResult());
 				return;
 			}
+
+			// get user code
+			szUserCode = Request.Cookies[ CookieKey.UserID ].Value;
+			szUserName = Request.Cookies[ CookieKey.Username ].Value;
 
 			// check action
 			ApiAction action = GetAction();
@@ -194,31 +200,37 @@ namespace IncomeStatement.WebData.Server_Code
 			string szErrorMsg;
 
 			// insert into log
-			string szInertCoFamLog = $"INSERT INTO {TableName.CoFamLog} SELECT 'M', CURRENT_TIMESTAMP, 'SYS', * FROM {TableName.CoFam} WHERE {szWhere}";
-			string szInsertExMLog = $"INSERT INTO {TableName.CoExpMLog} SELECT 'M', CURRENT_TIMESTAMP, 'SYS', * FROM {TableName.CoExpM} WHERE {szWhere}";
+			string szInertCoFamLog = $"INSERT INTO {TableName.CoFamLog} SELECT 'M', CURRENT_TIMESTAMP, '{szUserCode}', * FROM {TableName.CoFam} WHERE {szWhere}";
+			string szInsertExMLog = $"INSERT INTO {TableName.CoExpMLog} SELECT 'M', CURRENT_TIMESTAMP, '{szUserCode}', * FROM {TableName.CoExpM} WHERE {szWhere}";
 			m_mssql.TryQuery(szInertCoFamLog, out szErrorMsg);
 			m_mssql.TryQuery(szInsertExMLog, out szErrorMsg);
 
 			// update co_fam
+			string szOtherSetting = "";
+			if( state == status.RecordConfirm ) {
+				szOtherSetting = $", rec_user='{szUserCode}', rec_name='{szUserName}'";
+			}
+			else if( state == status.ReviewConfirm ) {
+				szOtherSetting = $", adi_user='{szUserCode}', adi_name='{szUserName}'";
+			}
 			string szUpdateCoFam = $"UPDATE {TableName.CoFam} " +
-				$"SET state={(int)state} " +
+				$"SET state={(int)state}{szOtherSetting} upd_date=CURRENT_TIMESTAMP, upd_user='{szUserCode}'" +
 				$"WHERE {szWhere}";
 			bool isSuccess = m_mssql.TryQuery(szUpdateCoFam, out szErrorMsg);
 			if( isSuccess == false ) {
 				return false;
 			}
 
-			string szOtherSetting = "";
+			// update co_exp_m
+			szOtherSetting = "";
 			if( state == status.RecordConfirm ) {
-				szOtherSetting = ", rec_date=CURRENT_TIMESTAMP";
+				szOtherSetting = $", rec_date=CURRENT_TIMESTAMP, rec_user='{szUserCode}'";
 			}
 			else if( state == status.ReviewConfirm ) {
-				szOtherSetting = ", adi_date=CURRENT_TIMESTAMP";
+				szOtherSetting = $", adi_date=CURRENT_TIMESTAMP, adi_user='{szUserCode}'";
 			}
-
-			// update co_exp_m
 			string szUpdateCoExpM = $"UPDATE {TableName.CoExpM} " +
-				$"SET state={(int)state}{szOtherSetting} " +
+				$"SET state={(int)state}{szOtherSetting} , upd_date=CURRENT_TIMESTAMP, upd_user='{szUserCode}'" +
 				$"WHERE {szWhere}";
 			isSuccess = m_mssql.TryQuery(szUpdateCoFam, out szErrorMsg);
 			return isSuccess;
@@ -229,6 +241,7 @@ namespace IncomeStatement.WebData.Server_Code
 		enum ApiAction
 		{
 			READ,
+			INSERT,
 			CONFIRM,
 			UNKNOW,
 		}
@@ -327,6 +340,8 @@ namespace IncomeStatement.WebData.Server_Code
 					return "ConfirmType";
 				}
 			}
+
+			// for insert
 		}
 		MSSQL m_mssql = new MSSQL();
 		List<string> m_paramExpDList = new List<string>();

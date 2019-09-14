@@ -11,6 +11,7 @@ namespace IncomeStatement.WebData.Server_Code
 	public partial class S_DetailedIncomeData : System.Web.UI.Page
 	{
 		RequestHandler m_requestHandler;
+		string szUserCode;
 		protected void Page_Load( object sender, EventArgs e )
 		{
 			// check status, set default
@@ -25,6 +26,9 @@ namespace IncomeStatement.WebData.Server_Code
 				Response.Write(m_requestHandler.GetReturnResult());
 				return;
 			}
+
+			// get user id
+			szUserCode = Request.Cookies[ CookieKey.UserID ].Value;
 
 			// check action
 			ApiAction action = GetAction();
@@ -242,6 +246,7 @@ namespace IncomeStatement.WebData.Server_Code
 		}
 		bool Write()
 		{
+			#region FOR EXPD
 			// for update
 			List<JObject> updateItems = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.UpdateItems ].ToString());
 			DeleteItems("M", updateItems.Select(obj => int.Parse(obj[ "item_no" ].ToString())).ToList());
@@ -252,7 +257,9 @@ namespace IncomeStatement.WebData.Server_Code
 			if( insertItems.Count > 0 ) {
 				InsertIntems(false, insertItems);
 			}
+			#endregion
 
+			#region FOR EXPM
 			// update cost
 			string szErrorMsg;
 			int nTotalCosst = int.Parse(Request.Form[ Param.TotalCost ].ToString());
@@ -262,12 +269,27 @@ namespace IncomeStatement.WebData.Server_Code
 				szWhere += $" {m_paramExpMList[ i ]}";
 				szWhere += i == m_paramExpMList.Count - 1 ? " " : " AND";
 			}
-			string szInsertSql = $"INSERT INTO {TableName.CoExpMLog} SELECT 'M', CURRENT_TIMESTAMP, 'SYS', * FROM {TableName.CoExpM} WHERE {szWhere}";
-			string szUpdate = $"UPDATE {TableName.CoExpM} SET exp_amt='{nTotalCosst}', day_rem='{szRemark}' WHERE {szWhere}";
-			m_mssql.TryQuery(szInsertSql, out szErrorMsg);
-			m_mssql.TryQuery(szUpdate, out szErrorMsg);
 
-			return true;
+			// select once
+			string szGetExpM = $"SELECT * FROM {TableName.CoExpM} WHERE {szWhere}";
+			JArray jResult;
+			m_mssql.TryQuery( szGetExpM, out jResult );
+
+			// update or insert
+			if( jResult.Count == 0 ) {
+				string szYear = Request.Form[ Param.Year ].ToString();
+				string szMonth = Request.Form[ Param.Month ].ToString();
+				string szDay = Request.Form[ Param.Day ].ToString();
+				string szFamNo = Request.Form[ Param.FamNo ].ToString();
+				string szInsertql = $"INSERT INTO {TableName.CoExpM} VALUES ('{szYear}', '{parse2TwoDigital( szMonth )}', '{parse2TwoDigital( szDay )}', '{szFamNo}', '{nTotalCosst}', '{szRemark}', '1', CURRENT_TIMESTAMP, '{szUserCode}', NULL, NUll)";
+				return m_mssql.TryQuery( szInsertql, out szErrorMsg );
+			}
+			else {
+				string szInsertLogSql = $"INSERT INTO {TableName.CoExpMLog} SELECT 'M', CURRENT_TIMESTAMP, '{szUserCode}', * FROM {TableName.CoExpM} WHERE {szWhere}";
+				string szUpdate = $"UPDATE {TableName.CoExpM} SET exp_amt='{nTotalCosst}', day_rem='{szRemark}', upd_date=CURRENT_TIMESTAMP, upd_user='{szUserCode}' WHERE {szWhere}";
+				return m_mssql.TryQuery( szInsertLogSql, out szErrorMsg ) && m_mssql.TryQuery( szUpdate, out szErrorMsg );
+			}
+			#endregion
 		}
 		bool Delete()
 		{
@@ -284,7 +306,7 @@ namespace IncomeStatement.WebData.Server_Code
 			}
 
 			// copy currnt data into log file
-			string szInsertLog = $"INSERT INTO {TableName.CoExpDLog} SELECT '{szReason}', CURRENT_TIMESTAMP, 'SYS', * FROM {TableName.CoExpD} WHERE {szWhere}";
+			string szInsertLog = $"INSERT INTO {TableName.CoExpDLog} SELECT '{szReason}', CURRENT_TIMESTAMP, '{szUserCode}', * FROM {TableName.CoExpD} WHERE {szWhere}";
 			bool isSuccess = m_mssql.TryQuery(szInsertLog, out szErrorMsg);
 			if( isSuccess == false ) {
 				return false;
@@ -318,7 +340,8 @@ namespace IncomeStatement.WebData.Server_Code
 			for( int i = 0; i < items.Count; i++ ) {
 				JObject jItem = items[ i ];
 				int nItemNo = isOwnItemNo == false ? nNextItemNo + 1 : int.Parse(jItem[ "item_no" ].ToString());
-				szInsert += $"('{parse2TwoDigital(jItem[ "ie_year" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_mon" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_day" ].ToString())}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', '{jItem[ "code_name" ].ToString()}', NULL, NULL, CURRENT_TIMESTAMP, NULL )";
+				string szLastFourSQL = isOwnItemNo ? $"{jItem[ "rec_date" ].ToString()}, {jItem[ "rec_user" ].ToString()}, CURRENT_TIMESTAMP, '{szUserCode}'" : $"CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL";
+				szInsert += $"('{parse2TwoDigital(jItem[ "ie_year" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_mon" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_day" ].ToString())}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', '{jItem[ "code_name" ].ToString()}', {szLastFourSQL} )";
 				szInsert += i == items.Count - 1 ? " " : ", ";
 			}
 			bool isSuccess = m_mssql.TryQuery(szInsert, out szErrorMsg);

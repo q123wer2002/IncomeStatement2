@@ -8,7 +8,8 @@ namespace IncomeStatement.WebData.Server_Code
 	public partial class S_LoginChecker : System.Web.UI.Page
 	{
 		RequestHandler m_requestHandler;
-		const int nDefaultUserId = 0;
+		string szUserId = "";
+		string szUserName = "";
 		async protected void Page_Load( object sender, EventArgs e )
 		{
 			m_requestHandler = new RequestHandler();
@@ -35,8 +36,10 @@ namespace IncomeStatement.WebData.Server_Code
 			szJWTToken = await JWTChecker.CreateNewJWTObjectString( szUserName );
 			Response.Cookies[ CookieKey.JWTName ].Value = szJWTToken;
 			Response.Cookies[ CookieKey.JWTName ].Expires = ExpireTime;
-			Response.Cookies[ CookieKey.UserID ].Value = nDefaultUserId.ToString(); //default
+			Response.Cookies[ CookieKey.UserID ].Value = szUserId;
 			Response.Cookies[ CookieKey.UserID ].Expires = ExpireTime;
+			Response.Cookies[ CookieKey.Username ].Value = szUserName;
+			Response.Cookies[ CookieKey.Username ].Expires = ExpireTime;
 
 			//success
 			m_requestHandler.StatusCode = (int)ErrorCode.Success;
@@ -77,6 +80,10 @@ namespace IncomeStatement.WebData.Server_Code
 			string szUserInfo = $"SELECT * FROM {TableName.CoSysUser} WHERE user_id='{szUserName}'";
 			m_mssql.TryQuery(szAccountInfo, out jResult);
 			jUserInfo[ "user" ] = (jResult == null) ? null : (JObject)jResult[ 0 ];
+
+			// assign local var
+			szUserId = ( (JObject)jResult[ 0 ] )[ "user_id" ].ToString();
+			szUserName = ( (JObject)jResult[ 0 ] )[ "user_name" ].ToString();
 
 			return true;
 		}
