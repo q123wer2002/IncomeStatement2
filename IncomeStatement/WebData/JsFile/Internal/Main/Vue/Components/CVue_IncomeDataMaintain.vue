@@ -42,7 +42,11 @@
         >
           狀態回復
         </b-button>
-        <b-button variant="info" @click="openUploader">
+        <b-button
+          variant="info"
+          :disabled="Object.keys(queryObject).length > 0"
+          @click="openUploader"
+        >
           收支匯入
         </b-button>
         <b-button
@@ -243,13 +247,26 @@ export default {
 
       const reader = new FileReader();
       reader.onload = () => {
-        // parse data into income data
-        const structuredData = reader.result.split(`\n`).map(dataString => {
-          return this.parseDataToStructure(dataString);
-        });
+        const fileTxt = reader.result;
+        if (fileTxt.length === 0) {
+          alert(`選取的檔案沒有資料`);
+          return;
+        }
 
-        // store data
-        this.saveCoExpD(structuredData);
+        showCheckBox()
+        .then(value => {
+          if (value === false) {
+            return;
+          }
+
+          // parse data into income data
+          const structuredData = fileTxt.split(`\n`).map(dataString => {
+            return this.parseDataToStructure(dataString);
+          });
+
+          // store data
+          this.saveCoExp(structuredData);
+        })
       };
 
       if (inputFiles.files.length === 0) {
@@ -263,8 +280,10 @@ export default {
         return null;
       }
 
+      const { date } = this.queryObject;
       return {
-        ie_mon: dataString.substring(1, 3),
+        ie_year: date.Year,
+        ie_mon: date.Month,
         ie_day: dataString.substring(3, 5),
         fam_no: dataString.substring(5, 13),
         code_no: dataString.substring(13, 18),
@@ -277,6 +296,20 @@ export default {
         place: dataString.substring(42, 43),
       };
     },
+    showCheckBox() {
+      const { date } = this.queryObject;
+      return this.$bvModal.msgBoxConfirm(`您確定要匯入嗎？資料將會存入${data.Year}年${date.Month}月`, {
+        title: '請確認',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'danger',
+        okTitle: 'YES',
+        cancelTitle: 'NO',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      });
+    }
     async exportTXT() {
       let detailedData = this.selected;
       if (this.isSelectAll) {
@@ -399,8 +432,37 @@ export default {
 
       return `${addString}${tmepString}`;
     },
-    async saveCoExpD(insertItems) {
-      console.log(insertItems);
+    async saveCoExp(insertItems) {
+      const famNo = insertItems[0].fam_no;
+      const ieYear = insertItems[0].ie_year;
+      const ieMon = insertItems[0].ie_mon;
+      const ieDay = insertItems[0].ie_day;
+      const totalCost = insertItems.reduce((temp, obj) => {
+        temp += parseInt(obj.code_amt, 10);
+      }, 0);
+
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.detatiledData,
+        {
+          Action: `WRITE`,
+          InsertItems: JSON.stringify(insertItems),
+          UpdateItems: JSON.stringify([]),
+          FamNo: famNo,
+          Year: ieYear,
+          Month: ieMon,
+          Day: ieDay,
+          TotalCost: totalCost,
+          Remark: ``,
+        }
+      );
+
+      console.log(resObject);
+      if (resObject.status === this.mixinBackendErrorCode.success) {
+        alert(`匯入成功`);
+        return;
+      }
+
+      alert(`匯入失敗`);
     },
   },
   created() {

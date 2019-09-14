@@ -249,8 +249,10 @@ namespace IncomeStatement.WebData.Server_Code
 			#region FOR EXPD
 			// for update
 			List<JObject> updateItems = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.UpdateItems ].ToString());
-			DeleteItems("M", updateItems.Select(obj => int.Parse(obj[ "item_no" ].ToString())).ToList());
-			InsertIntems(true, updateItems);
+			if( updateItems.Count > 0 ) {
+				DeleteItems( "M", updateItems.Select( obj => int.Parse( obj[ "item_no" ].ToString() ) ).ToList() );
+				InsertIntems( true, updateItems );
+			}
 
 			// for insert
 			List<JObject> insertItems = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.InsertItems ].ToString());
@@ -258,7 +260,6 @@ namespace IncomeStatement.WebData.Server_Code
 				InsertIntems(false, insertItems);
 			}
 			#endregion
-
 			#region FOR EXPM
 			// update cost
 			string szErrorMsg;

@@ -10,6 +10,8 @@ namespace IncomeStatement.WebData.Server_Code
 		RequestHandler m_requestHandler;
 		string szUserId = "";
 		string szUserName = "";
+		string szRole = "";
+		AccountErrorCode aErrorCode = AccountErrorCode.success;
 		async protected void Page_Load( object sender, EventArgs e )
 		{
 			m_requestHandler = new RequestHandler();
@@ -23,17 +25,40 @@ namespace IncomeStatement.WebData.Server_Code
 			string szUserPassword = Request.Form[ Param.Password ].ToString();
 			DateTime ExpireTime = DateTime.Now.AddDays( 1d );
 
-			//TODO: check username and password
 			JObject jUserInfo;
-			if( isLoginSuccess(szUserName, szUserPassword, out jUserInfo) == false ) {
+			if( isLoginSuccess( szUserName, szUserPassword, out jUserInfo ) ) {
+				// check account status
+				string szState = jUserInfo[ "account" ][ "state" ].ToString();
+				if( szState == "0" ) {
+					aErrorCode = AccountErrorCode.accountDisabled;
+				}
+				else if(szState == "2") {
+					aErrorCode = AccountErrorCode.accountLock;
+				}
+
+				// check account expired
+				string szStartDate = jUserInfo[ "account" ][ "start_date" ].ToString();
+				string szEndDate = jUserInfo[ "account" ][ "end_date" ].ToString();
+
+				// change password
+				if( jUserInfo[ "account" ][ "chg_pwd" ].ToString() == "Y" ) {
+					aErrorCode = AccountErrorCode.changePassword;
+				}
+			}
+
+			// write login log
+			WriteLoginLog( aErrorCode );
+
+			if( (int)aErrorCode < 0 ) {
+				// fail
 				m_requestHandler.StatusCode = (int)ErrorCode.Error;
-				Response.Write(m_requestHandler.GetReturnResult());
+				m_requestHandler.ReturnData = aErrorCode;
+				Response.Write( m_requestHandler.GetReturnResult() );
 				return;
 			}
 
 			//create token 
-			string szJWTToken = "";
-			szJWTToken = await JWTChecker.CreateNewJWTObjectString( szUserName );
+			string szJWTToken = await JWTChecker.CreateNewJWTObjectString( szUserName );
 			Response.Cookies[ CookieKey.JWTName ].Value = szJWTToken;
 			Response.Cookies[ CookieKey.JWTName ].Expires = ExpireTime;
 			Response.Cookies[ CookieKey.UserID ].Value = szUserId;
@@ -43,6 +68,7 @@ namespace IncomeStatement.WebData.Server_Code
 
 			//success
 			m_requestHandler.StatusCode = (int)ErrorCode.Success;
+			m_requestHandler.ReturnData = aErrorCode;
 			Response.Write( m_requestHandler.GetReturnResult() );
 		}
 
@@ -66,6 +92,7 @@ namespace IncomeStatement.WebData.Server_Code
 			JArray jResult;
 			m_mssql.TryQuery(szAccountInfo, out jResult);
 			if( jResult == null || jResult.Count != 1 ) {
+				aErrorCode = AccountErrorCode.noAccount;
 				return false;
 			}
 
@@ -73,6 +100,7 @@ namespace IncomeStatement.WebData.Server_Code
 			jUserInfo["account"] = (JObject)jResult[ 0 ];
 			string szDBPassword = jUserInfo[ "account" ][ "pwd" ].ToString();
 			if( szDBPassword != szUserPassword ) {
+				aErrorCode = AccountErrorCode.passwordError;
 				return false;
 			}
 
@@ -82,10 +110,53 @@ namespace IncomeStatement.WebData.Server_Code
 			jUserInfo[ "user" ] = (jResult == null) ? null : (JObject)jResult[ 0 ];
 
 			// assign local var
-			szUserId = ( (JObject)jResult[ 0 ] )[ "user_id" ].ToString();
-			szUserName = ( (JObject)jResult[ 0 ] )[ "user_name" ].ToString();
-
+			szUserId = jUserInfo[ "user" ][ "user_id" ].ToString();
+			szUserName = jUserInfo[ "user" ][ "user_name" ].ToString();
+			szRole = jUserInfo[ "account" ][ "role" ].ToString();
 			return true;
+		}
+		void WriteLoginLog( AccountErrorCode errorcode )
+		{
+			string szUserId = Request.Form[ Param.Username ].ToString();
+			string szIP = Request.Form[ Param.IP ].ToString();
+			string szErrorMsg;
+
+			if( (int)errorcode > 0 ) {
+				// write success login
+				string szLogAuth = $"UPDATE {TableName.CoSysAuth} SET log_date=CURRENT_TIMESTAMP WHERE login_id='{szUserId}'";
+				m_mssql.TryQuery( szLogAuth, out szErrorMsg );
+			}
+
+			// write log into co_sys_log
+			string szLogSys = $"INSERT INTO {TableName.CoSysLog} VALUES (CURRENT_TIMESTAMP, '{szUserId}', '{szIP}', '{parseErrorLog( errorcode )}', N'' )";
+			m_mssql.TryQuery( szLogSys, out szErrorMsg );
+		}
+		string parseErrorLog( AccountErrorCode errorcode )
+		{
+			switch( errorcode ) {
+				case AccountErrorCode.success:
+					return "00";
+				case AccountErrorCode.noAccount:
+					return "01";
+				case AccountErrorCode.passwordError:
+					return "02";
+				case AccountErrorCode.passwordErrorManyTimes:
+					return "03";
+				case AccountErrorCode.accountDisabled:
+					return "04";
+				case AccountErrorCode.accountInActive:
+					return "05";
+				case AccountErrorCode.accountExpired:
+					return "06";
+				case AccountErrorCode.accountLock:
+					return "07";
+				case AccountErrorCode.passwordExpired:
+					return "08";
+				case AccountErrorCode.dbConnectionError:
+					return "09";
+				default:
+					return "10";
+			}
 		}
 		class Param
 		{
@@ -103,6 +174,27 @@ namespace IncomeStatement.WebData.Server_Code
 					return "Password";
 				}
 			}
+			public static string IP
+			{
+				get
+				{
+					return "IP";
+				}
+			}
+		}
+		enum AccountErrorCode
+		{
+			changePassword = 1,
+			success = 0,
+			noAccount = -1,
+			passwordError = -2,
+			passwordErrorManyTimes = -3,
+			accountLock = -4,
+			accountDisabled = -5,
+			accountInActive = -6,
+			accountExpired = -7,
+			passwordExpired = -8,
+			dbConnectionError = -9,
 		}
 
 		protected void Page_Error( object sender, EventArgs e )
