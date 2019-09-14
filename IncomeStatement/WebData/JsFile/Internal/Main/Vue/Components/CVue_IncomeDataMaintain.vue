@@ -249,7 +249,7 @@ export default {
         });
 
         // store data
-
+        this.saveCoExpD(structuredData);
       };
 
       if (inputFiles.files.length === 0) {
@@ -400,23 +400,7 @@ export default {
       return `${addString}${tmepString}`;
     },
     async saveCoExpD(insertItems) {
-      const resObject = await this.mixinCallBackService(
-        this.mixinBackendService.detatiledData,
-        {
-          Action: `WRITE`,
-          UpdateItems: JSON.stringify(updateItems),
-          InsertItems: JSON.stringify(insertItems),
-          FamNo: famNo,
-          Year: ieYear,
-          Month: ieMon,
-          Day: ieDay,
-          TotalCost: totalCost,
-          Remark: remark,
-        }
-      );
-
-      if (resObject.status === this.mixinBackendErrorCode.success) {
-      }
+      console.log(insertItems);
     },
   },
   created() {
