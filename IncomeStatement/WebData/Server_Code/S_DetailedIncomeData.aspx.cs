@@ -282,7 +282,7 @@ namespace IncomeStatement.WebData.Server_Code
 				string szMonth = Request.Form[ Param.Month ].ToString();
 				string szDay = Request.Form[ Param.Day ].ToString();
 				string szFamNo = Request.Form[ Param.FamNo ].ToString();
-				string szInsertql = $"INSERT INTO {TableName.CoExpM} VALUES ('{szYear}', '{parse2TwoDigital( szMonth )}', '{parse2TwoDigital( szDay )}', '{szFamNo}', '{nTotalCosst}', '{szRemark}', '1', CURRENT_TIMESTAMP, '{szUserCode}', NULL, NUll)";
+				string szInsertql = $"INSERT INTO {TableName.CoExpM} VALUES ('{szYear}', '{parse2TwoDigital( szMonth )}', '{parse2TwoDigital( szDay )}', '{szFamNo}', '{nTotalCosst}', '{szRemark}', '1', CURRENT_TIMESTAMP, '{szUserCode}', NULL, NUll, NULL, NULL, NULL, NULL)";
 				return m_mssql.TryQuery( szInsertql, out szErrorMsg );
 			}
 			else {
@@ -340,9 +340,10 @@ namespace IncomeStatement.WebData.Server_Code
 			string szInsert = $"INSERT INTO {TableName.CoExpD} VALUES ";
 			for( int i = 0; i < items.Count; i++ ) {
 				JObject jItem = items[ i ];
-				int nItemNo = isOwnItemNo == false ? nNextItemNo + 1 : int.Parse(jItem[ "item_no" ].ToString());
+				int nItemNo = isOwnItemNo == false ? nNextItemNo + i +1 : int.Parse(jItem[ "item_no" ].ToString());
+				string szCodeName = jItem[ "code_name" ] == null ? "NULL" : $"'{jItem[ "code_name" ].ToString()}'";
 				string szLastFourSQL = isOwnItemNo ? $"{jItem[ "rec_date" ].ToString()}, {jItem[ "rec_user" ].ToString()}, CURRENT_TIMESTAMP, '{szUserCode}'" : $"CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL";
-				szInsert += $"('{parse2TwoDigital(jItem[ "ie_year" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_mon" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_day" ].ToString())}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', '{jItem[ "code_name" ].ToString()}', {szLastFourSQL} )";
+				szInsert += $"('{parse2TwoDigital(jItem[ "ie_year" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_mon" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_day" ].ToString())}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', {szCodeName}, {szLastFourSQL} )";
 				szInsert += i == items.Count - 1 ? " " : ", ";
 			}
 			bool isSuccess = m_mssql.TryQuery(szInsert, out szErrorMsg);

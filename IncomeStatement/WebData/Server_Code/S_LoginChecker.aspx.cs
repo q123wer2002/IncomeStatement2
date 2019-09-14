@@ -111,7 +111,7 @@ namespace IncomeStatement.WebData.Server_Code
 
 			// assign local var
 			szUserId = jUserInfo[ "user" ][ "user_id" ].ToString();
-			szUserName = jUserInfo[ "user" ][ "user_name" ].ToString();
+			szUserName = jUserInfo[ "user" ][ "user_name" ] == null ? szUserId : jUserInfo[ "user" ][ "user_name" ].ToString();
 			szRole = jUserInfo[ "account" ][ "role" ].ToString();
 			return true;
 		}

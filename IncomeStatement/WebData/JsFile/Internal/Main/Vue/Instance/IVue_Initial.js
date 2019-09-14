@@ -9,6 +9,8 @@ import '../Mixins/Vue_GlobalMixins';
 import IncomeDataMaintain from '../Components/CVue_IncomeDataMaintain.vue';
 import SubjectMaintain from '../Components/CVue_SubjectMaintain.vue';
 import DetailedMaintain from '../Components/CVue_DetailedMaintain.vue';
+import DataChecker from '../Components/CVue_DataChecker.vue';
+import PortCardMaintain from '../Components/CVue_PortCardMaintain.vue';
 
 Vue.use(BootstrapVue);
 function IVueInitialCreator() {
@@ -28,6 +30,8 @@ function IVueInitialCreator() {
         IncomeDataMaintain,
         SubjectMaintain,
         DetailedMaintain,
+        DataChecker,
+        PortCardMaintain,
       },
       data: {
         // ui
@@ -66,14 +70,14 @@ function IVueInitialCreator() {
               isSupport: true,
             },
             {
-              key: `cardMaintain`,
-              text: `戶口組成卡維護`,
-              isSupport: false,
+              key: `PortCardMaintain`,
+              text: `戶口組成資料`,
+              isSupport: true,
             },
             {
-              key: `dataChecker`,
+              key: `DataChecker`,
               text: `收支資料檢誤`,
-              isSupport: false,
+              isSupport: true,
             },
           ],
           reportPage: [
@@ -101,12 +105,12 @@ function IVueInitialCreator() {
             },
             {
               key: `incomePortManagement`,
-              text: `收支戶號管理`,
+              text: `登錄戶號管理`,
               isSupport: false,
             },
           ],
         },
-        currentPageKey: ``,
+        currentPageKey: `IncomeDataMaintain`,
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),

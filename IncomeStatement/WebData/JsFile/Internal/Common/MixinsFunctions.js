@@ -113,6 +113,20 @@ const mixinFuncitons = {
       isSuccess: resObj.status === mixinBackendErrorCode.success,
     };
   },
+  async mixinGetIpInfo() {
+    return $.ajax({
+      url: `https://api.ipify.org?format=json`,
+      method: `GET`,
+      dataType: `json`,
+      success: resObject => {
+        return resObject;
+      },
+      error: err => {
+        console.error(err);
+        return null;
+      },
+    });
+  },
 
   // api list
   async mixinCallBackService(

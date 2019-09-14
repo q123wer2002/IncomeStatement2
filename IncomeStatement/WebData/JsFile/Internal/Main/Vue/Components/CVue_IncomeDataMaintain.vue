@@ -44,7 +44,7 @@
         </b-button>
         <b-button
           variant="info"
-          :disabled="Object.keys(queryObject).length > 0"
+          :disabled="Object.keys(queryObject).length === 0"
           @click="openUploader"
         >
           收支匯入
@@ -253,8 +253,7 @@ export default {
           return;
         }
 
-        showCheckBox()
-        .then(value => {
+        this.showCheckBox().then(async value => {
           if (value === false) {
             return;
           }
@@ -264,9 +263,39 @@ export default {
             return this.parseDataToStructure(dataString);
           });
 
-          // store data
-          this.saveCoExp(structuredData);
-        })
+          // divide by fam_no, and day
+          const famDayObj = structuredData.reduce((tempObj, obj) => {
+            const famNo = obj.fam_no;
+            const day = obj.ie_day;
+
+            if (!tempObj[famNo]) {
+              tempObj[famNo] = {};
+            }
+
+            if (!tempObj[famNo][day]) {
+              tempObj[famNo][day] = [];
+            }
+
+            tempObj[famNo][day].push(obj);
+            return tempObj;
+          }, {});
+
+          let isSuccess = true;
+          await Object.values(famDayObj).forEach(async obj => {
+            const insertDays = Object.values(obj);
+            for (let i = 0; i < insertDays.length; i++) {
+              const insertItems = insertDays[i];
+
+              // store data
+              const isOk = await this.saveCoExp(insertItems);
+              if (isOk === false) {
+                isSuccess = false;
+              }
+            }
+          });
+
+          alert(isSuccess ? `匯入成功` : `匯入失敗`);
+        });
       };
 
       if (inputFiles.files.length === 0) {
@@ -280,10 +309,10 @@ export default {
         return null;
       }
 
-      const { date } = this.queryObject;
+      const { Year, Month } = this.queryObject;
       return {
-        ie_year: date.Year,
-        ie_mon: date.Month,
+        ie_year: Year,
+        ie_mon: Month,
         ie_day: dataString.substring(3, 5),
         fam_no: dataString.substring(5, 13),
         code_no: dataString.substring(13, 18),
@@ -291,25 +320,28 @@ export default {
         job_cnt: dataString.substring(22, 23),
         job_typ_no: dataString.substring(23, 25),
         job_no: dataString.substring(25, 27),
-        code_amt: dataString.substring(27, 34),
+        code_amt: parseInt(dataString.substring(27, 34), 10),
         item_no: dataString.substring(35, 41),
         place: dataString.substring(42, 43),
       };
     },
     showCheckBox() {
-      const { date } = this.queryObject;
-      return this.$bvModal.msgBoxConfirm(`您確定要匯入嗎？資料將會存入${data.Year}年${date.Month}月`, {
-        title: '請確認',
-        size: 'sm',
-        buttonSize: 'sm',
-        okVariant: 'danger',
-        okTitle: 'YES',
-        cancelTitle: 'NO',
-        footerClass: 'p-2',
-        hideHeaderClose: false,
-        centered: true
-      });
-    }
+      const { Year, Month } = this.queryObject;
+      return this.$bvModal.msgBoxConfirm(
+        `您確定要匯入嗎？資料將會存入${Year}年${Month}月`,
+        {
+          title: '請確認',
+          size: 'sm',
+          buttonSize: 'sm',
+          okVariant: 'danger',
+          okTitle: 'YES',
+          cancelTitle: 'NO',
+          footerClass: 'p-2',
+          hideHeaderClose: false,
+          centered: true,
+        }
+      );
+    },
     async exportTXT() {
       let detailedData = this.selected;
       if (this.isSelectAll) {
@@ -439,6 +471,7 @@ export default {
       const ieDay = insertItems[0].ie_day;
       const totalCost = insertItems.reduce((temp, obj) => {
         temp += parseInt(obj.code_amt, 10);
+        return temp;
       }, 0);
 
       const resObject = await this.mixinCallBackService(
@@ -456,13 +489,7 @@ export default {
         }
       );
 
-      console.log(resObject);
-      if (resObject.status === this.mixinBackendErrorCode.success) {
-        alert(`匯入成功`);
-        return;
-      }
-
-      alert(`匯入失敗`);
+      return resObject.status === this.mixinBackendErrorCode.success;
     },
   },
   created() {

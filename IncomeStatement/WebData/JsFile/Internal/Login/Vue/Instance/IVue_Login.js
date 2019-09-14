@@ -23,6 +23,7 @@ function IVueInitalLogin() {
           password: ``,
         },
         loginErrorMsg: ``,
+        ip: ``,
       },
       watch: {},
       computed: {},
@@ -43,6 +44,7 @@ function IVueInitalLogin() {
             {
               Username: account,
               Password: sha256(password),
+              IP: this.ip,
             }
           );
 
@@ -67,6 +69,9 @@ function IVueInitalLogin() {
       async mounted() {
         // check account status
         await this.checkAccountStatus();
+
+        const ipInfo = await this.mixinGetIpInfo();
+        this.ip = ipInfo == null ? `` : ipInfo.ip;
       },
       /* eslint-disable no-undef */
     });
