@@ -110,7 +110,7 @@ function IVueInitialCreator() {
             },
           ],
         },
-        currentPageKey: `IncomeDataMaintain`,
+        currentPageKey: ``,
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),

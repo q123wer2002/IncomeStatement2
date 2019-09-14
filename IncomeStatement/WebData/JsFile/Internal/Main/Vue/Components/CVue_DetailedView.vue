@@ -229,8 +229,10 @@ export default {
       );
 
       this.items = resObject.data.CoExpD;
-      const { day_rem } = resObject.data.CoExpM[0];
-      this.tempRemark = day_rem;
+      this.tempRemark =
+        resObject.data.CoExpM.length === 0
+          ? ``
+          : resObject.data.CoExpM[0].day_rem;
     },
     checkIsEnableSave() {
       // check code no
