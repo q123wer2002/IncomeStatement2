@@ -342,7 +342,10 @@ namespace IncomeStatement.WebData.Server_Code
 				JObject jItem = items[ i ];
 				int nItemNo = isOwnItemNo == false ? nNextItemNo + i +1 : int.Parse(jItem[ "item_no" ].ToString());
 				string szCodeName = jItem[ "code_name" ] == null ? "NULL" : $"'{jItem[ "code_name" ].ToString()}'";
-				string szLastFourSQL = isOwnItemNo ? $"{jItem[ "rec_date" ].ToString()}, {jItem[ "rec_user" ].ToString()}, CURRENT_TIMESTAMP, '{szUserCode}'" : $"CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL";
+				string szRecDate = jItem[ "rec_date" ] == null ? "NULL" : $"'{jItem[ "rec_date" ].ToString()}'";
+				string szRecUser = jItem[ "rec_user" ] == null ? "NULL" : $"'{jItem[ "rec_user" ].ToString()}'";
+
+				string szLastFourSQL = isOwnItemNo ? $"{szRecDate}, {szRecUser}, CURRENT_TIMESTAMP, '{szUserCode}'" : $"CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL";
 				szInsert += $"('{parse2TwoDigital(jItem[ "ie_year" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_mon" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_day" ].ToString())}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', {szCodeName}, {szLastFourSQL} )";
 				szInsert += i == items.Count - 1 ? " " : ", ";
 			}
