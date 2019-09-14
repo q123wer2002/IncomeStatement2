@@ -42,13 +42,13 @@
         >
           狀態回復
         </b-button>
-        <b-button variant="info" disabled>
+        <b-button variant="info" @click="openUploader">
           收支匯入
         </b-button>
         <b-button
           variant="info"
           :disabled="!isSelectedItems"
-          @click="exportCSV"
+          @click="exportTXT"
         >
           收支匯出
         </b-button>
@@ -102,6 +102,13 @@
         ></detailed-maintain>
       </b-modal>
     </div>
+    <input
+      type="file"
+      accept="text/plain"
+      ref="domFileInput"
+      @change="importTXT"
+      style="display: none;"
+    />
   </div>
 </template>
 
@@ -112,7 +119,7 @@ import { statusMapToString } from '../DataModel/dataModel.js';
 import DetailedMaintain from './CVue_DetailedMaintain.vue';
 
 export default {
-  /* eslint-disable no-undef, no-param-reassign, camelcase */
+  /* eslint-disable no-undef, no-param-reassign, camelcase, no-await-in-loop */
   name: 'IncomeDataMaintain',
   components: {
     Selector,
@@ -228,57 +235,112 @@ export default {
         this.clearSelected();
       }
     },
-    exportCSV() {
-      // create csv data
-      const filedName = [
-        `類別`,
-        `登打日期`,
-        `記帳帳戶號`,
-        `科目代碼`,
-        `設算別`,
-        `未使用欄位`,
-        `未使用欄位`,
-        `戶內人數`,
-        `就業人數`,
-        `本業：行業編號`,
-        `本業：職業編號`,
-        `金額`,
-        `流水號`,
-        `購買地`,
-      ];
+    openUploader() {
+      this.$refs.domFileInput.click();
+    },
+    importTXT(event) {
+      const inputFiles = event.target;
 
-      let exportData = this.selected;
-      if (this.isSelectAll) {
-        exportData = this.items;
+      const reader = new FileReader();
+      reader.onload = () => {
+        // parse data into income data
+        const structuredData = reader.result.split(`\n`).map(dataString => {
+          return this.parseDataToStructure(dataString);
+        });
+
+        // store data
+
+      };
+
+      if (inputFiles.files.length === 0) {
+        return;
       }
-      console.log(exportData);
+
+      reader.readAsText(inputFiles.files[0]);
+    },
+    parseDataToStructure(dataString) {
+      if (dataString.length < 43) {
+        return null;
+      }
+
+      return {
+        ie_mon: dataString.substring(1, 3),
+        ie_day: dataString.substring(3, 5),
+        fam_no: dataString.substring(5, 13),
+        code_no: dataString.substring(13, 18),
+        fam_cnt: dataString.substring(21, 22),
+        job_cnt: dataString.substring(22, 23),
+        job_typ_no: dataString.substring(23, 25),
+        job_no: dataString.substring(25, 27),
+        code_amt: dataString.substring(27, 34),
+        item_no: dataString.substring(35, 41),
+        place: dataString.substring(42, 43),
+      };
+    },
+    async exportTXT() {
+      let detailedData = this.selected;
+      if (this.isSelectAll) {
+        detailedData = this.items;
+      }
+      let exportArray = [];
+
+      // get detailed data
+      for (let i = 0; i < detailedData.length; i++) {
+        const {
+          ie_year,
+          ie_mon,
+          fam_no,
+          fam_cnt,
+          job_cnt,
+          job_typ_no,
+          job_no,
+        } = detailedData[i];
+
+        const data = await this.queryDetailedData({
+          Year: ie_year,
+          Month: ie_mon,
+          FamNo: fam_no,
+        });
+
+        exportArray = [
+          ...exportArray,
+          ...data.map(obj => {
+            return {
+              fam_cnt,
+              job_cnt,
+              job_typ_no,
+              job_no,
+              ...obj,
+            };
+          }),
+        ];
+      }
+
+      // create txt data
       const csvData = [
-        filedName,
-        ...exportData.map(obj => {
+        ...exportArray.map(obj => {
           const {
-            ie_year,
             ie_mon,
+            ie_day,
             fam_no,
             fam_cnt,
             job_cnt,
-            job_type_no,
+            job_typ_no,
             job_no,
+            code_no,
+            code_amt,
+            place,
+            item_no,
           } = obj;
+
           return [
-            `1`,
-            `${ie_year}${ie_mon}`,
-            fam_no,
-            `code_no`,
-            `0`,
-            ` `,
-            `0`,
-            fam_cnt,
-            job_cnt,
-            job_type_no,
-            job_no,
-            `code_amt`,
-            `${fam_no}${ie_year}${ie_mon}`,
-            `place`,
+            `1${ie_mon}${ie_day}${fam_no}${code_no}0 0${fam_cnt}${job_cnt}${this.stringFixed(
+              2,
+              job_typ_no
+            )}${this.stringFixed(2, job_no)}${this.stringFixed(
+              7,
+              code_amt
+            )} ${this.stringFixed(6, item_no)} ${place}`,
           ];
         }),
       ];
@@ -292,7 +354,7 @@ export default {
       // create link
       const link = document.createElement(`a`);
       link.setAttribute(`href`, encodedUri);
-      link.setAttribute(`download`, `incomestatement.csv`);
+      link.setAttribute(`download`, `incomestatement.txt`);
       document.body.appendChild(link);
       link.click();
 
@@ -308,6 +370,53 @@ export default {
       };
 
       this.$refs.domModal.show();
+    },
+    async queryDetailedData(queryObject) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.detatiledData,
+        {
+          Action: `READ`,
+          ...queryObject,
+        }
+      );
+
+      if (resObject.status === this.mixinBackendErrorCode.success) {
+        return resObject.data.CoExpD || [];
+      }
+
+      return [];
+    },
+    stringFixed(number, tmepString) {
+      if (tmepString.length === number || tmepString.length > number) {
+        return tmepString;
+      }
+
+      const addNumber = number - tmepString.length;
+      let addString = ``;
+      for (let i = 0; i < addNumber; i++) {
+        addString += `0`;
+      }
+
+      return `${addString}${tmepString}`;
+    },
+    async saveCoExpD(insertItems) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.detatiledData,
+        {
+          Action: `WRITE`,
+          UpdateItems: JSON.stringify(updateItems),
+          InsertItems: JSON.stringify(insertItems),
+          FamNo: famNo,
+          Year: ieYear,
+          Month: ieMon,
+          Day: ieDay,
+          TotalCost: totalCost,
+          Remark: remark,
+        }
+      );
+
+      if (resObject.status === this.mixinBackendErrorCode.success) {
+      }
     },
   },
   created() {
@@ -370,7 +479,7 @@ export default {
       },
     },
   },
-  /* eslint-disable no-undef, no-param-reassign, camelcase */
+  /* eslint-disable no-undef, no-param-reassign, camelcase, no-await-in-loop */
 };
 </script>
 

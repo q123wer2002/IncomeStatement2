@@ -355,3 +355,118 @@ export const detailedModel = [
     },
   },
 ];
+
+export const dataCheckerModel = [
+  {
+    key: `date`,
+    text: `年月`,
+    type: {
+      year: `select`,
+      month: `select`,
+    },
+    value: {
+      year: 108,
+      month: 7,
+    },
+    source: {
+      year: [106, 107, 108].map(year => {
+        return {
+          value: year,
+          text: `${year}年`,
+        };
+      }),
+      month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(month => {
+        return {
+          value: month,
+          text: `${month}月`,
+        };
+      }),
+    },
+    valid: {
+      year: value => {
+        return value > 0 || value.length > 0;
+      },
+      month: value => {
+        return value > 0 || value.length > 0;
+      },
+    },
+    required: true,
+  },
+  {
+    key: `port`,
+    text: `戶號`,
+    type: {
+      start: `number`,
+      end: `number`,
+    },
+    value: {
+      start: ``,
+      end: ``,
+    },
+    source: {
+      start: null,
+      end: null,
+    },
+    valid: {
+      start: () => {
+        return true;
+      },
+      end: () => {
+        return true;
+      },
+    },
+  },
+  {
+    key: `checker`,
+    text: `檢誤人員`,
+    type: {
+      id: `number`,
+    },
+    value: {
+      id: ``,
+    },
+    source: {
+      id: null,
+    },
+    valid: {
+      id: () => {
+        return true;
+      },
+    },
+  },
+  {
+    key: `checkType`,
+    text: `檢誤類別`,
+    type: {
+      code: `select`,
+    },
+    value: {
+      code: 0,
+    },
+    source: {
+      code: [
+        {
+          value: 0,
+          text: `全部`,
+        },
+        {
+          value: 1,
+          text: `無支出日`,
+        },
+        {
+          value: 2,
+          text: `支出週期`,
+        },
+        {
+          value: 3,
+          text: `極端值`,
+        },
+      ],
+    },
+    valid: {
+      code: () => {
+        return true;
+      },
+    },
+  },
+];

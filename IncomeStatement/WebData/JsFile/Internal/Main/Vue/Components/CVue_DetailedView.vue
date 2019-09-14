@@ -31,7 +31,11 @@
         <b-col style="text-align: right;" col lg="2">
           <label>輸入金額合計：</label>
         </b-col>
-        <b-col style="text-align: left" col lg="8">
+        <b-col
+          style="text-align: left;font-weight: 900;font-size: 25px;color: red;"
+          col
+          lg="8"
+        >
           <span>{{ totalCost }}</span>
         </b-col>
       </b-row>
@@ -41,6 +45,14 @@
         </b-col>
         <b-col style="text-align: left" col lg="8">
           <b-form-input v-model="tempRemark" size="sm"></b-form-input>
+        </b-col>
+      </b-row>
+      <b-row class="my-1">
+        <b-col style="text-align: right;" col lg="2">
+          <label>總項次：</label>
+        </b-col>
+        <b-col style="text-align: left" col lg="8">
+          <span>{{ items.length ? items.length : 0 }}</span>
         </b-col>
       </b-row>
     </b-container>

@@ -121,6 +121,7 @@
     <Content Include="WebData\Picture\login\main_pic.png" />
     <Content Include="WebData\Picture\login\top_wave.png" />
     <Content Include="WebData\Server_Code\S_CheckAccountStatus.aspx" />
+    <Content Include="WebData\Server_Code\S_DataChecker.aspx" />
     <Content Include="WebData\Server_Code\S_DetailedIncomeData.aspx" />
     <Content Include="WebData\Server_Code\S_IncomeStateData.aspx" />
     <Content Include="WebData\Server_Code\S_InitialTable.aspx" />
@@ -139,6 +140,7 @@
       <DependentUpon>Main.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WebData\Server_Code\ApiAction.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\Authorization.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\ConfigReader.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\ConnectionInfo.cs" />
@@ -157,6 +159,13 @@
     </Compile>
     <Compile Include="WebData\Server_Code\S_CheckAccountStatus.aspx.designer.cs">
       <DependentUpon>S_CheckAccountStatus.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_DataChecker.aspx.cs">
+      <DependentUpon>S_DataChecker.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_DataChecker.aspx.designer.cs">
+      <DependentUpon>S_DataChecker.aspx</DependentUpon>
     </Compile>
     <Compile Include="WebData\Server_Code\S_DetailedIncomeData.aspx.cs">
       <DependentUpon>S_DetailedIncomeData.aspx</DependentUpon>
