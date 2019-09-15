@@ -39,7 +39,7 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 			eCode = ErrorCode.Success;
 			return eCode;
 		}
-		public static async Task<string> CreateNewJWTObjectString( string szUserName )
+		public static string CreateNewJWTObjectString( string szUserName )
 		{
 			JWTModel NewToken = CreateNewJWTObject( szUserName );
 			return TokenObjecttoString( NewToken );

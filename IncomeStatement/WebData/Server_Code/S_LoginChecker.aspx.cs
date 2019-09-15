@@ -58,7 +58,7 @@ namespace IncomeStatement.WebData.Server_Code
 			}
 
 			//create token 
-			string szJWTToken = await JWTChecker.CreateNewJWTObjectString( szUserName );
+			string szJWTToken = JWTChecker.CreateNewJWTObjectString( szUserName );
 			Response.Cookies[ CookieKey.JWTName ].Value = szJWTToken;
 			Response.Cookies[ CookieKey.JWTName ].Expires = ExpireTime;
 			Response.Cookies[ CookieKey.UserID ].Value = szUserId;
