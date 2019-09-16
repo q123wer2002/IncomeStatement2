@@ -81,16 +81,6 @@ export default {
           type: `number`,
         },
         {
-          key: `upp_sys`,
-          text: `系統金額上限`,
-          type: `text`,
-        },
-        {
-          key: `low_sys`,
-          text: `系統金額下限`,
-          type: `text`,
-        },
-        {
           key: `place`,
           text: `購買地點`,
           type: `select`,
@@ -142,7 +132,7 @@ export default {
     initialColEnable() {
       for (let i = 0; i < this.itemKeys.length; i++) {
         const { key } = this.itemKeys[i];
-        this.$set(this.itemKeys[i], `isDisabled`, this.isColDisabled);
+        this.$set(this.itemKeys[i], `isDisabled`, false);
         if (key === `def_fg` && this.isColDisabled) {
           this.$set(this.itemKeys[i], `isDisabled`, false);
         }

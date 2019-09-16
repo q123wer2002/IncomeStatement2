@@ -162,7 +162,11 @@ export default {
       }
 
       // add port
-      if (port.end > port.start) {
+      if (
+        port.end.length !== 0 &&
+        port.start.length !== 0 &&
+        port.end >= port.start
+      ) {
         this.queryObject.FamNoStart = port.start;
         this.queryObject.FamNoEnd = port.end;
       }
@@ -240,6 +244,7 @@ export default {
       }
     },
     openUploader() {
+      this.$refs.domFileInput.value = ``;
       this.$refs.domFileInput.click();
     },
     importTXT(event) {
@@ -334,8 +339,8 @@ export default {
           size: 'sm',
           buttonSize: 'sm',
           okVariant: 'danger',
-          okTitle: 'YES',
-          cancelTitle: 'NO',
+          okTitle: '是',
+          cancelTitle: '否',
           footerClass: 'p-2',
           hideHeaderClose: false,
           centered: true,

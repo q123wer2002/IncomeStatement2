@@ -55,16 +55,16 @@ export function fnNumToPercent(number) {
   return `${numeral(number * 100).format(`0.0`)}%`;
 }
 
-/* eslint-disable no-undef, prefer-rest-params */
-export function fnDebounce(func, delay, isImmediate = false) {
+/* eslint-disable */
+export const debounce = (func, delay, isImmediate = false) => {
   let timer = null;
-  return () => {
+  return function () {
     // set context
-    const context = this;
-    const args = arguments;
+    const context = this; const
+      args = arguments;
 
     // set do function
-    const later = () => {
+    const later = function () {
       timer = null;
       if (isImmediate === false) {
         func.apply(context, args);
@@ -72,7 +72,7 @@ export function fnDebounce(func, delay, isImmediate = false) {
     };
 
     // check is call first
-    const isCallNow = isImmediate && !timer;
+    const isCallNow = (isImmediate && !timer);
 
     // set timer
     clearTimeout(timer);
@@ -82,5 +82,5 @@ export function fnDebounce(func, delay, isImmediate = false) {
       func.apply(context, args);
     }
   };
-}
-/* eslint-disable no-undef, prefer-rest-params */
+};
+/* eslint-disable */

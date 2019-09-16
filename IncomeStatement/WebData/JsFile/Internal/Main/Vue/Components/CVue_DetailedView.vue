@@ -87,7 +87,7 @@
           list="subjectNolist"
         ></b-form-input>
         <datalist id="subjectNolist">
-          <option v-for="(code, index) in subjectCodeOpts" :key="index">
+          <option v-for="(code, index) in subjectCodeNotDuplicate" :key="index">
             {{ code }}
           </option>
         </datalist>
@@ -97,6 +97,7 @@
           v-model="data.item.code_name"
           list="subjectNamelist"
           @focus="changeSubjectOpts(data.item.code_no)"
+          @update="onSubjectNameChanged(data.index)"
         ></b-form-input>
         <datalist id="subjectNamelist">
           <option v-for="(name, index) in tempSubjectArray" :key="index">
@@ -123,10 +124,11 @@
 </template>
 
 <script>
+/* eslint-disable  */
 import { mapState } from 'vuex';
+import { debounce } from '../../../Common/Utility.js';
 
-export default {
-  /* eslint-disable no-undef, no-param-reassign, camelcase, vue/no-side-effects-in-computed-properties */
+export default {  
   imgSrc: {
     trash: `/${webpackDashboardName}/WebData/Picture/icon/material-io/baseline_delete_forever_black_48dp.png`,
     add: `/${webpackDashboardName}/WebData/Picture/icon/material-io/baseline_add_circle_black_48dp.png`,
@@ -165,6 +167,7 @@ export default {
       cantSaveHint: ``,
       isEnabledSave: false,
       tempSubjectArray: [],
+      tempSubjectNoObj: [],
     };
   },
   methods: {
@@ -203,6 +206,17 @@ export default {
       }
 
       this.$set(this.items[index], `code_name`, newName);
+      this.changeSubjectCodeOpts(tempItem.code_no);
+    },
+    onSubjectNameChanged(index) {
+      const tempItem = this.items[index];
+      const subjectName = tempItem.code_name;
+      const item = this.subjectArray.find(obj => obj.code_name === subjectName);
+      if (!item) {
+        return;
+      }
+
+      this.items[index].code_no = item.code_no;
     },
     saveItems() {
       const { ie_year, ie_mon, ie_day, fam_no } = this.data[0] || this.items[0];
@@ -216,13 +230,13 @@ export default {
       this.$emit(`save`, {
         items: this.items,
         remark: this.tempRemark,
-        totalCost: this.totalCost,
       });
     },
     async queryDetailedData(queryObject) {
       const resObject = await this.mixinCallBackService(
         this.mixinBackendService.detatiledData,
         {
+          totalCost: this.totalCost,
           Action: `READ`,
           ...queryObject,
         }
@@ -277,6 +291,50 @@ export default {
         .filter(obj => obj.code_no === codeNo)
         .map(obj => obj.code_name);
     },
+    changeSubjectCodeOpts(codeNo) {
+      /*
+      if (!this.fnUpdateCodeAry) {
+        const fnPrint = inputCodeNo => {
+          if (this.tempSubjectNoObj.length > 0) {
+            const isStartSameNo = this.tempSubjectNoObj.every(code => {
+              const regex = new RegExp(
+                `^${inputCodeNo.substring(0, inputCodeNo.length - 1)}`
+              );
+              return regex.test(code);
+            });
+
+            if (isStartSameNo) {
+              this.tempSubjectNoObj = this.tempSubjectNoObj.filter(code => {
+                const regex = new RegExp(`^${inputCodeNo}`);
+                return regex.test(code);
+              });
+
+              return;
+            }
+          }
+
+          const isExist = this.subjectCodeNotDuplicate.some(code =>
+            code.startsWith(inputCodeNo)
+          );
+
+          if (isExist) {
+            const array = this.subjectCodeNotDuplicate.filter(code => {
+              const regex = new RegExp(`^${inputCodeNo}`);
+              return regex.test(code);
+            });
+
+            this.tempSubjectNoObj = array;
+          } else {
+            this.tempSubjectNoObj = [];
+          }
+        };
+
+        this.fnUpdateCodeAry = debounce(fnPrint, 300);
+      }
+
+      this.fnUpdateCodeAry(codeNo);
+      */
+    },
   },
   created() {},
   mounted() {
@@ -289,7 +347,7 @@ export default {
     subjectWithDEFFG() {
       return this.subjectArray.filter(obj => obj.def_fg.length !== 0);
     },
-    subjectCodeOpts() {
+    subjectCodeNotDuplicate() {
       return this.subjectArray
         .map(obj => obj.code_no)
         .reduce((tempArray, code) => {
@@ -367,7 +425,7 @@ export default {
       deep: true,
     },
   },
-  /* eslint-disable no-undef, no-param-reassign, camelcase, vue/no-side-effects-in-computed-properties */
+  /* eslint-disable  */
 };
 </script>
 

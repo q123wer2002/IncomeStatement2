@@ -62,7 +62,7 @@ export const incomeDataModel = [
     key: `loginman`,
     text: `登錄人員`,
     type: {
-      id: `number`,
+      id: `text`,
     },
     value: {
       id: ``,
@@ -80,7 +80,7 @@ export const incomeDataModel = [
     key: `reviewman`,
     text: `審核人員`,
     type: {
-      id: `number`,
+      id: `text`,
     },
     value: {
       id: ``,

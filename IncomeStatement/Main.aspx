@@ -10,12 +10,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
         <!--import JS and CSS file -->
-
-        <script  type="text/javascript" src="/IncomeStatement/WebData/BundleResult/Main/IS_20190915_min_v1.js"></script>
-        <link rel="stylesheet" href="/IncomeStatement/WebData/BundleResult/Main/IS_20190915_min_v1_CSS.css" />
+        
+        <script  type="text/javascript" src="/IncomeStatement/WebData/BundleResult/Main/IS_20190916_min_v1.js"></script>
+        <link rel="stylesheet" href="/IncomeStatement/WebData/BundleResult/Main/IS_20190916_min_v1_CSS.css" />
     <!--
-        <script  type="text/javascript" src="http://localhost:8080/JsFile/Internal/Main/IS_20190915_min_v1.js"></script>
-        <link rel="stylesheet" href="http://localhost:8080/JsFile/Internal/Main/IS_20190915_min_v1_CSS.css" />
+        <script  type="text/javascript" src="http://localhost:8080/JsFile/Internal/Main/IS_20190916_min_v1.js"></script>
+        <link rel="stylesheet" href="http://localhost:8080/JsFile/Internal/Main/IS_20190916_min_v1_CSS.css" />
     -->
     </head>
     <body>

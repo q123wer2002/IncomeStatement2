@@ -328,7 +328,7 @@ namespace IncomeStatement.WebData.Server_Code
 				JArray result;
 				m_mssql.TryQuery(szGetItemNo, out result);
 				if( result.Count == 0 ) {
-					nNextItemNo = 1;
+					nNextItemNo = 0;
 				}
 				else {
 					nNextItemNo = int.Parse(((JObject)result[ 0 ])[ "item_no" ].ToString());
