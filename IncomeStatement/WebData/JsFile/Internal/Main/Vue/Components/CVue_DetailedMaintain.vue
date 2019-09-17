@@ -266,14 +266,14 @@ export default {
       this.isBusy = false;
       return resObject;
     },
-    async onSaveEvent({ items, remark, totalCost }) {
-      const { ie_year, ie_mon, ie_day, fam_no } = items[0];
+    async onSaveEvent({ items, remark, totalCost, queryObject }) {
+      const { Year, Month, Day, FamNo } = queryObject;
       const filteredItems = this.items.filter(
         obj =>
-          obj.ie_year === ie_year &&
-          obj.ie_mon === ie_mon &&
-          obj.ie_day === ie_day &&
-          obj.fam_no === fam_no
+          obj.ie_year === Year &&
+          obj.ie_mon === Month &&
+          obj.ie_day === Day &&
+          obj.fam_no === FamNo
       );
 
       const updateItems = items.filter(obj => obj.item_no !== undefined);
@@ -283,8 +283,13 @@ export default {
           updateItems.map(obj2 => obj2.item_no).includes(obj.item_no) === false
       );
 
-      await this.deleteItems(deleteItems);
-      await this.saveItems(updateItems, insertItems, remark, totalCost);
+      if (deleteItems.length > 0) {
+        await this.deleteItems(deleteItems);
+      }
+
+      if (updateItems.length > 0 || insertItems.length > 0) {
+        await this.saveItems(updateItems, insertItems, remark, totalCost);
+      }
 
       this.$refs.domModal.hide();
     },

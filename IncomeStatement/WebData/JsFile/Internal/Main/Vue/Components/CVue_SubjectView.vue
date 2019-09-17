@@ -1,7 +1,12 @@
 <template>
   <div id="mainPage">
     <b-container fluid>
-      <b-row class="my-1" v-for="item in itemKeys" :key="item.key">
+      <b-row
+        class="my-1"
+        v-for="item in itemKeys"
+        :key="item.key"
+        v-if="item.isShow"
+      >
         <b-col style="text-align: right;" col lg="2">
           <label>{{ item.text }}</label>
         </b-col>
@@ -64,54 +69,88 @@ export default {
           key: `code_no`,
           text: `科目代碼`,
           type: `text`,
+          isShow: true,
+          isDisabled: false,
         },
         {
           key: `code_name`,
           text: `科目名稱`,
           type: `text`,
+          isShow: true,
+          isDisabled: false,
         },
         {
           key: `upp_lim`,
           text: `金額上限`,
           type: `number`,
+          isShow: true,
+          isDisabled: false,
         },
         {
           key: `low_lim`,
           text: `金額下限`,
           type: `number`,
+          isShow: true,
+          isDisabled: false,
+        },
+        {
+          key: `upp_sys`,
+          text: `系統金額上限`,
+          type: `number`,
+          isShow: false,
+          isDisabled: true,
+        },
+        {
+          key: `low_sys`,
+          text: `系統金額下限`,
+          type: `number`,
+          isShow: false,
+          isDisabled: true,
         },
         {
           key: `place`,
           text: `購買地點`,
           type: `select`,
+          isShow: true,
+          isDisabled: false,
         },
         {
           key: `param1`,
           text: `科目設定1`,
           type: `text`,
+          isShow: true,
+          isDisabled: false,
         },
         {
           key: `param2`,
           text: `科目設定2`,
           type: `text`,
+          isShow: true,
+          isDisabled: false,
         },
         {
           key: `stop_fg`,
           text: `是否停用`,
           type: `checkbox`,
+          isShow: true,
+          isDisabled: false,
         },
         {
           key: `def_fg`,
           text: `預設名稱註記`,
           type: `checkbox`,
+          isShow: true,
+          isDisabled: false,
         },
         {
           key: `code_rem`,
           text: `備註`,
           type: `text`,
+          isShow: true,
+          isDisabled: false,
         },
       ],
-      isColDisabled: false,
+      isEditView: false,
     };
   },
   methods: {
@@ -130,11 +169,14 @@ export default {
       this.subjectData.def_fg = this.subjectData.def_fg || ``;
     },
     initialColEnable() {
+      if (this.isEditView === false) {
+        return;
+      }
+
       for (let i = 0; i < this.itemKeys.length; i++) {
         const { key } = this.itemKeys[i];
-        this.$set(this.itemKeys[i], `isDisabled`, false);
-        if (key === `def_fg` && this.isColDisabled) {
-          this.$set(this.itemKeys[i], `isDisabled`, false);
+        if (key === `low_sys` || key === `upp_sys`) {
+          this.itemKeys[i].isShow = true;
         }
       }
     },
@@ -151,7 +193,7 @@ export default {
   created() {},
   mounted() {
     if (Object.keys(this.subjectData).length !== 0) {
-      this.isColDisabled = true;
+      this.isEditView = true;
     }
 
     this.setDefaultKeys();

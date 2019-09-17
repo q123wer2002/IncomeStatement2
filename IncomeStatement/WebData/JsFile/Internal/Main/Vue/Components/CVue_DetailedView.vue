@@ -172,7 +172,15 @@ export default {
   },
   methods: {
     deleteItem(index) {
+      const { ie_year, ie_mon, ie_day, fam_no } = this.items[0];
       this.items.splice(index, 1);
+
+      if (this.saveItems.length === 0 ){
+        this.queryObject.Year = ie_year;
+        this.queryObject.Month = ie_mon;
+        this.queryObject.Day = ie_day;
+        this.queryObject.FamNo = fam_no;
+      }
     },
     addItem() {
       this.items.push({
@@ -219,17 +227,41 @@ export default {
       this.items[index].code_no = item.code_no;
     },
     saveItems() {
-      const { ie_year, ie_mon, ie_day, fam_no } = this.data[0] || this.items[0];
-      this.items.forEach(obj => {
-        obj.ie_year = ie_year;
-        obj.ie_mon = ie_mon;
-        obj.ie_day = ie_day;
-        obj.fam_no = fam_no;
-      });
+      let Year;
+      let Month;
+      let Day;
+      let FamNo;
+
+      if (this.data.length > 0 || this.items.length > 0) {
+        const { ie_year, ie_mon, ie_day, fam_no } = this.data[0] || this.items[0];
+        this.items.forEach(obj => {
+          obj.ie_year = ie_year;
+          obj.ie_mon = ie_mon;
+          obj.ie_day = ie_day;
+          obj.fam_no = fam_no;
+        });
+
+        Year = ie_year;
+        Month = ie_mon;
+        Day = ie_day;
+        FamNo = fam_no;
+      } else {
+        Year = this.queryObject.Year;
+        Month = this.queryObject.Month;
+        Day = this.queryObject.Day;
+        FamNo = this.queryObject.FamNo;
+      }
 
       this.$emit(`save`, {
         items: this.items,
         remark: this.tempRemark,
+        totalCost: this.totalCost,
+        queryObject: {
+          Year,
+          Month,
+          Day,
+          FamNo,
+        },
       });
     },
     async queryDetailedData(queryObject) {
@@ -337,9 +369,18 @@ export default {
     },
   },
   created() {},
-  mounted() {
+  async mounted() {
     if (this.remark.length !== 0) {
       this.tempRemark = this.remark;
+    }
+
+    if (this.data.length > 0) {
+      await this.queryDetailedData({
+        Year: this.data[0].ie_year,
+        Month: this.data[0].ie_mon,
+        Day: this.data[0].ie_day,
+        FamNo: this.data[0].fam_no
+      });
     }
   },
   computed: {
@@ -371,8 +412,8 @@ export default {
       return ``;
     },
     dataDate() {
-      if (this.data.length > 0) {
-        const { ie_year, ie_mon, ie_day } = this.data[0];
+      if (this.data.length > 0 || this.items.length > 0) {
+        const { ie_year, ie_mon, ie_day } = this.data[0] || this.items[0];
         return `${ie_year}年${ie_mon}月${ie_day}日`;
       }
 

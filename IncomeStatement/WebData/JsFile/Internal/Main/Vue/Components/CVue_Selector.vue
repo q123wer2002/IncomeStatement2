@@ -201,8 +201,7 @@ export default {
   text-align: left;
 }
 #btnSearch {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
+  float: left;
+  margin-top: 8px;
 }
 </style>

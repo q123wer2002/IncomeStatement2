@@ -73,7 +73,13 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 								JObject tempObject = new JObject();
 								for( int i = 0; i < reader.FieldCount; i++ ) {
 									string szKey = reader.GetName(i);
-									tempObject[ szKey ] = reader.GetValue(i).ToString();
+									string szValue = reader.GetValue(i).ToString();
+									if( szKey.Contains("date") && szValue.Length > 0 ) {
+										tempObject[ szKey ] = ((DateTime)reader.GetValue(i)).ToString("yyyy/MM/dd HH:mm:ss");
+									}
+									else {
+										tempObject[ szKey ] = szValue;
+									}
 								}
 
 								resultArray.Add((JToken)tempObject);
@@ -85,7 +91,8 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 
 				return true;
 			}
-			catch {
+			catch (Exception ex){
+				string szError = ex.ToString();
 				resultArray = null;
 				return false;
 			}
