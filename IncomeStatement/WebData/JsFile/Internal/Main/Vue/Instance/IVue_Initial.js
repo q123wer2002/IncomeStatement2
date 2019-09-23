@@ -72,12 +72,12 @@ function IVueInitialCreator() {
             {
               key: `PortCardMaintain`,
               text: `戶口組成資料`,
-              isSupport: false,
+              isSupport: true,
             },
             {
               key: `DataChecker`,
               text: `收支資料檢誤`,
-              isSupport: false,
+              isSupport: true,
             },
           ],
           reportPage: [
@@ -110,7 +110,7 @@ function IVueInitialCreator() {
             },
           ],
         },
-        currentPageKey: ``,
+        currentPageKey: `PortCardMaintain`,
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),

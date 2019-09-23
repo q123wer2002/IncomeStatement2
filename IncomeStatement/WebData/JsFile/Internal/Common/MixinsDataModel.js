@@ -17,6 +17,7 @@ const CommonDataModel = {
     paramInfo: `S_ParamInfo.aspx`,
     detatiledData: `S_DetailedIncomeData.aspx`,
     myFamNo: `S_MyFamInfo.aspx`,
+    familyData: `S_FamilyData.aspx`,
   },
 };
 

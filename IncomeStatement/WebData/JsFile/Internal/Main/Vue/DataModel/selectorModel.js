@@ -470,3 +470,101 @@ export const dataCheckerModel = [
     },
   },
 ];
+
+export const portPackageModel = [
+  {
+    key: `date`,
+    text: `年月`,
+    type: {
+      year: `select`,
+      month: `select`,
+    },
+    value: {
+      year: 108,
+      month: 7,
+    },
+    source: {
+      year: [106, 107, 108].map(year => {
+        return {
+          value: year,
+          text: `${year}年`,
+        };
+      }),
+      month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(month => {
+        return {
+          value: month,
+          text: `${month}月`,
+        };
+      }),
+    },
+    valid: {
+      year: value => {
+        return value > 0 || value.length > 0;
+      },
+      month: value => {
+        return value > 0 || value.length > 0;
+      },
+    },
+    required: true,
+  },
+  {
+    key: `port`,
+    text: `戶號`,
+    type: {
+      start: `number`,
+      end: `number`,
+    },
+    value: {
+      start: ``,
+      end: ``,
+    },
+    source: {
+      start: null,
+      end: null,
+    },
+    valid: {
+      start: () => {
+        return true;
+      },
+      end: () => {
+        return true;
+      },
+    },
+  },
+  {
+    key: `checkinMan`,
+    text: `登錄人員`,
+    type: {
+      id: `text`,
+    },
+    value: {
+      id: ``,
+    },
+    source: {
+      id: null,
+    },
+    valid: {
+      id: () => {
+        return true;
+      },
+    },
+  },
+  {
+    key: `reviewMan`,
+    text: `審核人員`,
+    type: {
+      id: `text`,
+    },
+    value: {
+      id: ``,
+    },
+    source: {
+      id: null,
+    },
+    valid: {
+      id: () => {
+        return true;
+      },
+    },
+  },
+];

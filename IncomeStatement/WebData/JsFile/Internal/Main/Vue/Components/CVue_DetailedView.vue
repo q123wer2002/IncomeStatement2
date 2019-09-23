@@ -72,7 +72,13 @@
         <b-form-input
           v-model="data.item.place"
           @focus="onChangeSubName(data.index)"
+          list="placeNoList"
         ></b-form-input>
+        <datalist id="placeNoList">
+          <option v-for="(placeCode, index) in placeList" :key="index">
+            {{ placeCode }}
+          </option>
+        </datalist>
       </template>
       <template slot="[code_amt]" slot-scope="data">
         <b-form-input
@@ -450,6 +456,22 @@ export default {
       }
 
       return false;
+    },
+    placeList() {
+      return this.paramArray
+        .filter(obj => obj.par_typ === `A`)
+        .map(obj => obj.par_no)
+        .sort((aNo, bNo) => {
+          const a = parseInt(aNo, 10);
+          const b = parseInt(bNo, 10);
+          if (a > b) {
+            return 1;
+          }
+
+          if (a < b) {
+            return -1;
+          }
+        });
     },
   },
   watch: {

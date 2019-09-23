@@ -106,10 +106,10 @@
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="WebData\BundleResult\Login\IS_20190916_min_v1.js" />
-    <Content Include="WebData\BundleResult\Login\IS_20190916_min_v1_CSS.css" />
-    <Content Include="WebData\BundleResult\Main\IS_20190916_min_v1.js" />
-    <Content Include="WebData\BundleResult\Main\IS_20190916_min_v1_CSS.css" />
+    <Content Include="WebData\BundleResult\Login\IS_20190917_min_v1.js" />
+    <Content Include="WebData\BundleResult\Login\IS_20190917_min_v1_CSS.css" />
+    <Content Include="WebData\BundleResult\Main\IS_20190917_min_v1.js" />
+    <Content Include="WebData\BundleResult\Main\IS_20190917_min_v1_CSS.css" />
     <Content Include="WebData\CSS\External\googlefont.css" />
     <Content Include="WebData\Picture\error_message.png" />
     <Content Include="WebData\Picture\icon\material-io\baseline_add_circle_black_48dp.png" />
@@ -123,6 +123,7 @@
     <Content Include="WebData\Server_Code\S_CheckAccountStatus.aspx" />
     <Content Include="WebData\Server_Code\S_DataChecker.aspx" />
     <Content Include="WebData\Server_Code\S_DetailedIncomeData.aspx" />
+    <Content Include="WebData\Server_Code\S_FamilyData.aspx" />
     <Content Include="WebData\Server_Code\S_IncomeStateData.aspx" />
     <Content Include="WebData\Server_Code\S_InitialTable.aspx" />
     <Content Include="WebData\Server_Code\S_LoginChecker.aspx" />
@@ -173,6 +174,13 @@
     </Compile>
     <Compile Include="WebData\Server_Code\S_DetailedIncomeData.aspx.designer.cs">
       <DependentUpon>S_DetailedIncomeData.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_FamilyData.aspx.cs">
+      <DependentUpon>S_FamilyData.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_FamilyData.aspx.designer.cs">
+      <DependentUpon>S_FamilyData.aspx</DependentUpon>
     </Compile>
     <Compile Include="WebData\Server_Code\S_IncomeStateData.aspx.cs">
       <DependentUpon>S_IncomeStateData.aspx</DependentUpon>
