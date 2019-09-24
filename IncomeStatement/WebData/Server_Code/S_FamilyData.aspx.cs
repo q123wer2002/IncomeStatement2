@@ -1,5 +1,6 @@
 ﻿using IncomeStatement.WebData.Server_Code.CommonModule;
 using IncomeStatement.WebData.Server_Code.CommonModule.mssql;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace IncomeStatement.WebData.Server_Code
 	public partial class S_FamilyData : System.Web.UI.Page
 	{
 		RequestHandler m_requestHandler;
+		string m_szUserCode;
 		protected void Page_Load( object sender, EventArgs e )
 		{
 			// check status, set default
@@ -27,6 +29,9 @@ namespace IncomeStatement.WebData.Server_Code
 				Response.Write(m_requestHandler.GetReturnResult());
 				return;
 			}
+
+			// get user info
+			m_szUserCode = Request.Cookies[ CookieKey.UserID ].Value;
 
 			// check action
 			ApiAction action = GetAction();
@@ -64,11 +69,16 @@ namespace IncomeStatement.WebData.Server_Code
 		{
 			try {
 				string szAction = Request.Form[ Param.Action ].ToString();
-				if( szAction.ToUpper() == "READ" ) {
-					return ApiAction.READ;
+				switch( szAction.ToUpper() ) {
+					case "READ":
+						return ApiAction.READ;
+					case "DELETE":
+						return ApiAction.DELETE;
+					case "UPDATE":
+						return ApiAction.UPDATE;
+					default:
+						return ApiAction.UNKNOW;
 				}
-
-				return ApiAction.UNKNOW;
 			}
 			catch {
 				return ApiAction.UNKNOW;
@@ -77,60 +87,85 @@ namespace IncomeStatement.WebData.Server_Code
 		bool isParamValid( ApiAction action )
 		{
 			try {
-				if( action == ApiAction.READ ) {
-					int nTempValue;
+				int nTempValue;
 
-					// check data
-					if( Request.Form[ Param.Year ] != null && Request.Form[ Param.Month ] != null ) {
-						string szYear = Request.Form[ Param.Year ].ToString();
-						string szMonth = Request.Form[ Param.Month ].ToString();
+				switch( action ) {
+					case ApiAction.READ: {
+						// check data
+						if( Request.Form[ Param.Year ] != null && Request.Form[ Param.Month ] != null ) {
+							string szYear = Request.Form[ Param.Year ].ToString();
+							string szMonth = Request.Form[ Param.Month ].ToString();
 
-						if(
-							int.TryParse(szYear, out nTempValue) == false ||
-							int.TryParse(szMonth, out nTempValue) == false
-						) {
+							if(
+								int.TryParse(szYear, out nTempValue) == false ||
+								int.TryParse(szMonth, out nTempValue) == false
+							) {
+								return false;
+							}
+
+							m_paramList.Add($"{TableName.CoFam}.ie_year={szYear} AND {TableName.CoFam}.ie_mon={szMonth}");
+						}
+
+						// check family no
+						if( Request.Form[ Param.FamNoStart ] != null && Request.Form[ Param.FamNoEnd ] != null ) {
+							string szFamNoStart = Request.Form[ Param.FamNoStart ].ToString();
+							string szFamNoEnd = Request.Form[ Param.FamNoEnd ].ToString();
+
+							if(
+								int.TryParse(szFamNoStart, out nTempValue) == false ||
+								int.TryParse(szFamNoEnd, out nTempValue) == false
+							) {
+								return false;
+							}
+
+							m_paramList.Add($"{TableName.CoFam}.fam_no BETWEEN {szFamNoStart} AND {szFamNoEnd}");
+						}
+
+						// check record no
+						if( Request.Form[ Param.RecUser ] != null ) {
+							string szRecUser = Request.Form[ Param.RecUser ].ToString();
+							m_paramList.Add($"{TableName.CoFam}.rec_user LIKE '%{szRecUser}%'");
+						}
+
+						// check record no
+						if( Request.Form[ Param.AdiUser ] != null ) {
+							string szAdiUser = Request.Form[ Param.AdiUser ].ToString();
+							m_paramList.Add($"{TableName.CoFam}.adi_user LIKE '%{szAdiUser}%'");
+						}
+
+						// no param
+						if( m_paramList.Count == 0 ) {
 							return false;
 						}
 
-						m_paramList.Add($"{TableName.CoFam}.ie_year={szYear} AND {TableName.CoFam}.ie_mon={szMonth}");
+						return true;
 					}
+					case ApiAction.DELETE: {
+						// check data
+						if( Request.Form[ Param.Year ] != null && Request.Form[ Param.Month ] != null ) {
+							string szYear = Request.Form[ Param.Year ].ToString();
+							string szMonth = Request.Form[ Param.Month ].ToString();
 
-					// check family no
-					if( Request.Form[ Param.FamNoStart ] != null && Request.Form[ Param.FamNoEnd ] != null ) {
-						string szFamNoStart = Request.Form[ Param.FamNoStart ].ToString();
-						string szFamNoEnd = Request.Form[ Param.FamNoEnd ].ToString();
+							if(
+								int.TryParse(szYear, out nTempValue) == false ||
+								int.TryParse(szMonth, out nTempValue) == false
+							) {
+								return false;
+							}
 
-						if(
-							int.TryParse(szFamNoStart, out nTempValue) == false ||
-							int.TryParse(szFamNoEnd, out nTempValue) == false
-						) {
-							return false;
+							m_paramList.Add($"{TableName.CoFam}.ie_year={szYear} AND {TableName.CoFam}.ie_mon={szMonth}");
 						}
 
-						m_paramList.Add($"{TableName.CoFam}.fam_no BETWEEN {szFamNoStart} AND {szFamNoEnd}");
+						JArray jData = JArray.Parse(Request.Form[ Param.FamilyDataList ].ToString());
+						return true;
 					}
-
-					// check record no
-					if( Request.Form[ Param.RecUser ] != null ) {
-						string szRecUser = Request.Form[ Param.RecUser ].ToString();
-						m_paramList.Add($"{TableName.CoFam}.rec_user LIKE '%{szRecUser}%'");
+					case ApiAction.UPDATE: {
+						JObject jData = JObject.Parse(Request.Form[ Param.FamData ].ToString());
+						return true;
 					}
-
-					// check record no
-					if( Request.Form[ Param.AdiUser ] != null ) {
-						string szAdiUser = Request.Form[ Param.AdiUser ].ToString();
-						m_paramList.Add($"{TableName.CoFam}.adi_user LIKE '%{szAdiUser}%'");
-					}
-
-					// no param
-					if( m_paramList.Count == 0 ) {
+					default:
 						return false;
-					}
-
-					return true;
 				}
-
-				return false;
 			}
 			catch {
 				return false;
@@ -138,11 +173,16 @@ namespace IncomeStatement.WebData.Server_Code
 		}
 		dynamic DoAction( ApiAction action )
 		{
-			if( action == ApiAction.READ ) {
-				return ReadData();
+			switch( action ) {
+				case ApiAction.READ:
+					return ReadData();
+				case ApiAction.DELETE:
+					return DeleteData();
+				case ApiAction.UPDATE:
+					return UpdateData();
+				default:
+					return null;
 			}
-
-			return null;
 		}
 		dynamic ReadData()
 		{
@@ -166,6 +206,71 @@ namespace IncomeStatement.WebData.Server_Code
 
 
 			return jResult;
+		}
+		bool DeleteData()
+		{
+			List<JObject> famDataList = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.FamilyDataList ].ToString());
+			string szWhere = $"{TableName.CoFam}.fam_no IN ({string.Join(", ", famDataList.Select(famObj => $"'{famObj[ "fam_no" ]}'"))}) AND ";
+			string szErrorMsg;
+			for( int i = 0; i < m_paramList.Count; i++ ) {
+				szWhere += $" {m_paramList[ i ]}";
+				szWhere += i == m_paramList.Count - 1 ? " " : " AND";
+			}
+
+			// copy currnt data into log file
+			string szInsertLog = $"INSERT INTO {TableName.CoFamLog} SELECT 'D', CURRENT_TIMESTAMP, '{m_szUserCode}', * FROM {TableName.CoFam} WHERE {szWhere}";
+			bool isSuccess = m_mssql.TryQuery(szInsertLog, out szErrorMsg);
+			if( isSuccess == false ) {
+				return false;
+			}
+
+			// delete items
+			string szDelete = $"DELETE FROM {TableName.CoFam} WHERE {szWhere}";
+			isSuccess = m_mssql.TryQuery(szDelete, out szErrorMsg);
+			return isSuccess;
+		}
+		bool UpdateData()
+		{
+			JObject jData = JObject.Parse(Request.Form[ Param.FamData ].ToString());
+			List<string> keys = jData.Properties().Select(p => p.Name).ToList();
+			List<string> ignoreKeys = new List<string>()
+			{
+				"ie_year",
+				"ie_mon",
+				"fam_no",
+				"state",
+				"crt_date",
+				"crt_user",
+				"upd_date",
+				"upd_user",
+			};
+			List<string> setSQLList = new List<string>();
+			string szErrorMsg;
+			string szWhere = $"{TableName.CoFam}.ie_year='{jData["ie_year"].ToString()}' " +
+				$"AND {TableName.CoFam}.ie_mon='{jData[ "ie_mon" ].ToString()}' " + 
+				$"AND {TableName.CoFam}.fam_no='{jData[ "fam_no" ].ToString()}' ";
+			for( int i = 0; i < keys.Count; i++ ) {
+				if( ignoreKeys.Contains(keys[ i ]) ) {
+					continue;
+				}
+				string szKey = keys[ i ];
+				string szValue = jData[ keys[ i ] ].ToString().Length == 0 ? "NULL" : $"'{jData[ keys[ i ] ].ToString()}'";
+
+				setSQLList.Add($"{szKey}={szValue}");
+			}
+			string szSetSql = string.Join(", ", setSQLList.Select(sql => sql));
+
+			// copy currnt data into log file
+			string szInsertLog = $"INSERT INTO {TableName.CoFamLog} SELECT 'M', CURRENT_TIMESTAMP, '{m_szUserCode}', * FROM {TableName.CoFam} WHERE {szWhere}";
+			bool isSuccess = m_mssql.TryQuery(szInsertLog, out szErrorMsg);
+			if( isSuccess == false ) {
+				return false;
+			}
+
+			// update items
+			string szUpdate = $"UPDATE {TableName.CoFam} SET upd_date=CURRENT_TIMESTAMP, upd_user='{m_szUserCode}', {szSetSql} WHERE {szWhere}";
+			isSuccess = m_mssql.TryQuery(szUpdate, out szErrorMsg);
+			return isSuccess;
 		}
 		#endregion
 
@@ -232,6 +337,23 @@ namespace IncomeStatement.WebData.Server_Code
 				}
 			}
 
+			// for delete
+			public static string FamilyDataList
+			{
+				get
+				{
+					return "FamilyDataList";
+				}
+			}
+
+			// for update
+			public static string FamData
+			{
+				get
+				{
+					return "FamData";
+				}
+			}
 		}
 		MSSQL m_mssql = new MSSQL();
 		List<string> m_paramList = new List<string>();

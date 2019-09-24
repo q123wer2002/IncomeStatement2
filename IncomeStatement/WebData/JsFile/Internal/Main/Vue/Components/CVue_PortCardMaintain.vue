@@ -22,7 +22,7 @@
         <b-button
           variant="info"
           :disabled="!enabledReview"
-          @click="confirm(`3`)"
+          @click="openUploader"
         >
           資料匯入
         </b-button>
@@ -67,12 +67,37 @@
             @change="selectOneItem(index)"
           ></b-form-checkbox>
         </template>
+        <template slot="[state]" slot-scope="{ item }">
+          <span>{{ statusToString(item.state) }}</span>
+        </template>
         <template slot="[btnFamilyPackage]" slot-scope="data">
-          <a href="javascript:;">主卡</a>
-          <a href="javascript:;">組成</a>
-          <a href="javascript:;">住宅</a>
-          <a href="javascript:;">家庭設備</a>
-          <a href="javascript:;">固定支出</a>
+          <a href="javascript:;" @click="openComponent('MainCard', data.item)">
+            主卡
+          </a>
+          <a
+            href="javascript:;"
+            @click="openComponent('FamilyMember', data.item)"
+          >
+            組成
+          </a>
+          <a href="javascript:;" @click="openComponent('HouseInfo', data.item)">
+            住宅
+          </a>
+          <a
+            href="javascript:;"
+            @click="openComponent('HomeEquipment', data.item)"
+          >
+            家庭設備
+          </a>
+          <a href="javascript:;" @click="openComponent('Education', data.item)">
+            在學
+          </a>
+          <a
+            href="javascript:;"
+            @click="openComponent('StaticPayment', data.item)"
+          >
+            固定支出
+          </a>
         </template>
       </b-table>
 
@@ -84,25 +109,53 @@
         class="justify-content-center"
       ></b-pagination>
 
-      <b-modal ref="domModal" size="xl" hide-footer></b-modal>
+      <b-modal ref="domModal" size="xl" hide-footer>
+        <component
+          :is="selectComponent"
+          :coFamData="selectedCoFamData"
+          @updateFamItem="updateFamData"
+        ></component>
+      </b-modal>
+      <input
+        type="file"
+        accept=".csv"
+        ref="domFileInput"
+        @change="importCSV"
+        style="display: none;"
+      />
     </div>
   </div>
 </template>
 
 <script>
+import { statusMapToString } from '../DataModel/dataModel.js';
 import { portPackageModel } from '../DataModel/selectorModel.js';
 import Selector from './CVue_Selector.vue';
+import MainCard from './PortPackage/MainCard.vue';
+import HouseInfo from './PortPackage/HouseInfo.vue';
+import HomeEquipment from './PortPackage/HomeEquipment.vue';
+import Education from './PortPackage/Education.vue';
+import StaticPayment from './PortPackage/StaticPayment.vue';
+import FamilyMember from './PortPackage/FamilyMember.vue';
 
 export default {
   /* eslint-disable no-undef, no-param-reassign, camelcase */
   name: 'PortCardMaintain',
   components: {
     Selector,
+    MainCard,
+    HouseInfo,
+    HomeEquipment,
+    Education,
+    StaticPayment,
+    FamilyMember,
   },
   props: {},
   data() {
     return {
       selectorModel: portPackageModel,
+      selectComponent: ``,
+      selectedCoFamData: {},
 
       queryObject: {},
       isSelectAll: false,
@@ -167,6 +220,22 @@ export default {
       }
 
       this.$refs.domDatatable.selectRow(index);
+    },
+    openUploader() {
+      this.$refs.domFileInput.value = ``;
+      this.$refs.domFileInput.click();
+    },
+    importCSV(event) {
+      const inputFiles = event.target;
+
+      const reader = new FileReader();
+      reader.onload = () => {};
+
+      if (inputFiles.files.length === 0) {
+        return;
+      }
+
+      reader.readAsText(inputFiles.files[0]);
     },
     exportCSV() {
       let detailedData = this.selected;
@@ -591,7 +660,43 @@ export default {
       // clear
       this.clearSelected();
     },
-    deleteItems() {},
+    openComponent(componentKey, coFamData) {
+      if (componentKey === `FamilyMember`) {
+        const famNoMemData = this.memItems.filter(
+          obj => obj.fam_no === coFamData.fam_no
+        );
+        this.selectedCoFamData = famNoMemData;
+      } else {
+        this.selectedCoFamData = coFamData;
+      }
+
+      this.selectComponent = componentKey;
+      this.$refs.domModal.show();
+    },
+    async deleteItems() {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.familyData,
+        {
+          Action: `DELETE`,
+          ...this.queryObject,
+          FamilyDataList: JSON.stringify(this.selected),
+        }
+      );
+
+      // delete items
+      if (resObject.status !== this.mixinBackendErrorCode.success) {
+        return;
+      }
+
+      for (let i = 0; i < this.selected.length; i++) {
+        const itemIdx = this.items.findIndex(
+          obj => obj.fam_no === this.selected[i].fam_no
+        );
+        if (itemIdx !== -1) {
+          this.$delete(this.items, itemIdx);
+        }
+      }
+    },
     async queryFamilyCardData(queryObject) {
       this.isBusy = true;
       const resObject = await this.mixinCallBackService(
@@ -608,6 +713,31 @@ export default {
       }
       this.isBusy = false;
       return resObject;
+    },
+    async updateFamData(data) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.familyData,
+        {
+          Action: `UPDATE`,
+          FamData: JSON.stringify(data),
+        }
+      );
+
+      if (resObject.status !== this.mixinBackendErrorCode.success) {
+        alert(`儲存失敗`);
+        this.$refs.domModal.hide();
+        return;
+      }
+
+      // update local var
+      const { fam_no } = data;
+      const famIdx = this.items.findIndex(obj => obj.fam_no === fam_no);
+      if (famIdx !== -1) {
+        this.$set(this.items, famIdx, data);
+      }
+
+      alert(`儲存成功`);
+      this.$refs.domModal.hide();
     },
   },
   created() {
@@ -642,6 +772,11 @@ export default {
       }
 
       return this.selected.length > 0;
+    },
+    statusToString() {
+      return statusCode => {
+        return statusMapToString[statusCode];
+      };
     },
   },
   watch: {
