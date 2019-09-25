@@ -715,6 +715,95 @@ export default {
       return resObject;
     },
     async updateFamData(data) {
+      if (this.selectComponent === `FamilyMember`) {
+        await this.updateCoFamMemData(data);
+      } else {
+        await this.updateCoFamData(data);
+      }
+
+      this.$refs.domModal.hide();
+    },
+    async updateCoFamMemData(data) {
+      const { fam_no } = data[0];
+      const filteredItems = this.memItems.filter(obj => obj.fam_no === fam_no);
+
+      const deleteItems = filteredItems.filter(
+        obj =>
+          data.map(dataObj => dataObj.mem_no).includes(obj.mem_no) === false
+      );
+      const updateItems = data.filter(obj =>
+        filteredItems.map(dataObj => dataObj.mem_no).includes(obj.mem_no)
+      );
+      const insertItems = data.filter(
+        obj =>
+          updateItems.map(tempObj => tempObj.mem_no).includes(obj.mem_no) ===
+          false
+      );
+
+      let isSuccess = false;
+      if (deleteItems.length > 0) {
+        isSuccess = await this.deleteFamMemData(deleteItems);
+        if (isSuccess === false) {
+          alert('儲存失敗');
+          return;
+        }
+      }
+
+      if (updateItems.length > 0 || insertItems.length > 0) {
+        isSuccess = await this.updateFamMemData(updateItems, insertItems);
+        if (isSuccess === false) {
+          alert('儲存失敗');
+          return;
+        }
+      }
+
+      alert(`儲存成功`);
+    },
+    async updateFamMemData(updateItems, insertItems) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.familyData,
+        {
+          Action: `UPDATE`,
+          FamMemData: JSON.stringify([...updateItems, ...insertItems]),
+        }
+      );
+
+      if (resObject.status !== this.mixinBackendErrorCode.success) {
+        return false;
+      }
+
+      for (let i = 0; i < updateItems.length; i++) {
+        const { mem_no } = updateItems[i];
+        const itemIdx = this.memItems.findIndex(obj => obj.mem_no === mem_no);
+        this.$set(this.memItems, itemIdx, updateItems[i]);
+      }
+
+      this.memItems = [...this.memItems, ...insertItems];
+
+      return true;
+    },
+    async deleteFamMemData(deleteItems) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.familyData,
+        {
+          Action: `DELETE`,
+          FamMemData: JSON.stringify(deleteItems),
+        }
+      );
+
+      if (resObject.status !== this.mixinBackendErrorCode.success) {
+        return false;
+      }
+
+      for (let i = 0; i < deleteItems.length; i++) {
+        const { mem_no } = deleteItems[i];
+        const itemIdx = this.memItems.findIndex(obj => obj.mem_no === mem_no);
+        this.$delete(this.memItems, itemIdx);
+      }
+
+      return true;
+    },
+    async updateCoFamData(data) {
       const resObject = await this.mixinCallBackService(
         this.mixinBackendService.familyData,
         {
@@ -725,7 +814,6 @@ export default {
 
       if (resObject.status !== this.mixinBackendErrorCode.success) {
         alert(`儲存失敗`);
-        this.$refs.domModal.hide();
         return;
       }
 
@@ -737,7 +825,6 @@ export default {
       }
 
       alert(`儲存成功`);
-      this.$refs.domModal.hide();
     },
   },
   created() {

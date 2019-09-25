@@ -156,11 +156,27 @@ namespace IncomeStatement.WebData.Server_Code
 							m_paramList.Add($"{TableName.CoFam}.ie_year={szYear} AND {TableName.CoFam}.ie_mon={szMonth}");
 						}
 
-						JArray jData = JArray.Parse(Request.Form[ Param.FamilyDataList ].ToString());
+						if( Request.Form[ Param.FamilyDataList ] != null ) {
+							JArray jData = JArray.Parse(Request.Form[ Param.FamilyDataList ].ToString());
+						}
+
+						if( Request.Form[ Param.FamMemData ] != null ) {
+							JArray jDataAry = JArray.Parse(Request.Form[ Param.FamMemData ].ToString());
+						}
 						return true;
 					}
 					case ApiAction.UPDATE: {
-						JObject jData = JObject.Parse(Request.Form[ Param.FamData ].ToString());
+						
+						if( Request.Form[ Param.FamData ] != null ) {
+							JObject jData = JObject.Parse(Request.Form[ Param.FamData ].ToString());
+						}
+						else if( Request.Form[ Param.FamMemData ] != null ) {
+							JArray jDataAry = JArray.Parse(Request.Form[ Param.FamMemData ].ToString());
+						}
+						else {
+							return false;
+						}
+						
 						return true;
 					}
 					default:
@@ -209,6 +225,10 @@ namespace IncomeStatement.WebData.Server_Code
 		}
 		bool DeleteData()
 		{
+			if( Request.Form[ Param.FamMemData ] != null ) {
+				return DeleteCoFamMemData();
+			}
+
 			List<JObject> famDataList = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.FamilyDataList ].ToString());
 			string szWhere = $"{TableName.CoFam}.fam_no IN ({string.Join(", ", famDataList.Select(famObj => $"'{famObj[ "fam_no" ]}'"))}) AND ";
 			string szErrorMsg;
@@ -229,7 +249,50 @@ namespace IncomeStatement.WebData.Server_Code
 			isSuccess = m_mssql.TryQuery(szDelete, out szErrorMsg);
 			return isSuccess;
 		}
+		bool DeleteCoFamMemData()
+		{
+			List<JObject> jDataList = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.FamMemData ].ToString());
+			bool isSuccess = false;
+			for( int i = 0; i < jDataList.Count; i++ ) {
+				JObject jData = jDataList[ i ];
+				List<string> keys = jData.Properties().Select(p => p.Name).ToList();
+				string szErrorMsg;
+				string szWhere = $"{TableName.CoFamMem}.ie_year='{jData[ "ie_year" ].ToString()}' " +
+					$"AND {TableName.CoFamMem}.ie_mon='{jData[ "ie_mon" ].ToString()}' " +
+					$"AND {TableName.CoFamMem}.fam_no='{jData[ "fam_no" ].ToString()}' " +
+					$"AND {TableName.CoFamMem}.mem_no='{jData[ "mem_no" ].ToString()}' ";
+
+				// insert into log
+				string szInsertLog = $"INSERT INTO {TableName.CoFamMemLog} SELECT 'D', CURRENT_TIMESTAMP, '{m_szUserCode}', * FROM {TableName.CoFamMem} WHERE {szWhere}";
+				isSuccess = m_mssql.TryQuery(szInsertLog, out szErrorMsg);
+				if( isSuccess == false ) {
+					break;
+				}
+
+				// delete items
+				isSuccess = m_mssql.TryQuery($"DELETE FROM {TableName.CoFamMem} WHERE {szWhere}", out szErrorMsg);
+
+				if( isSuccess == false ) {
+					return false;
+				}
+			}
+
+			return true;
+			
+		}
 		bool UpdateData()
+		{
+			if( Request.Form[ Param.FamData ] != null ) {
+				return UpdateCoFamData();
+			}
+
+			if( Request.Form[ Param.FamMemData ] != null ) {
+				return UpdateCoFamMemData();
+			}
+
+			return false;
+		}
+		bool UpdateCoFamData()
 		{
 			JObject jData = JObject.Parse(Request.Form[ Param.FamData ].ToString());
 			List<string> keys = jData.Properties().Select(p => p.Name).ToList();
@@ -246,8 +309,8 @@ namespace IncomeStatement.WebData.Server_Code
 			};
 			List<string> setSQLList = new List<string>();
 			string szErrorMsg;
-			string szWhere = $"{TableName.CoFam}.ie_year='{jData["ie_year"].ToString()}' " +
-				$"AND {TableName.CoFam}.ie_mon='{jData[ "ie_mon" ].ToString()}' " + 
+			string szWhere = $"{TableName.CoFam}.ie_year='{jData[ "ie_year" ].ToString()}' " +
+				$"AND {TableName.CoFam}.ie_mon='{jData[ "ie_mon" ].ToString()}' " +
 				$"AND {TableName.CoFam}.fam_no='{jData[ "fam_no" ].ToString()}' ";
 			for( int i = 0; i < keys.Count; i++ ) {
 				if( ignoreKeys.Contains(keys[ i ]) ) {
@@ -271,6 +334,72 @@ namespace IncomeStatement.WebData.Server_Code
 			string szUpdate = $"UPDATE {TableName.CoFam} SET upd_date=CURRENT_TIMESTAMP, upd_user='{m_szUserCode}', {szSetSql} WHERE {szWhere}";
 			isSuccess = m_mssql.TryQuery(szUpdate, out szErrorMsg);
 			return isSuccess;
+		}
+		bool UpdateCoFamMemData()
+		{
+			List<JObject> jDataList = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.FamMemData ].ToString());
+			List<string> ignoreKeys = new List<string>()
+			{
+				"ie_year",
+				"ie_mon",
+				"fam_no",
+				"crt_date",
+				"crt_user",
+				"upd_date",
+				"upd_user",
+			};
+
+			bool isSuccess = false;
+			for( int i = 0; i < jDataList.Count; i++ ) {
+				JObject jData = jDataList[ i ];
+				List<string> keys = jData.Properties().Select(p => p.Name).ToList();
+				string szErrorMsg;
+				string szWhere = $"{TableName.CoFamMem}.ie_year='{jData[ "ie_year" ].ToString()}' " +
+					$"AND {TableName.CoFamMem}.ie_mon='{jData[ "ie_mon" ].ToString()}' " +
+					$"AND {TableName.CoFamMem}.fam_no='{jData[ "fam_no" ].ToString()}' " +
+					$"AND {TableName.CoFamMem}.mem_no='{jData[ "mem_no" ].ToString()}' ";
+
+				// select once
+				JArray jResult;
+				m_mssql.TryQuery($"SELECT * FROM {TableName.CoFamMem} WHERE {szWhere}", out jResult);
+				if( jResult.Count == 0 ) {
+					// means insert
+					jData[ "upd_date" ] = "CURRENT_TIMESTAMP";
+					jData[ "upd_user" ] = m_szUserCode;
+					isSuccess = m_mssql.TryQuery($"INSERT INTO {TableName.CoFamMem} ({string.Join(", ", keys)}) VALUES ({string.Join(", ", jData.Properties().Select(p => p.Value.ToString().Length == 0 ? "NULL" : $"'{p.Value}'").ToList())})", out szErrorMsg);
+				}
+				else {
+					// means update
+					List<string> setSQLList = new List<string>();
+					for( int j = 0; j < keys.Count; j++ ) {
+						if( ignoreKeys.Contains(keys[ j ]) ) {
+							continue;
+						}
+						string szKey = keys[ j ];
+						string szValue = jData[ keys[ j ] ].ToString().Length == 0 ? "NULL" : $"'{jData[ keys[ j ] ].ToString()}'";
+
+						setSQLList.Add($"{szKey}={szValue}");
+					}
+					string szSetSql = string.Join(", ", setSQLList.Select(sql => sql));
+
+					// copy currnt data into log file
+					string szInsertLog = $"INSERT INTO {TableName.CoFamMemLog} SELECT 'M', CURRENT_TIMESTAMP, '{m_szUserCode}', * FROM {TableName.CoFamMem} WHERE {szWhere}";
+					isSuccess = m_mssql.TryQuery(szInsertLog, out szErrorMsg);
+					if( isSuccess == false ) {
+						break;
+					}
+
+					// update items
+					string szUpdate = $"UPDATE {TableName.CoFamMem} SET upd_date=CURRENT_TIMESTAMP, upd_user='{m_szUserCode}', {szSetSql} WHERE {szWhere}";
+					isSuccess = m_mssql.TryQuery(szUpdate, out szErrorMsg);
+				}
+
+				if( isSuccess == false ) {
+					return false;
+				}
+			}
+
+			return true;
 		}
 		#endregion
 
@@ -352,6 +481,13 @@ namespace IncomeStatement.WebData.Server_Code
 				get
 				{
 					return "FamData";
+				}
+			}
+			public static string FamMemData
+			{
+				get
+				{
+					return "FamMemData";
 				}
 			}
 		}

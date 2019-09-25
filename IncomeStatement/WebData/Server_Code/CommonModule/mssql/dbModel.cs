@@ -91,6 +91,13 @@
 				return "co_fam_mem";
 			}
 		}
+		public static string CoFamMemLog
+		{
+			get
+			{
+				return "co_fam_mem_log";
+			}
+		}
 
 		// system
 		public static string CoSysAuth

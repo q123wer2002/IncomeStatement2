@@ -11,6 +11,7 @@ import SubjectMaintain from '../Components/CVue_SubjectMaintain.vue';
 import DetailedMaintain from '../Components/CVue_DetailedMaintain.vue';
 import DataChecker from '../Components/CVue_DataChecker.vue';
 import PortCardMaintain from '../Components/CVue_PortCardMaintain.vue';
+import ChangePassword from '../Components/CVue_ChangePassword.vue';
 
 Vue.use(BootstrapVue);
 function IVueInitialCreator() {
@@ -32,6 +33,7 @@ function IVueInitialCreator() {
         DetailedMaintain,
         DataChecker,
         PortCardMaintain,
+        ChangePassword,
       },
       data: {
         // ui
@@ -99,9 +101,9 @@ function IVueInitialCreator() {
               isSupport: false,
             },
             {
-              key: `changePassword`,
+              key: `ChangePassword`,
               text: `密碼變更`,
-              isSupport: false,
+              isSupport: true,
             },
             {
               key: `incomePortManagement`,
@@ -110,7 +112,7 @@ function IVueInitialCreator() {
             },
           ],
         },
-        currentPageKey: `PortCardMaintain`,
+        currentPageKey: `ChangePassword`,
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),

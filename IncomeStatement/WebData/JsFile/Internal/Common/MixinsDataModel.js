@@ -18,6 +18,7 @@ const CommonDataModel = {
     detatiledData: `S_DetailedIncomeData.aspx`,
     myFamNo: `S_MyFamInfo.aspx`,
     familyData: `S_FamilyData.aspx`,
+    changePwd: `S_ChangePassword.aspx`,
   },
 };
 

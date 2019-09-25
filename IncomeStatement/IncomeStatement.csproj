@@ -120,6 +120,7 @@
     <Content Include="WebData\Picture\login\homepage_logo.png" />
     <Content Include="WebData\Picture\login\main_pic.png" />
     <Content Include="WebData\Picture\login\top_wave.png" />
+    <Content Include="WebData\Server_Code\S_ChangePassword.aspx" />
     <Content Include="WebData\Server_Code\S_CheckAccountStatus.aspx" />
     <Content Include="WebData\Server_Code\S_DataChecker.aspx" />
     <Content Include="WebData\Server_Code\S_DetailedIncomeData.aspx" />
@@ -154,6 +155,13 @@
     <Compile Include="WebData\Server_Code\CommonModule\mssql\MSSQL.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\RequestHandler.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\JWTModel.cs" />
+    <Compile Include="WebData\Server_Code\S_ChangePassword.aspx.cs">
+      <DependentUpon>S_ChangePassword.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_ChangePassword.aspx.designer.cs">
+      <DependentUpon>S_ChangePassword.aspx</DependentUpon>
+    </Compile>
     <Compile Include="WebData\Server_Code\S_CheckAccountStatus.aspx.cs">
       <DependentUpon>S_CheckAccountStatus.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
