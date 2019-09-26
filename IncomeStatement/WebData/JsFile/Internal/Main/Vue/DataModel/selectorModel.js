@@ -568,3 +568,77 @@ export const portPackageModel = [
     },
   },
 ];
+
+export const accountModel = [
+  {
+    key: `account`,
+    text: `登入帳號`,
+    type: {
+      id: `text`,
+    },
+    value: {
+      id: ``,
+    },
+    source: {
+      id: null,
+    },
+    valid: {
+      id: () => {
+        return true;
+      },
+    },
+  },
+  {
+    key: `name`,
+    text: `姓名`,
+    type: {
+      value: `text`,
+    },
+    value: {
+      value: ``,
+    },
+    source: {
+      value: null,
+    },
+    valid: {
+      value: () => {
+        return true;
+      },
+    },
+  },
+  {
+    key: `status`,
+    text: `資料狀態`,
+    type: {
+      code: `select`,
+    },
+    value: {
+      code: -1,
+    },
+    source: {
+      code: [
+        {
+          value: -1,
+          text: `全部`,
+        },
+        {
+          value: 0,
+          text: `停用`,
+        },
+        {
+          value: 1,
+          text: `啟用`,
+        },
+        {
+          value: 2,
+          text: `鎖定`,
+        },
+      ],
+    },
+    valid: {
+      code: () => {
+        return true;
+      },
+    },
+  },
+];

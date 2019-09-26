@@ -120,6 +120,7 @@
     <Content Include="WebData\Picture\login\homepage_logo.png" />
     <Content Include="WebData\Picture\login\main_pic.png" />
     <Content Include="WebData\Picture\login\top_wave.png" />
+    <Content Include="WebData\Server_Code\S_AccountManagement.aspx" />
     <Content Include="WebData\Server_Code\S_ChangePassword.aspx" />
     <Content Include="WebData\Server_Code\S_CheckAccountStatus.aspx" />
     <Content Include="WebData\Server_Code\S_DataChecker.aspx" />
@@ -142,7 +143,6 @@
       <DependentUpon>Main.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WebData\Server_Code\ApiAction.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\Authorization.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\ConfigReader.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\ConnectionInfo.cs" />
@@ -155,6 +155,13 @@
     <Compile Include="WebData\Server_Code\CommonModule\mssql\MSSQL.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\RequestHandler.cs" />
     <Compile Include="WebData\Server_Code\CommonModule\JWTModel.cs" />
+    <Compile Include="WebData\Server_Code\S_AccountManagement.aspx.cs">
+      <DependentUpon>S_AccountManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_AccountManagement.aspx.designer.cs">
+      <DependentUpon>S_AccountManagement.aspx</DependentUpon>
+    </Compile>
     <Compile Include="WebData\Server_Code\S_ChangePassword.aspx.cs">
       <DependentUpon>S_ChangePassword.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

@@ -2,27 +2,53 @@
   <div id="mainPage">
     <h5>變更密碼</h5>
     <div class="w-50 mx-auto my-3">
-      <label for="input-original">原密碼</label>
-      <b-form-input
-        id="input-original"
-        v-model="originalPwd"
-        :state="isValidOrigialPwd"
-        @update="validPwd($event, false)"
-        type="password"
-      ></b-form-input>
-      <label for="input-newone">新密碼</label>
-      <b-form-input
-        id="input-newone"
-        v-model="newPwd"
-        :state="isValidNewPwd"
-        @update="validPwd($event, true)"
-        type="password"
-      ></b-form-input>
+      <div style="border-bottom: 1px solid rgba(0, 0, 0, 0.1)">
+        <label class="w-25">登入帳號</label>
+        <p class="d-inline-block my-2 w-50 mx-4">{{ account }}</p>
+      </div>
+      <div style="border-bottom: 1px solid rgba(0, 0, 0, 0.1)">
+        <label class="w-25" for="input-original">原密碼</label>
+        <b-form-input
+          id="input-original"
+          v-model="originalPwd"
+          :state="isValidOrigialPwd"
+          @update="validPwd($event, false)"
+          type="password"
+          class="d-inline-block my-2 w-50 mx-4"
+        ></b-form-input>
+      </div>
+      <div style="border-bottom: 1px solid rgba(0, 0, 0, 0.1)">
+        <label class="w-25" for="input-newone">新密碼</label>
+        <b-form-input
+          id="input-newone"
+          v-model="newPwd"
+          :state="isValidNewPwd"
+          @update="validPwd($event, true)"
+          type="password"
+          class="d-inline-block my-2 w-50 mx-4"
+        ></b-form-input>
+        <p></p>
+      </div>
+      <div style="border-bottom: 1px solid rgba(0, 0, 0, 0.1)">
+        <label class="w-25" for="input-newone2">再次輸入新密碼</label>
+        <b-form-input
+          id="input-newone2"
+          v-model="newPwd2"
+          :state="newPwd2.length > 0 && newPwd === newPwd2"
+          type="password"
+          class="d-inline-block my-2 w-50 mx-4"
+        ></b-form-input>
+        <p></p>
+      </div>
     </div>
+    <p style="font-size: 12px;color: red;">
+      密碼必須包含8個字符，需要包含英文、數字及符號(!@#$%^&*)，英文大小寫不一樣
+    </p>
     <b-button
       variant="info"
       @click="changePassword"
-      :disabled="!isValidOrigialPwd || !isValidNewPwd"
+      :disabled="!changeBtnEnable"
+      class="my-2"
     >
       變更
     </b-button>
@@ -39,19 +65,44 @@ export default {
   props: {},
   data() {
     return {
+      account: ``,
       originalPwd: ``,
       isValidOrigialPwd: false,
       newPwd: ``,
       isValidNewPwd: false,
+      newPwd2: ``,
     };
   },
   methods: {
     validPwd(value, isNewPassword) {
-      const isValid = value.length > 0;
       if (isNewPassword) {
-        this.isValidNewPwd = isValid;
+        // length >= 8
+        if (value.length >= 8 === false) {
+          this.isValidNewPwd = false;
+          return;
+        }
+
+        // contains english
+        if (/[a-zA-Z]/g.test(value) === false) {
+          this.isValidNewPwd = false;
+          return;
+        }
+
+        // contains number
+        if (/[012345678]/g.test(value) === false) {
+          this.isValidNewPwd = false;
+          return;
+        }
+
+        // contains char
+        if (/[!@#$%^&*]/g.test(value) === false) {
+          this.isValidNewPwd = false;
+          return;
+        }
+
+        this.isValidNewPwd = true;
       } else {
-        this.isValidOrigialPwd = isValid;
+        this.isValidOrigialPwd = value.length > 0;
       }
     },
     async changePassword() {
@@ -68,12 +119,25 @@ export default {
         return;
       }
 
+      this.originalPwd = ``;
+      this.newPwd = ``;
+      this.newPwd2 = ``;
       alert(`變更成功`);
     },
   },
   created() {},
-  mounted() {},
-  computed: {},
+  mounted() {
+    this.account = this.mixinGetCookie('UserID');
+  },
+  computed: {
+    changeBtnEnable() {
+      return (
+        this.isValidOrigialPwd &&
+        this.isValidNewPwd &&
+        this.newPwd === this.newPwd2
+      );
+    },
+  },
   watch: {},
   /* eslint-disable no-undef, no-param-reassign */
 };
