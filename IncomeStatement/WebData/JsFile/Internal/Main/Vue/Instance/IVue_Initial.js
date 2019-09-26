@@ -116,7 +116,7 @@ function IVueInitialCreator() {
             },
           ],
         },
-        currentPageKey: `CheckInManagement`,
+        currentPageKey: ``,
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),
