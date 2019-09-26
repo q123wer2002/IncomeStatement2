@@ -17,3 +17,8 @@ export const accountRole = {
   C: `審核人員`,
   D: `資料使用者`,
 };
+
+export const portState = {
+  1: `正常`,
+  2: `換戶`,
+};

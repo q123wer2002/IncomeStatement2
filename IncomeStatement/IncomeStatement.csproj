@@ -126,6 +126,7 @@
     <Content Include="WebData\Server_Code\S_DataChecker.aspx" />
     <Content Include="WebData\Server_Code\S_DetailedIncomeData.aspx" />
     <Content Include="WebData\Server_Code\S_FamilyData.aspx" />
+    <Content Include="WebData\Server_Code\S_FamInfo.aspx" />
     <Content Include="WebData\Server_Code\S_IncomeStateData.aspx" />
     <Content Include="WebData\Server_Code\S_InitialTable.aspx" />
     <Content Include="WebData\Server_Code\S_LoginChecker.aspx" />
@@ -196,6 +197,13 @@
     </Compile>
     <Compile Include="WebData\Server_Code\S_FamilyData.aspx.designer.cs">
       <DependentUpon>S_FamilyData.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_FamInfo.aspx.cs">
+      <DependentUpon>S_FamInfo.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_FamInfo.aspx.designer.cs">
+      <DependentUpon>S_FamInfo.aspx</DependentUpon>
     </Compile>
     <Compile Include="WebData\Server_Code\S_IncomeStateData.aspx.cs">
       <DependentUpon>S_IncomeStateData.aspx</DependentUpon>

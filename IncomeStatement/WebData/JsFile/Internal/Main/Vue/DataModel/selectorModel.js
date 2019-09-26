@@ -642,3 +642,66 @@ export const accountModel = [
     },
   },
 ];
+
+export const checkinPortModel = [
+  {
+    key: `loginman`,
+    text: `登錄人員編號`,
+    type: {
+      id: `text`,
+    },
+    value: {
+      id: ``,
+    },
+    source: {
+      id: null,
+    },
+    valid: {
+      id: () => {
+        return true;
+      },
+    },
+  },
+  {
+    key: `reviewman`,
+    text: `審核人員編號`,
+    type: {
+      id: `text`,
+    },
+    value: {
+      id: ``,
+    },
+    source: {
+      id: null,
+    },
+    valid: {
+      id: () => {
+        return true;
+      },
+    },
+  },
+  {
+    key: `port`,
+    text: `戶號`,
+    type: {
+      start: `number`,
+      end: `number`,
+    },
+    value: {
+      start: ``,
+      end: ``,
+    },
+    source: {
+      start: null,
+      end: null,
+    },
+    valid: {
+      start: () => {
+        return true;
+      },
+      end: () => {
+        return true;
+      },
+    },
+  },
+];

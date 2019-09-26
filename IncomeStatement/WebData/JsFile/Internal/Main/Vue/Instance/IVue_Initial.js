@@ -13,6 +13,7 @@ import DataChecker from '../Components/CVue_DataChecker.vue';
 import PortCardMaintain from '../Components/CVue_PortCardMaintain.vue';
 import ChangePassword from '../Components/CVue_ChangePassword.vue';
 import AccountManagement from '../Components/CVue_AccountManagement.vue';
+import CheckInManagement from '../Components/CVue_CheckInPortManagement.vue';
 
 Vue.use(BootstrapVue);
 function IVueInitialCreator() {
@@ -36,6 +37,7 @@ function IVueInitialCreator() {
         PortCardMaintain,
         ChangePassword,
         AccountManagement,
+        CheckInManagement,
       },
       data: {
         // ui
@@ -108,13 +110,13 @@ function IVueInitialCreator() {
               isSupport: true,
             },
             {
-              key: `incomePortManagement`,
+              key: `CheckInManagement`,
               text: `登錄戶號管理`,
-              isSupport: false,
+              isSupport: true,
             },
           ],
         },
-        currentPageKey: `AccountManagement`,
+        currentPageKey: `CheckInManagement`,
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),

@@ -20,6 +20,7 @@ const CommonDataModel = {
     familyData: `S_FamilyData.aspx`,
     changePwd: `S_ChangePassword.aspx`,
     accountMgr: `S_AccountManagement.aspx`,
+    famInfo: `S_FamInfo.aspx`,
   },
 };
 
