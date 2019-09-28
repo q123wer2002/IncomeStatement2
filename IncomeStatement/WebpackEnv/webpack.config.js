@@ -3,7 +3,7 @@ const webpack = require('webpack');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserPlugin = require('terser-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
-const isProductionMode = false;
+const isProductionMode = true;
 const webpackDev = {
 	host : "localhost",
 	port : 8080
@@ -15,8 +15,8 @@ let connectionSetting = {
 let webpackSetting = {
 	mode: 'development',
 	entry: {
-		"Main/IS_20190927_min_v1": "../WebData/JsFile/Internal/Main/SystemInitial.js",
-		"Login/IS_20190927_min_v1": "../WebData/JsFile/Internal/Login/Login_SystemInitial.js",
+		"Main/IS_20190929_min_v1": "../WebData/JsFile/Internal/Main/SystemInitial.js",
+		"Login/IS_20190929_min_v1": "../WebData/JsFile/Internal/Login/Login_SystemInitial.js",
 	},
 	devtool: 'cheap-source-map',//dev used
 	devServer: {

@@ -11,11 +11,11 @@
 
         <!--import JS and CSS file -->
 
-        <script  type="text/javascript" src="/IncomeStatement/WebData/BundleResult/Main/IS_20190927_min_v1.js"></script>
-        <link rel="stylesheet" href="/IncomeStatement/WebData/BundleResult/Main/IS_20190927_min_v1_CSS.css" />
+        <script  type="text/javascript" src="/IncomeStatement/WebData/BundleResult/Main/IS_20190929_min_v1.js"></script>
+        <link rel="stylesheet" href="/IncomeStatement/WebData/BundleResult/Main/IS_20190929_min_v1_CSS.css" />
 <!--
-        <script  type="text/javascript" src="http://localhost:8080/JsFile/Internal/Main/IS_20190927_min_v1.js"></script>
-        <link rel="stylesheet" href="http://localhost:8080/JsFile/Internal/Main/IS_20190927_min_v1_CSS.css" />
+        <script  type="text/javascript" src="http://localhost:8080/JsFile/Internal/Main/IS_20190929_min_v1.js"></script>
+        <link rel="stylesheet" href="http://localhost:8080/JsFile/Internal/Main/IS_20190929_min_v1_CSS.css" />
 -->
     </head>
     <body>
@@ -32,7 +32,7 @@
                     <b-collapse v-model="item.isShowChild" :id="`collaspe_${item.key}`">
                         <ul class="submenuUL">
                             <li
-                                v-for="submenu in subMenu[item.key]"
+                                v-for="submenu in supportSubMenu(item.key)"
                                 class="button"
                                 @click="currentPageKey = submenu.key"
                             >{{submenu.text}}</li>

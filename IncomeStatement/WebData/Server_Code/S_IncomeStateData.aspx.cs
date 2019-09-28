@@ -187,6 +187,12 @@ namespace IncomeStatement.WebData.Server_Code
 				szSQL += $" {m_paramExpDList[ i ]}";
 				szSQL += i == m_paramExpDList.Count - 1 ? " " : " AND";
 			}
+
+			// set auth
+			if( Request.Cookies[ CookieKey.UserRole ].Value == "B" ) {
+				szSQL += $" AND {TableName.CoFam}.fam_no IN (SELECT fam_no FROM co_rec_fam WHERE rec_user='{szUserCode}')";
+			}
+
 			JArray result;
 			bool isSuccess = m_mssql.TryQuery(szSQL, out result);
 			return result;

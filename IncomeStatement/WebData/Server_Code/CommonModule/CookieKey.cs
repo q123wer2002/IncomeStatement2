@@ -16,6 +16,13 @@
 				return "UserID";
 			}
 		}
+		public static string UserRole
+		{
+			get
+			{
+				return "UserRole";
+			}
+		}
 		public static string JWTName
 		{
 			get

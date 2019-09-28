@@ -134,7 +134,9 @@ export default {
           );
 
           if (resObject.status === this.mixinBackendErrorCode.success) {
-            obj.source[tempObj] = resObject.data.map(apiObj => apiObj[key]);
+            obj.source[tempObj] = resObject.data
+              ? resObject.data.map(apiObj => apiObj[key])
+              : [];
           }
         });
       });

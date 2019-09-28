@@ -65,6 +65,8 @@ namespace IncomeStatement.WebData.Server_Code
 			Response.Cookies[ CookieKey.UserID ].Expires = ExpireTime;
 			Response.Cookies[ CookieKey.Username ].Value = szUserName;
 			Response.Cookies[ CookieKey.Username ].Expires = ExpireTime;
+			Response.Cookies[ CookieKey.UserRole ].Value = szRole;
+			Response.Cookies[ CookieKey.UserRole ].Expires = ExpireTime;
 
 			//success
 			m_requestHandler.StatusCode = (int)ErrorCode.Success;

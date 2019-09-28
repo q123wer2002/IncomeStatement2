@@ -41,10 +41,15 @@ namespace IncomeStatement.WebData.Server_Code
 
 		dynamic GetMyFamInfo( string szMyRecNo = null )
 		{
-			string szSQL = $"SELECT * FROM {TableName.CoRecFam}";
-			if( szMyRecNo != null ) {
-				szSQL += $"WHERE rec_user='{szMyRecNo}'";
+			if( Request.Cookies[ CookieKey.UserRole ].Value != "B" ) {
+				return null;
 			}
+
+			string szSQL = $"SELECT * FROM {TableName.CoRecFam} WHERE {TableName.CoRecFam}.fam_no IN (SELECT fam_no FROM co_rec_fam WHERE rec_user='{Request.Cookies[ CookieKey.UserID ].Value}') ";
+			if( szMyRecNo != null ) {
+				szSQL += $"AND rec_user='{szMyRecNo}'";
+			}
+
 			JArray result;
 			m_mssql.TryQuery(szSQL, out result);
 			return result;

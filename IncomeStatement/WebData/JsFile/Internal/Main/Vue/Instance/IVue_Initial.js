@@ -64,26 +64,31 @@ function IVueInitialCreator() {
               key: `IncomeDataMaintain`,
               text: `收支資料維護`,
               isSupport: true,
+              supportRole: [`A`, `B`, `C`],
             },
             {
               key: `DetailedMaintain`,
               text: `收支明細維護`,
               isSupport: true,
+              supportRole: [`A`, `B`, `C`],
             },
             {
               key: `SubjectMaintain`,
               text: `收支科目維護`,
               isSupport: true,
+              supportRole: [`A`, `C`],
             },
             {
               key: `PortCardMaintain`,
               text: `戶口組成資料`,
               isSupport: true,
+              supportRole: [`A`, `B`, `C`],
             },
             {
               key: `DataChecker`,
               text: `收支資料檢誤`,
               isSupport: true,
+              supportRole: [`A`, `B`, `C`],
             },
           ],
           reportPage: [
@@ -91,11 +96,13 @@ function IVueInitialCreator() {
               key: `familyIncomeResult`,
               text: `家庭收支記帳調查結果`,
               isSupport: false,
+              supportRole: [`A`, `B`, `C`, `D`],
             },
             {
               key: `familyIncomeReport`,
               text: `家庭收支記帳調查統計月報`,
               isSupport: false,
+              supportRole: [`A`, `B`, `C`, `D`],
             },
           ],
           systemPage: [
@@ -103,20 +110,23 @@ function IVueInitialCreator() {
               key: `AccountManagement`,
               text: `帳號管理`,
               isSupport: true,
+              supportRole: [`A`],
             },
             {
               key: `ChangePassword`,
               text: `密碼變更`,
               isSupport: true,
+              supportRole: [`A`, `B`, `C`, `D`],
             },
             {
               key: `CheckInManagement`,
               text: `登錄戶號管理`,
               isSupport: true,
+              supportRole: [`A`],
             },
           ],
         },
-        currentPageKey: `DataChecker`,
+        currentPageKey: ``,
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),
@@ -134,11 +144,20 @@ function IVueInitialCreator() {
       },
       updated() {},
       computed: {
+        supportSubMenu() {
+          return pageKey => {
+            const userRole = this.mixinGetCookie(`UserRole`);
+            return this.subMenu[pageKey].filter(obj =>
+              obj.supportRole.includes(userRole)
+            );
+          };
+        },
         supportedComponent() {
+          const userRole = this.mixinGetCookie(`UserRole`);
           const supportedPages = Object.keys(this.subMenu).reduce(
             (tempAry, key) => {
               this.subMenu[key].forEach(obj => {
-                if (obj.isSupport) {
+                if (obj.isSupport && obj.supportRole.includes(userRole)) {
                   tempAry.push(obj.key);
                 }
               });

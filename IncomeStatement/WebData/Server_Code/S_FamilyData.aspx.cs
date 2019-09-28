@@ -210,6 +210,12 @@ namespace IncomeStatement.WebData.Server_Code
 				szSQL += $" {m_paramList[ i ]}";
 				szSQL += i == m_paramList.Count - 1 ? " " : " AND";
 			}
+
+			// set auth
+			if( Request.Cookies[ CookieKey.UserRole ].Value == "B" ) {
+				szSQL += $" AND {TableName.CoFam}.fam_no IN (SELECT fam_no FROM co_rec_fam WHERE rec_user='{Request.Cookies[ CookieKey.UserID ].Value}')";
+			}
+
 			JArray result;
 			bool isSuccess = m_mssql.TryQuery(szSQL, out result);
 			jResult[ "co_fam" ] = result;
@@ -217,6 +223,7 @@ namespace IncomeStatement.WebData.Server_Code
 			// get co_fam_mem
 			szSQL = $"SELECT * FROM {TableName.CoFamMem} " +
 				$"WHERE fam_no IN ({string.Join(", ", result.Select(obj => $"'{obj[ "fam_no" ].ToString()}'"))})";
+
 			isSuccess = m_mssql.TryQuery(szSQL, out result);
 			jResult[ "co_fam_mem" ] = result;
 
