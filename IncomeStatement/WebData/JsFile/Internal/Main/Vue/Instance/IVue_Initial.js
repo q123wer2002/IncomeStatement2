@@ -116,7 +116,7 @@ function IVueInitialCreator() {
             },
           ],
         },
-        currentPageKey: ``,
+        currentPageKey: `DataChecker`,
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),

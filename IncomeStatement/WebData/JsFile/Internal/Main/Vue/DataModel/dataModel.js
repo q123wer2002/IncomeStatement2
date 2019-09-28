@@ -22,3 +22,9 @@ export const portState = {
   1: `正常`,
   2: `換戶`,
 };
+
+export const checkNo = {
+  1: `無支出日`,
+  2: `支出週期`,
+  3: `極端值`,
+};

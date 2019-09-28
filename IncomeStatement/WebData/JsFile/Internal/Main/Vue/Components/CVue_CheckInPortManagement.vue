@@ -1,6 +1,6 @@
 <template>
   <div id="mainPage">
-    <h5>帳號維護</h5>
+    <h5>登錄戶號管理</h5>
     <selector
       :filterModel="selectorModel"
       :isDetailed="true"
@@ -30,8 +30,12 @@
         class="my-2"
       >
         <template slot="[action]" slot-scope="data">
-          <a href="javascript:;">刪除</a>
-          <a href="javascript:;">編輯</a>
+          <a href="javascript:;" @click="openDeleteDialog(data.item)">
+            <img width="24px" :src="$options.imgSrc.trash" />
+          </a>
+          <a href="javascript:;" @click="editItem(data.item)">
+            <img width="24px" :src="$options.imgSrc.edit" />
+          </a>
         </template>
         <span slot="[state]" slot-scope="data">
           {{ stateToString(data.item.state) }}
@@ -46,7 +50,12 @@
       ></b-pagination>
     </div>
 
-    <b-modal ref="domModal" size="xl" hide-footer></b-modal>
+    <b-modal ref="domModal" size="xl" hide-footer>
+      <CheckInMaintain
+        :famObj="selectedFamObj"
+        @save-fam="onSaveFam"
+      ></CheckInMaintain>
+    </b-modal>
   </div>
 </template>
 
@@ -54,12 +63,19 @@
 import { portState } from '../DataModel/dataModel.js';
 import { checkinPortModel } from '../DataModel/selectorModel.js';
 import Selector from './CVue_Selector.vue';
+import CheckInMaintain from './CVue_CheckInPortMaintain.vue';
 
 export default {
   /* eslint-disable no-undef, no-param-reassign, camelcase */
+  imgSrc: {
+    trash: `/${webpackDashboardName}/WebData/Picture/icon/material-io/baseline_delete_forever_black_48dp.png`,
+    edit: `/${webpackDashboardName}/WebData/Picture/icon/material-io/baseline_edit_black_48dp.png`,
+  },
+
   name: 'CheckInManagement',
   components: {
     Selector,
+    CheckInMaintain,
   },
   props: {},
   data() {
@@ -67,6 +83,7 @@ export default {
       // for selector
       selectorModel: checkinPortModel,
       queryObject: {},
+      selectedFamObj: {},
 
       // for table
       items: [],
@@ -78,7 +95,6 @@ export default {
     // filter
     async searchEvent(filterObject) {
       this.queryObject = {};
-      console.log(filterObject);
       const { loginman, port, reviewman } = filterObject;
 
       if (loginman.id.length > 0) {
@@ -100,11 +116,66 @@ export default {
 
       await this.queryAccount(this.queryObject);
     },
-    addItem() {},
+    addItem() {
+      this.selectedFamObj = {};
+      this.$refs.domModal.show();
+    },
+    editItem(item) {
+      this.selectedFamObj = item;
+      this.$refs.domModal.show();
+    },
+    async onSaveFam(famList) {
+      const originalFamNos = this.items.map(obj => obj.fam_no);
+      const updateItems = famList.filter(obj =>
+        originalFamNos.includes(obj.fam_no)
+      );
+      const insertItems = famList.filter(
+        obj => originalFamNos.includes(obj.fam_no) === false
+      );
+      console.log(updateItems);
+      if (updateItems && updateItems.length > 0) {
+        await this.updateFamObj(updateItems);
+      }
+
+      if (insertItems && insertItems.length > 0) {
+        await this.insertFamObj(insertItems);
+      }
+
+      this.$refs.domModal.hide();
+    },
 
     // ui show
     stateToString(state) {
       return portState[state];
+    },
+    updateFam() {
+      this.$refs.domModal.hide();
+    },
+    insertFam() {
+      this.$refs.domModal.hide();
+    },
+    openDeleteDialog(item) {
+      this.$bvModal
+        .msgBoxConfirm(`是否要刪除 ${item.fam_no}`, {
+          title: '請確認',
+          size: 'sm',
+          buttonSize: 'sm',
+          okVariant: 'danger',
+          okTitle: '是',
+          cancelTitle: '否',
+          footerClass: 'p-2',
+          hideHeaderClose: false,
+          centered: true,
+        })
+        .then(async value => {
+          if (value) {
+            await this.deleteFamObj(item);
+          }
+        })
+        .catch(err => {
+          // An error occurred
+          console.error(err);
+        });
     },
 
     // backend api
@@ -124,6 +195,64 @@ export default {
       }
 
       this.items = resObject.data;
+    },
+    async deleteFamObj(item) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.famInfo,
+        {
+          Action: `DELETE`,
+          FamObject: JSON.stringify(item),
+        }
+      );
+
+      if (resObject.status !== this.mixinBackendErrorCode.success) {
+        // do nothing
+        return;
+      }
+
+      const { fam_no, rec_user } = item;
+      const famIdx = this.items.findIndex(
+        obj => obj.fam_no === fam_no && obj.rec_user === rec_user
+      );
+      this.$delete(this.items, famIdx);
+    },
+    async updateFamObj(updateItems) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.famInfo,
+        {
+          Action: `UPDATE`,
+          FamArray: JSON.stringify(updateItems),
+        }
+      );
+
+      if (resObject.status !== this.mixinBackendErrorCode.success) {
+        // do nothing
+        return;
+      }
+
+      for (let i = 0; i < updateItems.length; i++) {
+        const itemObj = updateItems[i];
+        const itemIdx = this.items.findIndex(
+          obj => obj.fam_no === itemObj.fam_no
+        );
+        this.$set(this.items, itemIdx, itemObj);
+      }
+    },
+    async insertFamObj(insertItems) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.famInfo,
+        {
+          Action: `INSERT`,
+          FamArray: JSON.stringify(insertItems),
+        }
+      );
+
+      if (resObject.status !== this.mixinBackendErrorCode.success) {
+        // do nothing
+        return;
+      }
+
+      this.items = [...this.items, ...insertItems];
     },
   },
   created() {},

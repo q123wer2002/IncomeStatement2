@@ -13,6 +13,7 @@ namespace IncomeStatement.WebData.Server_Code
 	public partial class S_DataChecker : System.Web.UI.Page
 	{
 		RequestHandler m_requestHandler;
+		string m_szUserCode;
 		protected void Page_Load( object sender, EventArgs e )
 		{
 			// check status, set default
@@ -27,6 +28,8 @@ namespace IncomeStatement.WebData.Server_Code
 				Response.Write(m_requestHandler.GetReturnResult());
 				return;
 			}
+
+			m_szUserCode = Request.Cookies[ CookieKey.UserID ].Value;
 
 			// check action
 			ApiAction action = GetAction();
@@ -79,11 +82,107 @@ namespace IncomeStatement.WebData.Server_Code
 		}
 		bool isParamValid( ApiAction action )
 		{
+			int nTempValue;
+			switch( action ) {
+				case ApiAction.READ: {
+					// check data
+					if( Request.Form[ Param.Year ] != null && Request.Form[ Param.Month ] != null ) {
+						string szYear = Request.Form[ Param.Year ].ToString();
+						string szMonth = Request.Form[ Param.Month ].ToString();
+
+						if(
+							int.TryParse(szYear, out nTempValue) == false ||
+							int.TryParse(szMonth, out nTempValue) == false
+						) {
+							return false;
+						}
+
+						m_param.Add($"{TableName.CoExpAudit}.ie_year={szYear} AND {TableName.CoExpAudit}.ie_mon={ParseTwoDigital(szMonth)}");
+					}
+
+					// check family no
+					if( Request.Form[ Param.FamNoStart ] != null && Request.Form[ Param.FamNoEnd ] != null ) {
+						string szFamNoStart = Request.Form[ Param.FamNoStart ].ToString();
+						string szFamNoEnd = Request.Form[ Param.FamNoEnd ].ToString();
+
+						if(
+							int.TryParse(szFamNoStart, out nTempValue) == false ||
+							int.TryParse(szFamNoEnd, out nTempValue) == false
+						) {
+							return false;
+						}
+
+						m_param.Add($"{TableName.CoExpAudit}.fam_no BETWEEN {szFamNoStart} AND {szFamNoEnd}");
+					}
+
+					if( Request.Form[ Param.CheckNo ] != null ) {
+						string szCheckNo = Request.Form[ Param.CheckNo ].ToString();
+						m_param.Add($"{TableName.CoExpAudit}.chk_user LIKE '%{szCheckNo}%'");
+					}
+
+					if( Request.Form[ Param.CheckType ] != null ) {
+						string szCheckType = Request.Form[ Param.CheckType ].ToString();
+						if( szCheckType != "0" ) {
+							m_param.Add($"{TableName.CoExpAudit}.chk_no='{szCheckType}'");
+						}
+					}
+
+					return true;
+				}
+				case ApiAction.CHECK: {
+					if(Request.Form[ Param.Year ] == null ||Request.Form[ Param.Month ] == null) {
+						return false;
+					}
+
+					return true;
+				}
+			}
 			return true;
 		}
 		dynamic DoAction( ApiAction action )
 		{
+			switch( action ) {
+				case ApiAction.READ:
+					return ReadData();
+				case ApiAction.CHECK:
+					return DoChecker();
+				default:
+					return null;
+			}
+		}
+		dynamic DoChecker()
+		{
+			string szYear = Request.Form[ Param.Year ].ToString();
+			string szMonth = ParseTwoDigital(Request.Form[ Param.Month ].ToString());
+
+			string szErrorCode;
+			return m_mssql.TryQuery($"{PRODUCENAME} '{szYear}', '{szMonth}', '{m_szUserCode}'", out szErrorCode);
+		}
+		dynamic ReadData()
+		{
+			string szSelectSQL = $"SELECT * FROM {TableName.CoExpAudit} ";
+			if( m_param.Count > 0 ) {
+				szSelectSQL += "WHERE ";
+				for( int i = 0; i < m_param.Count; i++ ) {
+					szSelectSQL += m_param[ i ];
+					szSelectSQL += i == m_param.Count - 1 ? " " : "AND ";
+				}
+			}
+
+			JArray jResult;
+			if( m_mssql.TryQuery(szSelectSQL, out jResult) ) {
+				return jResult;
+			}
+
 			return null;
+		}
+		string ParseTwoDigital(string szTempString )
+		{
+			if( szTempString.Length >= 2 ) {
+				return szTempString;
+			}
+
+			return $"0{szTempString}";
 		}
 
 		enum ApiAction
@@ -117,89 +216,38 @@ namespace IncomeStatement.WebData.Server_Code
 					return "Month";
 				}
 			}
-			public static string FamNo
+			public static string FamNoStart
 			{
 				get
 				{
-					return "FamNo";
+					return "FamNoStart";
 				}
 			}
-			public static string DurationStart
+			public static string FamNoEnd
 			{
 				get
 				{
-					return "DurationStart";
+					return "FamNoEnd";
 				}
 			}
-			public static string DurationEnd
+			public static string CheckNo
 			{
 				get
 				{
-					return "DurationEnd";
+					return "CheckNo";
 				}
 			}
-			public static string CodeNo
+			public static string CheckType
 			{
 				get
 				{
-					return "CodeNo";
-				}
-			}
-			public static string CodeName
-			{
-				get
-				{
-					return "CodeName";
-				}
-			}
-
-			// for write
-			public static string Day
-			{
-				get
-				{
-					return "Day";
-				}
-			}
-			public static string UpdateItems
-			{
-				get
-				{
-					return "UpdateItems";
-				}
-			}
-			public static string InsertItems
-			{
-				get
-				{
-					return "InsertItems";
-				}
-			}
-			public static string TotalCost
-			{
-				get
-				{
-					return "TotalCost";
-				}
-			}
-			public static string DayRemark
-			{
-				get
-				{
-					return "Remark";
-				}
-			}
-
-			// for delete
-			public static string ItemArray
-			{
-				get
-				{
-					return "ItemArray";
+					return "CheckType";
 				}
 			}
 		}
+
+		const string PRODUCENAME= "p_co_audit";
 		MSSQL m_mssql = new MSSQL();
-		List<string> m_paramList = new List<string>();
+		List<string> m_param = new List<string>();
 	}
 }

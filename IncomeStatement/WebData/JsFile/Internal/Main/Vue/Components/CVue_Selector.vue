@@ -55,6 +55,14 @@
         <b-button
           variant="info"
           size="sm"
+          v-if="isDataCheckBtn"
+          @click="onCheckData"
+        >
+          資料檢誤
+        </b-button>
+        <b-button
+          variant="info"
+          size="sm"
           @click="search"
           :disabled="!isBtnSearchDisabled"
         >
@@ -81,6 +89,11 @@ export default {
       default: false,
     },
     isDetailed: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    isDataCheckBtn: {
       type: Boolean,
       required: false,
       default: false,
@@ -138,6 +151,10 @@ export default {
     addDetails() {
       this.search();
       this.$emit(`additem`);
+    },
+    onCheckData() {
+      this.search();
+      this.$emit(`checkData`);
     },
   },
   created() {},

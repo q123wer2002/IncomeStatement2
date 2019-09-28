@@ -121,5 +121,12 @@
 				return "co_sys_log";
 			}
 		}
+		public static string CoExpAudit
+		{
+			get
+			{
+				return "co_exp_audit";
+			}
+		}
 	}
 }

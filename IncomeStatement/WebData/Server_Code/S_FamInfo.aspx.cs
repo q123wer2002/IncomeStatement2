@@ -1,5 +1,6 @@
 ﻿using IncomeStatement.WebData.Server_Code.CommonModule;
 using IncomeStatement.WebData.Server_Code.CommonModule.mssql;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -68,8 +69,12 @@ namespace IncomeStatement.WebData.Server_Code
 					return ApiAction.READ;
 				}
 
-				if( szAction.ToUpper() == "WRITE" ) {
-					return ApiAction.WRITE;
+				if( szAction.ToUpper() == "UPDATE" ) {
+					return ApiAction.UPDATE;
+				}
+
+				if( szAction.ToUpper() == "INSERT" ) {
+					return ApiAction.INSERT;
 				}
 
 				if( szAction.ToUpper() == "DELETE" ) {
@@ -87,7 +92,7 @@ namespace IncomeStatement.WebData.Server_Code
 			try {
 				int nTempValue;
 				switch( action ) {
-					case ApiAction.READ:
+					case ApiAction.READ: {
 						if( Request.Form[ Param.FamNoStart ] != null && Request.Form[ Param.FamNoEnd ] != null ) {
 							string szFamNoStart = Request.Form[ Param.FamNoStart ].ToString();
 							string szFamNoEnd = Request.Form[ Param.FamNoEnd ].ToString();
@@ -103,18 +108,23 @@ namespace IncomeStatement.WebData.Server_Code
 						}
 
 						if( Request.Form[ Param.ChechInNo ] != null ) {
-							int nCheck = int.Parse(Request.Form[ Param.ChechInNo ].ToString());
-							m_param.Add($"{TableName.CoRecFam}.rec_user LIKE '%{nCheck}%'");
+							string szCheckNo = Request.Form[ Param.ChechInNo ].ToString();
+							m_param.Add($"{TableName.CoRecFam}.rec_user LIKE '%{szCheckNo}%'");
 						}
 
 						if( Request.Form[ Param.ReviewNo ] != null ) {
-							int nReviewNo = int.Parse(Request.Form[ Param.ReviewNo ].ToString());
-							m_param.Add($"{TableName.CoRecFam}.adi_user LIKE '%{nReviewNo}%'");
+							string szReviewNo = Request.Form[ Param.ReviewNo ].ToString();
+							m_param.Add($"{TableName.CoRecFam}.adi_user LIKE '%{szReviewNo}%'");
 						}
 
 						return true;
-					case ApiAction.WRITE:
+					}
 					case ApiAction.DELETE:
+						JObject jFamObj = JObject.Parse(Request.Form[ Param.FamObject ].ToString());
+						return true;
+					case ApiAction.UPDATE:
+					case ApiAction.INSERT:
+						JArray jFamArray = JArray.Parse(Request.Form[ Param.FamArray ].ToString());
 						return true;
 				}
 				return false;
@@ -128,10 +138,12 @@ namespace IncomeStatement.WebData.Server_Code
 			switch( action ) {
 				case ApiAction.READ:
 					return ReadData();
-				case ApiAction.WRITE:
-					return UpdateOrInsertUser();
+				case ApiAction.UPDATE:
+					return UpdateFam();
 				case ApiAction.DELETE:
-					return DeleteUser();
+					return DeleteFam();
+				case ApiAction.INSERT:
+					return InsertFam();
 				default:
 					return null;
 			}
@@ -150,83 +162,60 @@ namespace IncomeStatement.WebData.Server_Code
 				}
 			}
 
+			szSelectSQL += $"ORDER BY {TableName.CoRecFam}.fam_no";
+
 			JArray jResult;
 			m_mssql.TryQuery(szSelectSQL, out jResult);
 			return jResult;
 		}
-		dynamic UpdateOrInsertUser()
+		dynamic InsertFam()
 		{
-			JObject jUser = JObject.Parse(Request.Form[ Param.UserObject ].ToString());
-			string szEmail = jUser[ "email" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "email" ].ToString()}'";
-			string szTelNo = jUser[ "tel_no" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "email" ].ToString()}'";
-			string szTitle = jUser[ "title" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "email" ].ToString()}'";
-			string szDepName = jUser[ "dep_name" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "email" ].ToString()}'";
-			string szRemark = jUser[ "remark" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "email" ].ToString()}'";
-			DateTime dtStart = DateTime.Parse(jUser[ "start_date" ].ToString());
-			string szEndDate = jUser[ "end_date" ].ToString().Length == 0 ? dtStart.AddYears(2).ToString("yyyy-MM-dd") : jUser[ "end_date" ].ToString();
+			List<JObject> jFamList = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.FamArray ].ToString());
+			string szInsertSQL = $"INSERT INTO {TableName.CoRecFam} VALUES ";
+			for( int i = 0; i < jFamList.Count; i++ ) {
+				JObject jFamObj = jFamList[ i ];
+				string szRecUser = jFamObj[ "rec_user" ].ToString().Length == 0 ? "NULL" : $"'{jFamObj[ "rec_user" ].ToString()}'";
+				string szAdiUser = jFamObj[ "adi_user" ].ToString().Length == 0 ? "NULL" : $"'{jFamObj[ "adi_user" ].ToString()}'";
+				string szState = jFamObj[ "state" ].ToString().Length == 0 ? "'1'" : $"'{jFamObj[ "state" ].ToString()}'";
 
-			// select once
+				szInsertSQL += $"({szRecUser}, {szAdiUser}, '{jFamObj[ "fam_no" ].ToString()}', {szState}, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)";
+				szInsertSQL += i == jFamList.Count - 1 ? " " : ", ";
+			}
 			string szErrorMsg;
-			JArray jTempUser;
-			m_mssql.TryQuery($"SELECT * FROM {TableName.CoSysAuth} WHERE login_id='{jUser[ "login_id" ].ToString()}'", out jTempUser);
-			if( jTempUser.Count == 1 ) {
-				// means update
-				bool isSuccess;
-
-				// co_sys_auth
-				isSuccess = m_mssql.TryQuery($"UPDATE {TableName.CoSysAuth} " +
-					$"SET pwd='{jUser[ "pwd" ].ToString()}', " +
-					$"role='{jUser[ "role" ].ToString()}', " +
-					$"state='{jUser[ "state" ].ToString()}', " +
-					$"start_date='{jUser[ "start_date" ].ToString()}', " +
-					$"end_date='{szEndDate}', " +
-					$"upd_date=CURRENT_TIMESTAMP, " +
-					$"upd_user='{szUserCode}'" +
-					$"WHERE login_id='{jUser[ "login_id" ].ToString()}'", out szErrorMsg);
-				if( isSuccess == false ) {
-					return false;
-				}
-
-				// co_sys_user
-				return m_mssql.TryQuery($"UPDATE {TableName.CoSysUser} " +
-					$"SET user_name='{jUser[ "user_name" ].ToString()}', " +
-					$"email={szEmail}, " +
-					$"tel_no={szTelNo}, " +
-					$"title={szTitle}, " +
-					$"dep_name={szDepName}, " +
-					$"remark={szRemark}, " +
-					$"upd_date=CURRENT_TIMESTAMP, " +
-					$"upd_user='{szUserCode}'" +
-					$"WHERE user_id='{jUser[ "login_id" ].ToString()}'", out szErrorMsg);
-			}
-			else {
-				//means insert
-				// means update
-				bool isSuccess;
-
-				// co_sys_auth
-				isSuccess = m_mssql.TryQuery($"INSERT INTO {TableName.CoSysAuth} VALUES ('{jUser[ "login_id" ].ToString()}', '937e8d5fbb48bd4949536cd65b8d35c426b80d2f830c5c308e2cdec422ae2244', 0, '{jUser[ "role" ].ToString()}', '{jUser[ "login_id" ].ToString()}', '{jUser[ "state" ].ToString()}', '{jUser[ "start_date" ].ToString()}', '{szEndDate}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)", out szErrorMsg);
-				if( isSuccess == false ) {
-					return false;
-				}
-
-				// co_sys_user
-				return m_mssql.TryQuery($"INSERT INTO {TableName.CoSysUser} VALUES (" +
-					$"'{jUser[ "login_id" ].ToString()}', '{jUser[ "user_name" ].ToString()}', {szEmail}, {szTelNo}, {szTitle}, {szDepName}, {szRemark}, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)", out szErrorMsg);
-			}
+			return m_mssql.TryQuery(szInsertSQL, out szErrorMsg);
 		}
-		dynamic DeleteUser()
+		dynamic UpdateFam()
 		{
-			JObject jUser = JObject.Parse(Request.Form[ Param.UserObject ].ToString());
+			List<JObject> jFamList = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.FamArray ].ToString());
+			bool isSuccess = false;
+			for( int i = 0; i < jFamList.Count; i++ ) {
+				JObject jFam = jFamList[ i ];
+				string szRecUser = jFam[ "rec_user" ].ToString().Length == 0 ? "NULL" : $"'{jFam[ "rec_user" ].ToString()}'";
+				string szAdiUser = jFam[ "adi_user" ].ToString().Length == 0 ? "NULL" : $"'{jFam[ "adi_user" ].ToString()}'";
+				string szState = jFam[ "state" ].ToString().Length == 0 ? "'1'" : $"'{jFam[ "state" ].ToString()}'";
+				string szErrorMsg;
+				isSuccess = m_mssql.TryQuery($"UPDATE {TableName.CoRecFam} SET adi_user={szAdiUser}, state={szState}, rec_user={szRecUser}, upd_date=CURRENT_TIMESTAMP, upd_user='{szUserCode}' WHERE fam_no='{jFam[ "fam_no" ].ToString()}'", out szErrorMsg);
+
+				if( isSuccess == false ) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+		dynamic DeleteFam()
+		{
+			JObject jFamObject = JObject.Parse(Request.Form[ Param.FamObject ].ToString());
 			string szErrorMsg;
-			return m_mssql.TryQuery($"DELETE FROM {TableName.CoSysAuth} WHERE login_id='{jUser[ "login_id" ].ToString()}'", out szErrorMsg);
+			return m_mssql.TryQuery($"DELETE FROM {TableName.CoRecFam} WHERE rec_user='{jFamObject[ "rec_user" ].ToString()}' AND fam_no='{jFamObject[ "fam_no" ].ToString()}'", out szErrorMsg);
 		}
 
 		enum ApiAction
 		{
 			READ,
-			WRITE,
+			UPDATE,
 			DELETE,
+			INSERT,
 			UNKNOW
 		}
 		class Param
@@ -269,12 +258,21 @@ namespace IncomeStatement.WebData.Server_Code
 				}
 			}
 
-			// for insert
-			public static string UserObject
+			// for update, delete
+			public static string FamObject
 			{
 				get
 				{
-					return "UserObject";
+					return "FamObject";
+				}
+			}
+
+			//for insert
+			public static string FamArray
+			{
+				get
+				{
+					return "FamArray";
 				}
 			}
 		}

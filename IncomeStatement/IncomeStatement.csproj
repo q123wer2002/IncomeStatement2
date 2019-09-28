@@ -132,6 +132,7 @@
     <Content Include="WebData\Server_Code\S_LoginChecker.aspx" />
     <Content Include="WebData\Server_Code\S_Logout.aspx" />
     <Content Include="WebData\Server_Code\S_MyFamInfo.aspx" />
+    <Content Include="WebData\Server_Code\S_MySysUser.aspx" />
     <Content Include="WebData\Server_Code\S_ParamInfo.aspx" />
     <Content Include="WebData\Server_Code\S_SubjectData.aspx" />
   </ItemGroup>
@@ -239,6 +240,13 @@
     </Compile>
     <Compile Include="WebData\Server_Code\S_MyFamInfo.aspx.designer.cs">
       <DependentUpon>S_MyFamInfo.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_MySysUser.aspx.cs">
+      <DependentUpon>S_MySysUser.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_MySysUser.aspx.designer.cs">
+      <DependentUpon>S_MySysUser.aspx</DependentUpon>
     </Compile>
     <Compile Include="WebData\Server_Code\S_ParamInfo.aspx.cs">
       <DependentUpon>S_ParamInfo.aspx</DependentUpon>
