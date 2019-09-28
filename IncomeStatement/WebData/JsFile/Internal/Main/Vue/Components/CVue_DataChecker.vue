@@ -18,6 +18,15 @@
           class="d-inline-block"
         ></b-form-input>
       </div>
+      <b-button
+        variant="info"
+        @click="exportResult"
+        class="my-3 mx-1 float-sm-right"
+        :disabled="items.length === 0"
+        size="sm"
+      >
+        匯出
+      </b-button>
       <b-table
         ref="domDatatable"
         :items="items"
@@ -53,12 +62,11 @@
 </template>
 
 <script>
-import { checkNo } from '../DataModel/dataModel.js';
 import { dataCheckerModel } from '../DataModel/selectorModel.js';
 import Selector from './CVue_Selector.vue';
 
 export default {
-  /* eslint-disable no-undef, no-param-reassign */
+  /* eslint-disable no-undef, no-param-reassign, camelcase */
   name: 'DataChecker',
   components: {
     Selector,
@@ -77,7 +85,7 @@ export default {
   },
   methods: {
     async searchEvent(filterObject) {
-      const { checkType, checker, port, date } = filterObject;
+      const { checkType, checker, port, date, checktime } = filterObject;
       this.queryObject = {};
 
       // add date
@@ -102,6 +110,10 @@ export default {
 
       if (checkType.code > 0) {
         this.queryObject.CheckType = checkType.code;
+      }
+
+      if (checktime.num.length > 0) {
+        this.queryObject.ChechTime = checktime.num;
       }
 
       await this.queryCheckData(this.queryObject);
@@ -141,6 +153,67 @@ export default {
 
       alert(`資料檢誤成功`);
     },
+    exportResult() {
+      const checkeddData = this.items;
+
+      // create txt data
+      const csvData = [
+        [
+          `年`,
+          `月`,
+          `日`,
+          `戶號`,
+          `科目代碼`,
+          `科目名稱`,
+          `金額`,
+          `金額上限`,
+          `金額下限`,
+          `檢誤代碼`,
+          `說明`,
+        ],
+        ...checkeddData.map(obj => {
+          const {
+            ie_year,
+            ie_mon,
+            ie_day,
+            fam_no,
+            code_no,
+            code_name,
+            code_amt,
+            upp_lim,
+            low_lim,
+            chk_no,
+            chk_desc,
+          } = obj;
+          return [
+            ie_year,
+            ie_mon,
+            ie_day,
+            fam_no,
+            code_no,
+            code_name,
+            code_amt,
+            upp_lim,
+            low_lim,
+            chk_no,
+            chk_desc,
+          ];
+        }),
+      ];
+      const csvDataString = csvData.map(col => col.join(`,`)).join('\n');
+      const encodedUri = URL.createObjectURL(
+        new Blob([`\uFEFF${csvDataString}`], {
+          type: `text/csv;charset=utf-8;`,
+        })
+      );
+
+      // create link
+      const link = document.createElement(`a`);
+      link.setAttribute(`href`, encodedUri);
+      link.setAttribute(`download`, `data_ckeck_result.csv`);
+      document.body.appendChild(link);
+      link.click();
+    },
   },
   created() {},
   mounted() {},
@@ -162,7 +235,7 @@ export default {
     },
   },
   watch: {},
-  /* eslint-disable no-undef, no-param-reassign */
+  /* eslint-disable no-undef, no-param-reassign, camelcase */
 };
 </script>
 

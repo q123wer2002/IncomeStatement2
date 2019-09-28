@@ -74,6 +74,10 @@ namespace IncomeStatement.WebData.Server_Code
 					return ApiAction.CHECK;
 				}
 
+				if( szAction.ToUpper() == "GETCHECKTIME" ) {
+					return ApiAction.GetCheckTime;
+				}
+
 				return ApiAction.UNKNOW;
 			}
 			catch {
@@ -127,6 +131,11 @@ namespace IncomeStatement.WebData.Server_Code
 						}
 					}
 
+					if( Request.Form[ Param.CheckTime ] != null ) {
+						string szCheckTime = Request.Form[ Param.CheckTime ].ToString();
+						m_param.Add($"CAST({TableName.CoExpAudit}.chk_date AS smalldatetime)='{szCheckTime}'");
+					}
+
 					return true;
 				}
 				case ApiAction.CHECK: {
@@ -136,8 +145,11 @@ namespace IncomeStatement.WebData.Server_Code
 
 					return true;
 				}
+				case ApiAction.GetCheckTime:
+					return true;
+				default:
+					return false;
 			}
-			return true;
 		}
 		dynamic DoAction( ApiAction action )
 		{
@@ -146,6 +158,8 @@ namespace IncomeStatement.WebData.Server_Code
 					return ReadData();
 				case ApiAction.CHECK:
 					return DoChecker();
+				case ApiAction.GetCheckTime:
+					return GetCheckTime();
 				default:
 					return null;
 			}
@@ -176,6 +190,12 @@ namespace IncomeStatement.WebData.Server_Code
 
 			return null;
 		}
+		dynamic GetCheckTime()
+		{
+			JArray jResult;
+			m_mssql.TryQuery($"SELECT DISTINCT chk_date FROM {TableName.CoExpAudit}", out jResult);
+			return jResult;
+		}
 		string ParseTwoDigital(string szTempString )
 		{
 			if( szTempString.Length >= 2 ) {
@@ -187,6 +207,7 @@ namespace IncomeStatement.WebData.Server_Code
 
 		enum ApiAction
 		{
+			GetCheckTime,
 			READ,
 			CHECK,
 			UNKNOW,
@@ -242,6 +263,13 @@ namespace IncomeStatement.WebData.Server_Code
 				get
 				{
 					return "CheckType";
+				}
+			}
+			public static string CheckTime
+			{
+				get
+				{
+					return "ChechTime";
 				}
 			}
 		}

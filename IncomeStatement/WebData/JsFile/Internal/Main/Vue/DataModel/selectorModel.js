@@ -219,6 +219,7 @@ export const detailedModel = [
       num: {
         type: `dynamic`,
         api: `myFamNo`,
+        key: `fam_no`,
       },
     },
     valid: {
@@ -420,7 +421,7 @@ export const dataCheckerModel = [
     key: `checker`,
     text: `檢誤人員`,
     type: {
-      id: `number`,
+      id: `text`,
     },
     value: {
       id: ``,
@@ -433,6 +434,32 @@ export const dataCheckerModel = [
         return true;
       },
     },
+  },
+  {
+    key: `checktime`,
+    text: `檢誤時間`,
+    type: {
+      num: `select`,
+    },
+    value: {
+      num: ``,
+    },
+    source: {
+      num: {
+        type: `dynamic`,
+        api: `dataChecker`,
+        payload: {
+          Action: `GETCHECKTIME`,
+        },
+        key: `chk_date`,
+      },
+    },
+    valid: {
+      num: value => {
+        return value > 0 || value.length > 0;
+      },
+    },
+    required: false,
   },
   {
     key: `checkType`,

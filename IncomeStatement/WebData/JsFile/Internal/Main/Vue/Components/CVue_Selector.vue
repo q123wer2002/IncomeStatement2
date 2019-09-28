@@ -125,12 +125,16 @@ export default {
           ) {
             return;
           }
+
+          // dynamic
+          const { api, payload, key } = obj.source[tempObj];
           const resObject = await this.mixinCallBackService(
-            this.mixinBackendService[obj.source[tempObj].api]
+            this.mixinBackendService[api],
+            payload
           );
 
           if (resObject.status === this.mixinBackendErrorCode.success) {
-            obj.source[tempObj] = resObject.data.map(apiObj => apiObj.fam_no);
+            obj.source[tempObj] = resObject.data.map(apiObj => apiObj[key]);
           }
         });
       });
