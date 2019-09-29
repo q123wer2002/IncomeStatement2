@@ -19,11 +19,7 @@
         ></b-form-input>
       </div>
       <b-button-group class="my-3 float-sm-right" size="sm">
-        <b-button
-          variant="info"
-          :disabled="!enabledReview"
-          @click="openUploader"
-        >
+        <b-button variant="info" @click="openUploader">
           資料匯入
         </b-button>
         <b-button
@@ -139,7 +135,7 @@ import StaticPayment from './PortPackage/StaticPayment.vue';
 import FamilyMember from './PortPackage/FamilyMember.vue';
 
 export default {
-  /* eslint-disable no-undef, no-param-reassign, camelcase */
+  /* eslint-disable no-undef, no-param-reassign, camelcase, no-restricted-globals */
   name: 'PortCardMaintain',
   components: {
     Selector,
@@ -229,13 +225,210 @@ export default {
       const inputFiles = event.target;
 
       const reader = new FileReader();
-      reader.onload = () => {};
+      reader.onload = async () => {
+        const fileTxt = reader.result;
+        if (fileTxt.length === 0) {
+          alert(`選取的檔案沒有資料`);
+          return;
+        }
+
+        const dataArray = fileTxt
+          .split(`\n`)
+          .slice(1)
+          .map(dataString => {
+            const dataSubData = dataString.split(`,`);
+            const tempArray = [];
+            let startIdx = 0;
+            let tempData = ``;
+            let isMerge = false;
+            while (startIdx !== dataSubData.length) {
+              if (
+                dataSubData[startIdx].indexOf(`"`) !== -1 &&
+                isMerge === false
+              ) {
+                isMerge = true;
+                tempData += dataSubData[startIdx].substring(
+                  dataSubData[startIdx].length,
+                  1
+                );
+              } else if (
+                dataSubData[startIdx].indexOf(`"`) !== -1 &&
+                isMerge === true
+              ) {
+                tempData += `,${dataSubData[startIdx].substring(
+                  0,
+                  dataSubData[startIdx].length - 1
+                )}`;
+                tempArray.push(tempData);
+
+                tempData = ``;
+                isMerge = false;
+              } else if (isMerge) {
+                tempData += `,${dataSubData[startIdx]}`;
+              } else {
+                tempArray.push(dataSubData[startIdx]);
+              }
+
+              startIdx += 1;
+            }
+
+            if (tempArray.length !== 126) {
+              return {};
+            }
+
+            return {
+              fam: {
+                ie_year: tempArray[0],
+                ie_mon: tempArray[1],
+                fam_no: `${tempArray[3]}${tempArray[4]}`,
+                cou_name: tempArray[2],
+                cou_no: tempArray[3],
+                sam_seq: tempArray[4],
+                fam_head: tempArray[5],
+                fam_addr: tempArray[6],
+                phone: tempArray[7],
+                sam_no: tempArray[8],
+                int_name: tempArray[9],
+                adi_name: tempArray[10],
+                sor_name: tempArray[11],
+                rec_name: tempArray[12],
+                fam_cnt: tempArray[13],
+                job_cnt: tempArray[14],
+                ie_lev: tempArray[15],
+                fam_cha: tempArray[16],
+                hou_own: tempArray[51],
+                hou_loan: tempArray[52],
+                hou_use: tempArray[53],
+                hou_typ: tempArray[54],
+                tap_wat: tempArray[55],
+                par_none: tempArray[56],
+                par_self: tempArray[57],
+                par_rent: tempArray[58],
+                hou_land: tempArray[59],
+                hou_ping: tempArray[60],
+                hou_man_fee: tempArray[61],
+                col_tv: tempArray[62],
+                led_tv: tempArray[63],
+                dvd_palyer: tempArray[64],
+                audio: tempArray[65],
+                computer: tempArray[66],
+                wash_mach: tempArray[67],
+                telphone: tempArray[68],
+                car: tempArray[69],
+                moto: tempArray[70],
+                dig_camera: tempArray[71],
+                wat_heater: tempArray[72],
+                vedio: tempArray[73],
+                tv_game: tempArray[74],
+                mul_vedio: tempArray[75],
+                camera: tempArray[76],
+                piano: tempArray[77],
+                cable_tv: tempArray[78],
+                mobile: tempArray[79],
+                ind_cooker: tempArray[80],
+                air_cond: tempArray[81],
+                dehumidifier: tempArray[82],
+                dryer: tempArray[83],
+                air_puri: tempArray[84],
+                wat_filter: tempArray[85],
+                vac_cleaner: tempArray[86],
+                dri_mach: tempArray[87],
+                mic_oven: tempArray[88],
+                newspaper: tempArray[89],
+                magazine: tempArray[90],
+                nursery: tempArray[91],
+                elementary: tempArray[92],
+                junior: tempArray[93],
+                senior: tempArray[94],
+                college: tempArray[95],
+                baby: tempArray[96],
+                wat_fee: tempArray[97],
+                ele_fee: tempArray[98],
+                int_tel_fee: tempArray[99],
+                mob_fee: tempArray[100],
+                net_fee: tempArray[101],
+                gas_fee: tempArray[102],
+                cab_fee: tempArray[103],
+                mul_vedio_fee: tempArray[104],
+                hou_insu: tempArray[105],
+                hou_sec_fee: tempArray[106],
+                par_rent_fee: tempArray[107],
+                nanny: tempArray[108],
+                driver: tempArray[109],
+                rent: tempArray[110],
+                rent_land: tempArray[111],
+                dorm_fee: tempArray[112],
+                hou_loan_val: tempArray[113],
+                hou_own_val: tempArray[114],
+                dorm_sch_fee: tempArray[115],
+                commute: tempArray[116],
+                int_user: tempArray[117],
+                adi_user: tempArray[118],
+                sor_user: tempArray[119],
+                rec_user: tempArray[120],
+                fam_remark: tempArray[121],
+                tutoring: tempArray[123],
+                hou_tax: isNaN(parseInt(tempArray[124], 10))
+                  ? 0
+                  : parseInt(tempArray[124], 10),
+                land_tax: isNaN(parseInt(tempArray[125], 10))
+                  ? 0
+                  : parseInt(tempArray[125], 10),
+              },
+              fammem: {
+                ie_year: tempArray[0],
+                ie_mon: tempArray[1],
+                fam_no: `${tempArray[3]}${tempArray[4]}`,
+                mem_no: tempArray[17],
+                mem_name: tempArray[18],
+                title: tempArray[19],
+                gender: tempArray[20],
+                bir_year: tempArray[21],
+                bir_mon: tempArray[22],
+                age: tempArray[23],
+                edu_no: tempArray[24],
+                sch_typ: tempArray[25],
+                sch_name: tempArray[26],
+                education: tempArray[27],
+                grade: tempArray[28],
+                job_typ: tempArray[29],
+                job_title: tempArray[30],
+                job_com: tempArray[31],
+                fam_head_rel: tempArray[32],
+                job_no: tempArray[33],
+                job_typ_no: tempArray[34],
+                inc_fam_prc: tempArray[35],
+                fee_fam_prc: tempArray[36],
+                insu_pub: tempArray[37],
+                insu_lab: tempArray[38],
+                insu_farm: tempArray[39],
+                insu_fish: tempArray[40],
+                insu_mil: tempArray[41],
+                insu_medi: tempArray[42],
+                insu_acci: tempArray[43],
+                insu_life: tempArray[44],
+                insu_heal: tempArray[45],
+                annuity: tempArray[46],
+                insu_car: tempArray[47],
+                insu_moto: tempArray[48],
+                insu_soci_amt: tempArray[49],
+                insu_heal_amt: tempArray[50],
+                mem_remark: tempArray[122],
+              },
+            };
+          })
+          .filter(obj => Object.keys(obj).length > 0);
+
+        // import into database
+        await this.updateCoFamData(dataArray.map(obj => obj.fam));
+        await this.updateCoFamMemData(dataArray.map(obj => obj.fammem));
+      };
 
       if (inputFiles.files.length === 0) {
         return;
       }
 
-      reader.readAsText(inputFiles.files[0]);
+      reader.readAsText(inputFiles.files[0], `big5`);
     },
     exportCSV() {
       let detailedData = this.selected;
@@ -718,7 +911,7 @@ export default {
       if (this.selectComponent === `FamilyMember`) {
         await this.updateCoFamMemData(data);
       } else {
-        await this.updateCoFamData(data);
+        await this.updateCoFamData([data]);
       }
 
       this.$refs.domModal.hide();
@@ -846,13 +1039,6 @@ export default {
   },
   mounted() {},
   computed: {
-    enabledReview() {
-      if (this.selected.length > 0) {
-        return false;
-      }
-
-      return Object.keys(this.queryObject).length !== 0;
-    },
     isSelectedItems() {
       if (this.selected.length === 0) {
         return false;
@@ -877,7 +1063,7 @@ export default {
       },
     },
   },
-  /* eslint-disable no-undef, no-param-reassign, camelcase */
+  /* eslint-disable no-undef, no-param-reassign, camelcase, no-restricted-globals */
 };
 </script>
 

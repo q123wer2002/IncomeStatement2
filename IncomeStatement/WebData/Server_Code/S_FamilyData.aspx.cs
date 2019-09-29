@@ -168,7 +168,7 @@ namespace IncomeStatement.WebData.Server_Code
 					case ApiAction.UPDATE: {
 						
 						if( Request.Form[ Param.FamData ] != null ) {
-							JObject jData = JObject.Parse(Request.Form[ Param.FamData ].ToString());
+							JArray jDataAry = JArray.Parse(Request.Form[ Param.FamData ].ToString());
 						}
 						else if( Request.Form[ Param.FamMemData ] != null ) {
 							JArray jDataAry = JArray.Parse(Request.Form[ Param.FamMemData ].ToString());
@@ -301,8 +301,7 @@ namespace IncomeStatement.WebData.Server_Code
 		}
 		bool UpdateCoFamData()
 		{
-			JObject jData = JObject.Parse(Request.Form[ Param.FamData ].ToString());
-			List<string> keys = jData.Properties().Select(p => p.Name).ToList();
+			List<JObject> jDataList = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.FamData ].ToString());
 			List<string> ignoreKeys = new List<string>()
 			{
 				"ie_year",
@@ -314,33 +313,61 @@ namespace IncomeStatement.WebData.Server_Code
 				"upd_date",
 				"upd_user",
 			};
-			List<string> setSQLList = new List<string>();
+
+			bool isSuccess = false;
 			string szErrorMsg;
-			string szWhere = $"{TableName.CoFam}.ie_year='{jData[ "ie_year" ].ToString()}' " +
-				$"AND {TableName.CoFam}.ie_mon='{jData[ "ie_mon" ].ToString()}' " +
-				$"AND {TableName.CoFam}.fam_no='{jData[ "fam_no" ].ToString()}' ";
-			for( int i = 0; i < keys.Count; i++ ) {
-				if( ignoreKeys.Contains(keys[ i ]) ) {
-					continue;
+			for( int i = 0; i < jDataList.Count; i++ ) {
+				JObject jData = jDataList[ i ];
+				string szWhere = $"{TableName.CoFam}.ie_year='{jData[ "ie_year" ].ToString()}' " +
+					$"AND {TableName.CoFam}.ie_mon='{jData[ "ie_mon" ].ToString()}' " +
+					$"AND {TableName.CoFam}.fam_no='{jData[ "fam_no" ].ToString()}' ";
+
+				// select once
+				JArray jResult;
+				m_mssql.TryQuery($"SELECT * FROM {TableName.CoFam} WHERE {szWhere}", out jResult);
+				if( jResult.Count == 0 ) {
+					// means insert
+					jData[ "crt_date" ] = "CURRENT_TIMESTAMP";
+					jData[ "crt_user" ] = m_szUserCode;
+					isSuccess = m_mssql.TryQuery($"INSERT INTO {TableName.CoFam} ({string.Join(", ", jData.Properties().Select(p => p.Name).ToList())}) VALUES ({string.Join(", ", jData.Properties().Select(p => p.Value.ToString() == "CURRENT_TIMESTAMP" ? "CURRENT_TIMESTAMP" : p.Value.ToString().Length == 0 || p.Value.ToString() == "\r" ? "NULL" : $"'{p.Value}'").ToList())})", out szErrorMsg);
+					if( isSuccess == false ) {
+						return false;
+					}
 				}
-				string szKey = keys[ i ];
-				string szValue = jData[ keys[ i ] ].ToString().Length == 0 ? "NULL" : $"'{jData[ keys[ i ] ].ToString()}'";
+				else {
+					List<string> keys = jData.Properties().Select(p => p.Name).ToList();
 
-				setSQLList.Add($"{szKey}={szValue}");
+					// update
+					List<string> setSQLList = new List<string>();
+					for( int j = 0; j < keys.Count; j++ ) {
+						if( ignoreKeys.Contains(keys[ j ]) ) {
+							continue;
+						}
+						string szOriginalValue = jData[ keys[ j ] ].ToString();
+						string szKey = keys[ j ];
+						string szValue = szOriginalValue == "\r" || szOriginalValue.Length == 0 ? "NULL" : $"'{jData[ keys[ j ] ].ToString()}'";
+
+						setSQLList.Add($"{szKey}={szValue}");
+					}
+					string szSetSql = string.Join(", ", setSQLList.Select(sql => sql));
+
+					// copy currnt data into log file
+					string szInsertLog = $"INSERT INTO {TableName.CoFamLog} SELECT 'M', CURRENT_TIMESTAMP, '{m_szUserCode}', * FROM {TableName.CoFam} WHERE {szWhere}";
+					isSuccess = m_mssql.TryQuery(szInsertLog, out szErrorMsg);
+					if( isSuccess == false ) {
+						return false;
+					}
+
+					// update items
+					string szUpdate = $"UPDATE {TableName.CoFam} SET upd_date=CURRENT_TIMESTAMP, upd_user='{m_szUserCode}', {szSetSql} WHERE {szWhere}";
+					isSuccess = m_mssql.TryQuery(szUpdate, out szErrorMsg);
+					if( isSuccess == false ) {
+						return false;
+					}
+				}
 			}
-			string szSetSql = string.Join(", ", setSQLList.Select(sql => sql));
 
-			// copy currnt data into log file
-			string szInsertLog = $"INSERT INTO {TableName.CoFamLog} SELECT 'M', CURRENT_TIMESTAMP, '{m_szUserCode}', * FROM {TableName.CoFam} WHERE {szWhere}";
-			bool isSuccess = m_mssql.TryQuery(szInsertLog, out szErrorMsg);
-			if( isSuccess == false ) {
-				return false;
-			}
-
-			// update items
-			string szUpdate = $"UPDATE {TableName.CoFam} SET upd_date=CURRENT_TIMESTAMP, upd_user='{m_szUserCode}', {szSetSql} WHERE {szWhere}";
-			isSuccess = m_mssql.TryQuery(szUpdate, out szErrorMsg);
-			return isSuccess;
+			return true;
 		}
 		bool UpdateCoFamMemData()
 		{
@@ -359,7 +386,7 @@ namespace IncomeStatement.WebData.Server_Code
 			bool isSuccess = false;
 			for( int i = 0; i < jDataList.Count; i++ ) {
 				JObject jData = jDataList[ i ];
-				List<string> keys = jData.Properties().Select(p => p.Name).ToList();
+				
 				string szErrorMsg;
 				string szWhere = $"{TableName.CoFamMem}.ie_year='{jData[ "ie_year" ].ToString()}' " +
 					$"AND {TableName.CoFamMem}.ie_mon='{jData[ "ie_mon" ].ToString()}' " +
@@ -371,11 +398,13 @@ namespace IncomeStatement.WebData.Server_Code
 				m_mssql.TryQuery($"SELECT * FROM {TableName.CoFamMem} WHERE {szWhere}", out jResult);
 				if( jResult.Count == 0 ) {
 					// means insert
-					jData[ "upd_date" ] = "CURRENT_TIMESTAMP";
-					jData[ "upd_user" ] = m_szUserCode;
-					isSuccess = m_mssql.TryQuery($"INSERT INTO {TableName.CoFamMem} ({string.Join(", ", keys)}) VALUES ({string.Join(", ", jData.Properties().Select(p => p.Value.ToString().Length == 0 ? "NULL" : $"'{p.Value}'").ToList())})", out szErrorMsg);
+					jData[ "crt_date" ] = "CURRENT_TIMESTAMP";
+					jData[ "crt_user" ] = m_szUserCode;
+					isSuccess = m_mssql.TryQuery($"INSERT INTO {TableName.CoFamMem} ({string.Join(", ", jData.Properties().Select(p => p.Name).ToList())}) VALUES ({string.Join(", ", jData.Properties().Select(p => p.Value.ToString() == "CURRENT_TIMESTAMP" ? "CURRENT_TIMESTAMP" : p.Value.ToString().Length == 0 || p.Value.ToString() == "\r" ? "NULL" : $"'{p.Value}'").ToList())})", out szErrorMsg);
 				}
 				else {
+					List<string> keys = jData.Properties().Select(p => p.Name).ToList();
+
 					// means update
 					List<string> setSQLList = new List<string>();
 					for( int j = 0; j < keys.Count; j++ ) {
