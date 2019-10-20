@@ -150,9 +150,11 @@ namespace IncomeStatement.WebData.Server_Code
 		}
 		dynamic ReadData()
 		{
-			string szSelectSQL = $"SELECT {TableName.CoRecFam}.*, t1.user_name as rec_name, t2.user_name as adi_name FROM {TableName.CoRecFam} " +
+			string szSelectSQL = $"SELECT {TableName.CoRecFam}.*, t1.user_name as rec_name, t2.user_name as adi_name, a1.state as rec_status, a2.state as adi_status FROM {TableName.CoRecFam} " +
 				$"LEFT JOIN {TableName.CoSysUser} t1 ON t1.user_id={TableName.CoRecFam}.rec_user " +
-				$"LEFT JOIN {TableName.CoSysUser} t2 ON t2.user_id={TableName.CoRecFam}.adi_user ";
+				$"LEFT JOIN {TableName.CoSysAuth} a1 ON a1.user_id={TableName.CoRecFam}.rec_user " + 
+				$"LEFT JOIN {TableName.CoSysUser} t2 ON t2.user_id={TableName.CoRecFam}.adi_user " + 
+				$"LEFT JOIN {TableName.CoSysAuth} a2 ON a2.user_id={TableName.CoRecFam}.adi_user ";
 
 			if( m_param.Count > 0 ) {
 				szSelectSQL += "WHERE ";

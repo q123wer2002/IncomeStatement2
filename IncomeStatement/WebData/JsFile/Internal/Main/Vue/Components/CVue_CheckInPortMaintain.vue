@@ -39,6 +39,7 @@
                 v-else
                 size="sm"
                 value="null"
+                :disabled="item.disabled"
               ></b-form-input>
             </template>
           </template>
@@ -47,24 +48,6 @@
     </b-container>
 
     <hr />
-
-    <ul class="famList my-3">
-      <li v-for="(famObj, index) in familyAry" :key="index">
-        <a href="javascript:;" @click="deleteFam(index)">
-          <img width="24px" :src="$options.imgSrc.trash" />
-        </a>
-        <b-form-input
-          v-model="famObj.fam_no"
-          @update="onChangeFamNo($event, index)"
-          class="d-inline w-50"
-        ></b-form-input>
-        <b-form-select
-          v-model="famObj.state"
-          :options="stateOpts"
-          class="d-inline w-25"
-        ></b-form-select>
-      </li>
-    </ul>
     <b-button variant="info" @click="save">儲存</b-button>
   </div>
 </template>
@@ -129,11 +112,25 @@ export default {
 
       this.familyAry = [...resObject.data, ...this.familyAry];
     },
-    onChangeUser(value, key) {
+    async onChangeUser(value, key) {
+      const userObject = this.getUserInfo(value);
+      if (Object.keys(userObject).length === 0) {
+        return;
+      }
+
       if (key === `adi_user`) {
-        this.tempFam.adi_name = this.userIdToName(value);
+        this.tempFam.adi_name = userObject.user_name;
+        this.tempFam.adi_status = userObject.state;
       } else {
-        this.tempFam.rec_name = this.userIdToName(value);
+        this.tempFam.rec_name = userObject.user_name;
+        this.tempFam.rec_status = userObject.state;
+      }
+
+      if (
+        this.tempFam.rec_name.length > 0 &&
+        this.tempFam.adi_name.length > 0
+      ) {
+        await this.queryAccount();
       }
     },
     onChangeFamNo(value, index) {
@@ -156,26 +153,43 @@ export default {
         });
       }
     },
-    userIdToName(userId) {
+    getUserInfo(userId) {
       const userObj = this.sysUserList.find(obj => obj.user_id === userId);
       if (userObj) {
-        return userObj.user_name;
+        return userObj;
       }
 
-      return ``;
+      return {};
     },
     save() {
-      const result = this.familyAry
-        .filter(obj => obj.fam_no.length > 0)
-        .map(obj => {
-          return {
-            ...this.tempFam,
-            fam_no: obj.fam_no,
-            state: obj.state,
-          };
-        });
+      const {
+        fam_no,
+        rec_name,
+        rec_status,
+        adi_name,
+        adi_status,
+      } = this.tempFam;
 
-      this.$emit(`save-fam`, result);
+      // check users
+      if (rec_name.length === 0 || adi_name.length === 0) {
+        alert('登錄人員、審核人員錯誤');
+        return;
+      }
+
+      // check status
+      if (rec_status !== '1' || adi_status !== '1') {
+        alert('登錄人員、審核人員帳號已經停用');
+        return;
+      }
+
+      // check duplicate
+      const userList = this.familyAry.map(obj => obj.fam_no);
+      if (this.isEdit === false && userList.includes(fam_no)) {
+        alert('重覆的戶號編號');
+        return;
+      }
+
+      this.$emit(`save-fam`, [this.tempFam]);
     },
   },
   created() {},
@@ -190,8 +204,10 @@ export default {
         fam_no: ``,
         rec_user: ``,
         rec_name: ``,
+        rec_status: ``,
         adi_user: ``,
         adi_name: ``,
+        adi_status: ``,
         state: ``,
       };
     }
@@ -201,6 +217,13 @@ export default {
   computed: {
     itemKeys() {
       return [
+        {
+          isShow: true,
+          text: '戶號',
+          key: 'fam_no',
+          type: 'text',
+          disabled: this.isEdit,
+        },
         {
           isShow: true,
           text: '登錄人員編號',
@@ -215,7 +238,7 @@ export default {
         },
         {
           isShow: true,
-          text: '審核員編號',
+          text: '審核人員編號',
           key: 'adi_user',
           type: 'text',
         },
@@ -224,6 +247,13 @@ export default {
           text: '審核人員',
           key: 'adi_name',
           type: 'span',
+        },
+        {
+          isShow: true,
+          text: '戶號狀態',
+          key: 'state',
+          type: 'select',
+          options: this.stateOpts,
         },
       ];
     },

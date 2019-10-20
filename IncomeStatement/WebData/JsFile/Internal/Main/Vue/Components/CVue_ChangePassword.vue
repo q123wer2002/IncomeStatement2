@@ -27,7 +27,7 @@
           type="password"
           class="d-inline-block my-2 w-50 mx-4"
         ></b-form-input>
-        <p></p>
+        <p style="font-size: 12px;color: red;">{{ newPwdErrorMsg }}</p>
       </div>
       <div style="border-bottom: 1px solid rgba(0, 0, 0, 0.1)">
         <label class="w-25" for="input-newone2">再次輸入新密碼</label>
@@ -71,6 +71,7 @@ export default {
       newPwd: ``,
       isValidNewPwd: false,
       newPwd2: ``,
+      newPwdErrorMsg: ``,
     };
   },
   methods: {
@@ -79,27 +80,32 @@ export default {
         // length >= 8
         if (value.length >= 8 === false) {
           this.isValidNewPwd = false;
+          this.newPwdErrorMsg = '密碼長度不足';
           return;
         }
 
         // contains english
         if (/[a-zA-Z]/g.test(value) === false) {
           this.isValidNewPwd = false;
+          this.newPwdErrorMsg = '密碼沒有包含英文';
           return;
         }
 
         // contains number
         if (/[012345678]/g.test(value) === false) {
           this.isValidNewPwd = false;
+          this.newPwdErrorMsg = '密碼沒有包含數字';
           return;
         }
 
         // contains char
         if (/[!@#$%^&*]/g.test(value) === false) {
           this.isValidNewPwd = false;
+          this.newPwdErrorMsg = '密碼沒有包含特殊符號';
           return;
         }
 
+        this.newPwdErrorMsg = '';
         this.isValidNewPwd = true;
       } else {
         this.isValidOrigialPwd = value.length > 0;
@@ -115,7 +121,7 @@ export default {
       );
 
       if (resObject.status !== this.mixinBackendErrorCode.success) {
-        alert(`變更錯誤`);
+        alert(resObject.data);
         return;
       }
 

@@ -5,6 +5,8 @@ import 'bootstrap-vue/dist/bootstrap-vue.css';
 import vueStore from '../Vuex/Vuex_GlobalStore';
 import '../Mixins/Vue_GlobalMixins.js';
 
+import ValidCode from '../Components/CVue_ValidCode.vue';
+
 const sha256 = require('js-sha256');
 
 Vue.use(BootstrapVue);
@@ -14,16 +16,21 @@ function IVueInitalLogin() {
   let _Instance = null;
   this.Intital = () => {
     _Instance = new Vue({
-      /* eslint-disable no-undef */
+      /* eslint-disable no-undef no-param-reassign */
       store: vueStore,
       el: '#vue_instance',
+      components: {
+        ValidCode,
+      },
       data: {
         userInput: {
           account: ``,
           password: ``,
+          validCode: ``,
         },
         loginErrorMsg: ``,
         ip: ``,
+        sysValidCode: ``,
       },
       watch: {},
       computed: {},
@@ -33,9 +40,15 @@ function IVueInitalLogin() {
           this.loginErrorMsg = ``;
 
           // check is empty
-          const { account, password } = this.userInput;
+          const { account, password, validCode } = this.userInput;
           if (account.length === 0 || password.length === 0) {
             this.loginErrorMsg = `帳號密碼不能為空`;
+            return;
+          }
+
+          // check validcode
+          if (validCode !== this.sysValidCode) {
+            this.loginErrorMsg = '驗證碼錯誤';
             return;
           }
 
@@ -48,9 +61,14 @@ function IVueInitalLogin() {
             }
           );
 
-          if (resObject.status !== this.mixinBackendErrorCode.success) {
-            this.loginErrorMsg = `登入失敗，帳號或密碼錯誤`;
+          const loginInfo = this.checkLoginResponse(resObject);
+          if (loginInfo.isSuccess === false) {
+            this.loginErrorMsg = loginInfo.message;
             return;
+          }
+
+          if (loginInfo.message.length > 0) {
+            alert(loginInfo.message);
           }
 
           // re-direct to home page
@@ -64,6 +82,39 @@ function IVueInitalLogin() {
             this.mixinToHomePage();
           }
         },
+        checkLoginResponse(resObject) {
+          const loginInfo = {
+            isSuccess: false,
+            message: ``,
+          };
+
+          switch (resObject.status) {
+            case 0:
+              loginInfo.isSuccess = true;
+              break;
+            case 2:
+              loginInfo.isSuccess = true;
+              loginInfo.message = `帳號即將於 ${
+                resObject.data
+              } 過期，記得更換密碼`;
+              break;
+            case -1:
+            case -2:
+              loginInfo.message = '帳號或密碼錯誤';
+              break;
+            case -4:
+              loginInfo.message = '帳號已被鎖住，請通知系統管理人員';
+              break;
+            case -7:
+              loginInfo.message = '帳號已過期，請通知系統維護人員';
+              break;
+            default:
+              loginInfo.message = '';
+              break;
+          }
+
+          return loginInfo;
+        },
       },
       created() {},
       async mounted() {
@@ -73,7 +124,7 @@ function IVueInitalLogin() {
         const ipInfo = await this.mixinGetIpInfo();
         this.ip = ipInfo == null ? `` : ipInfo.ip;
       },
-      /* eslint-disable no-undef */
+      /* eslint-disable no-undef no-param-reassign */
     });
   };
   this._getColsure = () => {

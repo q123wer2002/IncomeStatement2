@@ -11,15 +11,20 @@
 
         <!--import JS and CSS file -->
 
-        <script  type="text/javascript" src="/IncomeStatement/WebData/BundleResult/Main/IS_20190929_min_v1.js"></script>
-        <link rel="stylesheet" href="/IncomeStatement/WebData/BundleResult/Main/IS_20190929_min_v1_CSS.css" />
+        <script  type="text/javascript" src="/IncomeStatement/WebData/BundleResult/Main/IS_20191020_min_v1.js"></script>
+        <link rel="stylesheet" href="/IncomeStatement/WebData/BundleResult/Main/IS_20191020_min_v1_CSS.css" />
 <!--
-        <script  type="text/javascript" src="http://localhost:8080/JsFile/Internal/Main/IS_20190929_min_v1.js"></script>
-        <link rel="stylesheet" href="http://localhost:8080/JsFile/Internal/Main/IS_20190929_min_v1_CSS.css" />
+        <script  type="text/javascript" src="http://localhost:8080/JsFile/Internal/Main/IS_20191020_min_v1.js"></script>
+        <link rel="stylesheet" href="http://localhost:8080/JsFile/Internal/Main/IS_20191020_min_v1_CSS.css" />
 -->
     </head>
     <body>
         <div id="vue-instance">
+            <div id="userInfo">
+                <p>使用者ID：{{userInfo.id}}</p>
+                <p>使用者名稱：{{userInfo.name}}</p>
+                <p>角色：{{userInfo.role}}</p>
+            </div>
             <div id="leftMenu">
                 <p id="title">功能列表</p>
                 <hr />
@@ -61,9 +66,18 @@
     color: #000;
     overflow-y: auto;
     border-radius: 1vw;
-    margin: 16px 0 16px 16px;
+    margin: 116px 0 16px 16px;
     display: inline-block;
     float: left;
+}
+#userInfo {
+    padding: 11px 8px 8px 8px;
+    margin: 0px 0px 0px 16px;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    width: 25%;
+    height: 100px;
+    position: absolute;
 }
 #title {
     font-size: 20px;

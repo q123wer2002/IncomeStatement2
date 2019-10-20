@@ -13,10 +13,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/03/2019 11:17:34</publishTime>
     </File>
     <File Include="bin/IncomeStatement.dll">
-      <publishTime>09/29/2019 18:06:20</publishTime>
+      <publishTime>10/20/2019 20:43:02</publishTime>
     </File>
     <File Include="bin/IncomeStatement.pdb">
-      <publishTime>09/29/2019 18:06:20</publishTime>
+      <publishTime>10/20/2019 20:43:02</publishTime>
     </File>
     <File Include="bin/jose-jwt.dll">
       <publishTime>06/21/2017 19:57:54</publishTime>
@@ -40,10 +40,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/03/2019 11:17:30</publishTime>
     </File>
     <File Include="Login.html">
-      <publishTime>09/29/2019 00:52:09</publishTime>
+      <publishTime>10/20/2019 20:39:57</publishTime>
     </File>
     <File Include="Main.aspx">
-      <publishTime>09/29/2019 18:08:30</publishTime>
+      <publishTime>10/20/2019 20:39:17</publishTime>
     </File>
     <File Include="packages.config">
       <publishTime>06/03/2019 11:17:30</publishTime>
@@ -105,6 +105,12 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="WebData/BundleResult/Login/IS_20190929_min_v1_CSS.css">
       <publishTime>09/29/2019 18:10:27</publishTime>
     </File>
+    <File Include="WebData/BundleResult/Login/IS_20191020_min_v1.js">
+      <publishTime>10/20/2019 20:39:17</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Login/IS_20191020_min_v1_CSS.css">
+      <publishTime>10/20/2019 20:39:17</publishTime>
+    </File>
     <File Include="WebData/BundleResult/Main/IS_20190901_min_v1.js">
       <publishTime>09/01/2019 22:18:56</publishTime>
     </File>
@@ -159,6 +165,12 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="WebData/BundleResult/Main/IS_20190929_min_v1_CSS.css">
       <publishTime>09/29/2019 18:10:27</publishTime>
     </File>
+    <File Include="WebData/BundleResult/Main/IS_20191020_min_v1.js">
+      <publishTime>10/20/2019 20:39:17</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Main/IS_20191020_min_v1_CSS.css">
+      <publishTime>10/20/2019 20:39:17</publishTime>
+    </File>
     <File Include="WebData/ConfigFile/connection.json">
       <publishTime>08/27/2019 22:47:14</publishTime>
     </File>
@@ -176,6 +188,9 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     </File>
     <File Include="WebData/Picture/icon/material-io/baseline_delete_forever_black_48dp.png">
       <publishTime>04/13/2018 06:49:27</publishTime>
+    </File>
+    <File Include="WebData/Picture/icon/material-io/baseline_edit_black_48dp.png">
+      <publishTime>04/13/2018 05:44:59</publishTime>
     </File>
     <File Include="WebData/Picture/icon/material-io/sharp_arrow_drop_down_black_48dp.png">
       <publishTime>04/13/2018 03:59:30</publishTime>

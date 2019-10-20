@@ -42,8 +42,9 @@ namespace IncomeStatement.WebData.Server_Code
 			}
 
 			// do action
-			dynamic result = DoAction(action);
-			m_requestHandler.StatusCode = (int)ErrorCode.Success;
+			bool isSuccess;
+			dynamic result = DoAction(action, out isSuccess);
+			m_requestHandler.StatusCode = isSuccess ? (int)ErrorCode.Success : (int)ErrorCode.Error;
 			m_requestHandler.ReturnData = result;
 			Response.Write(m_requestHandler.GetReturnResult());
 		}
@@ -93,7 +94,7 @@ namespace IncomeStatement.WebData.Server_Code
 
 						if( Request.Form[ Param.Name ] != null ) {
 							string szName = Request.Form[ Param.Name ].ToString();
-							m_param.Add($"{TableName.CoSysAuth}.user_name LIKE '%{szName}%'");
+							m_param.Add($"{TableName.CoSysUser}.user_name LIKE '%{szName}%'");
 						}
 
 						if( Request.Form[ Param.Status ] != null ) {
@@ -115,21 +116,23 @@ namespace IncomeStatement.WebData.Server_Code
 				return false;
 			}
 		}
-		dynamic DoAction( ApiAction action )
+		dynamic DoAction( ApiAction action, out bool isSuccess )
 		{
+			isSuccess = false;
 			switch( action ) {
 				case ApiAction.READ:
-					return ReadData();
+					return ReadData(out isSuccess);
 				case ApiAction.WRITE:
-					return UpdateOrInsertUser();
+					return UpdateOrInsertUser(out isSuccess);
 				case ApiAction.DELETE:
-					return DeleteUser();
+					return DeleteUser(out isSuccess);
 				default:
 					return null;
 			}
 		}
-		dynamic ReadData()
+		dynamic ReadData(out bool isSuccess)
 		{
+			isSuccess = false;
 			string szSelectSQL = $"SELECT {TableName.CoSysAuth}.*, {TableName.CoSysUser}.* FROM {TableName.CoSysAuth} " +
 				$"LEFT JOIN {TableName.CoSysUser} ON {TableName.CoSysUser}.user_id={TableName.CoSysAuth}.login_id ";
 
@@ -142,44 +145,79 @@ namespace IncomeStatement.WebData.Server_Code
 			}
 
 			JArray jResult;
-			m_mssql.TryQuery(szSelectSQL, out jResult);
-			return jResult;
+			if( m_mssql.TryQuery(szSelectSQL, out jResult) ) {
+				isSuccess = true;
+				return jResult;
+			}
+
+			return null;
 		}
-		dynamic UpdateOrInsertUser()
+		dynamic UpdateOrInsertUser( out bool isSuccess )
 		{
+			string szErrorMsg;
+			isSuccess = false;
+
 			JObject jUser = JObject.Parse(Request.Form[ Param.UserObject ].ToString());
 			string szEmail = jUser[ "email" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "email" ].ToString()}'";
-			string szTelNo = jUser[ "tel_no" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "email" ].ToString()}'";
-			string szTitle = jUser[ "title" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "email" ].ToString()}'";
-			string szDepName = jUser[ "dep_name" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "email" ].ToString()}'";
-			string szRemark = jUser[ "remark" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "email" ].ToString()}'";
-			DateTime dtStart = DateTime.Parse(jUser[ "start_date" ].ToString());
+			string szTelNo = jUser[ "tel_no" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "tel_no" ].ToString()}'";
+			string szTitle = jUser[ "title" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "title" ].ToString()}'";
+			string szDepName = jUser[ "dep_name" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "dep_name" ].ToString()}'";
+			string szRemark = jUser[ "remark" ].ToString().Length == 0 ? "NULL" : $"'{jUser[ "remark" ].ToString()}'";
+			DateTime dtStart = jUser[ "start_date" ].ToString().Length > 0 ? DateTime.Parse(jUser[ "start_date" ].ToString()) : DateTime.Now;
 			string szEndDate = jUser[ "end_date" ].ToString().Length == 0 ? dtStart.AddYears(2).ToString("yyyy-MM-dd") : jUser[ "end_date" ].ToString();
 
 			// select once
-			string szErrorMsg;
 			JArray jTempUser;
 			m_mssql.TryQuery($"SELECT * FROM {TableName.CoSysAuth} WHERE login_id='{jUser[ "login_id" ].ToString()}'", out jTempUser);
 			if( jTempUser.Count == 1 ) {
 				// means update
-				bool isSuccess;
-				
+				if( bool.Parse(Request.Form[ Param.ResetPWD ].ToString()) ) {
+					// extend account
+					JArray jExtendDays;
+					int nExtendDays = 30;
+					if(
+						m_mssql.TryQuery($"SELECT * FROM {TableName.CoParam} WHERE par_typ='PWD' AND par_no='P002'", out jExtendDays) &&
+						jExtendDays.Count > 0
+					) {
+						nExtendDays = int.Parse(jExtendDays[ 0 ][ "par_val" ].ToString());
+					}
+
+					// check pwd
+					string szNewPwd = jUser[ "pwd" ].ToString();
+					JObject jData = (JObject)jTempUser[ 0 ];
+					if( jData[ "pwd" ].ToString() == szNewPwd ) {
+						return "與原密碼重覆";
+					}
+
+					// check new password is same as last three times
+					if( (new List<string>() { jData[ "pwd1" ].ToString(), jData[ "pwd2" ].ToString(), jData[ "pwd3" ].ToString() }).Contains(szNewPwd) ) {
+						return "與過去的三次密碼重覆";
+					}
+
+					// reset
+					if( m_mssql.TryQuery($"UPDATE {TableName.CoSysAuth} " +
+						$"SET pwd='{jUser[ "pwd" ].ToString()}', " +
+						$"exp_date='{DateTime.Now.AddDays(nExtendDays).ToString("yyyy-MM-dd")}' " +
+						$"WHERE login_id='{jUser[ "login_id" ].ToString()}'", out szErrorMsg) == false ) {
+						return szErrorMsg;
+					}
+				}
+
 				// co_sys_auth
-				isSuccess = m_mssql.TryQuery($"UPDATE {TableName.CoSysAuth} " +
-					$"SET pwd='{jUser[ "pwd" ].ToString()}', " +
-					$"role='{jUser[ "role" ].ToString()}', " +
+				if( m_mssql.TryQuery($"UPDATE {TableName.CoSysAuth} " +
+					$"SET role='{jUser[ "role" ].ToString()}', " +
 					$"state='{jUser[ "state" ].ToString()}', " +
 					$"start_date='{jUser[ "start_date" ].ToString()}', " +
+					$"err_cnt=0, " +
 					$"end_date='{szEndDate}', " +
 					$"upd_date=CURRENT_TIMESTAMP, " +
 					$"upd_user='{szUserCode}'" +
-					$"WHERE login_id='{jUser[ "login_id" ].ToString()}'", out szErrorMsg);
-				if( isSuccess == false ) {
-					return false;
+					$"WHERE login_id='{jUser[ "login_id" ].ToString()}'", out szErrorMsg) == false ) {
+					return szErrorMsg;
 				}
 
 				// co_sys_user
-				return m_mssql.TryQuery($"UPDATE {TableName.CoSysUser} " +
+				if( m_mssql.TryQuery($"UPDATE {TableName.CoSysUser} " +
 					$"SET user_name='{jUser[ "user_name" ].ToString()}', " +
 					$"email={szEmail}, " +
 					$"tel_no={szTelNo}, " +
@@ -188,29 +226,41 @@ namespace IncomeStatement.WebData.Server_Code
 					$"remark={szRemark}, " +
 					$"upd_date=CURRENT_TIMESTAMP, " +
 					$"upd_user='{szUserCode}'" +
-					$"WHERE user_id='{jUser[ "login_id" ].ToString()}'", out szErrorMsg);
+					$"WHERE user_id='{jUser[ "login_id" ].ToString()}'", out szErrorMsg) == false ) {
+					return szErrorMsg;
+				}
 			}
 			else {
-				//means insert
-				// means update
-				bool isSuccess;
-
 				// co_sys_auth
-				isSuccess = m_mssql.TryQuery($"INSERT INTO {TableName.CoSysAuth} VALUES ('{jUser[ "login_id" ].ToString()}', '937e8d5fbb48bd4949536cd65b8d35c426b80d2f830c5c308e2cdec422ae2244', 0, '{jUser[ "role" ].ToString()}', '{jUser[ "login_id" ].ToString()}', '{jUser[ "state" ].ToString()}', '{jUser[ "start_date" ].ToString()}', '{szEndDate}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)", out szErrorMsg);
-				if( isSuccess == false ) {
-					return false;
+				if( m_mssql.TryQuery($"INSERT INTO {TableName.CoSysAuth} VALUES ('{jUser[ "login_id" ].ToString()}', '{jUser[ "pwd" ].ToString()}', 0, '{jUser[ "role" ].ToString()}', '{jUser[ "login_id" ].ToString()}', '{jUser[ "state" ].ToString()}', '{jUser[ "start_date" ].ToString()}', '{szEndDate}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)", out szErrorMsg) == false ) {
+					return szErrorMsg;
 				}
-			
+
 				// co_sys_user
-				return m_mssql.TryQuery($"INSERT INTO {TableName.CoSysUser} VALUES (" +
-					$"'{jUser[ "login_id" ].ToString()}', '{jUser[ "user_name" ].ToString()}', {szEmail}, {szTelNo}, {szTitle}, {szDepName}, {szRemark}, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)", out szErrorMsg);
+				if( m_mssql.TryQuery($"INSERT INTO {TableName.CoSysUser} VALUES (" +
+					$"'{jUser[ "login_id" ].ToString()}', '{jUser[ "user_name" ].ToString()}', {szEmail}, {szTelNo}, {szTitle}, {szDepName}, {szRemark}, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)", out szErrorMsg) == false ) {
+					return szErrorMsg;
+				}
 			}
+
+			isSuccess = true;
+			return null;
 		}
-		dynamic DeleteUser()
+		dynamic DeleteUser(out bool isSuccess)
 		{
+			isSuccess = false;
+
 			JObject jUser = JObject.Parse(Request.Form[ Param.UserObject ].ToString());
+			string szDeleteAuth = $"DELETE FROM {TableName.CoSysAuth} WHERE login_id='{jUser[ "login_id" ].ToString()}'";
+			string szDeleteUser = $"DELETE FROM {TableName.CoSysUser} WHERE user_id='{jUser[ "login_id" ].ToString()}'";
+
 			string szErrorMsg;
-			return m_mssql.TryQuery($"DELETE FROM {TableName.CoSysAuth} WHERE login_id='{jUser[ "login_id" ].ToString()}'", out szErrorMsg);
+			if( m_mssql.TryQuery(szDeleteAuth, out szErrorMsg) && m_mssql.TryQuery(szDeleteUser, out szErrorMsg) == false ) {
+				return szErrorMsg;
+			}
+
+			isSuccess = true;
+			return null;
 		}
 
 		enum ApiAction
@@ -259,6 +309,13 @@ namespace IncomeStatement.WebData.Server_Code
 				get
 				{
 					return "UserObject";
+				}
+			}
+			public static string ResetPWD
+			{
+				get
+				{
+					return "ResetPwd";
 				}
 			}
 		}

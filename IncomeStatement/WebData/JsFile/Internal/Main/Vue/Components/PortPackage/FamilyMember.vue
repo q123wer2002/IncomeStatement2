@@ -11,7 +11,6 @@
       :fields="fields"
       hover
       small
-      fixed
       head-variant="dark"
       @row-clicked="onRowClicked"
     >
@@ -24,56 +23,66 @@
         slot="[mem_no]"
         slot-scope="data"
         v-model="data.item.mem_no"
+        style="width:60px"
       ></b-form-input>
       <b-form-input
         slot="[title]"
         slot-scope="data"
         v-model="data.item.title"
+        style="width:80px"
       ></b-form-input>
       <b-form-input
         slot="[fam_head_rel]"
         slot-scope="data"
         v-model="data.item.fam_head_rel"
+        style="width:50px"
       ></b-form-input>
       <b-form-input
         slot="[mem_name]"
         slot-scope="data"
         v-model="data.item.mem_name"
+        style="width:120px"
       ></b-form-input>
       <b-form-select
         slot="[gender]"
         slot-scope="data"
         v-model="data.item.gender"
         :options="genderOpts"
+        style="width:70px"
       ></b-form-select>
       <b-form-input
         slot="[bir_year]"
         slot-scope="data"
         v-model="data.item.bir_year"
         @update="calculateOld($event, data.index)"
+        style="width:70px"
       ></b-form-input>
       <b-form-select
         slot="[bir_mon]"
         slot-scope="data"
         v-model="data.item.bir_mon"
         :options="monthOpts"
+        style="width:100px"
       ></b-form-select>
       <b-form-select
         slot="[edu_no]"
         slot-scope="data"
         v-model="data.item.edu_no"
         :options="eduNoOpts"
+        style="width:80px"
       ></b-form-select>
       <b-form-select
         slot="[job_typ]"
         slot-scope="data"
         v-model="data.item.job_typ"
         :options="jobTypeOpts"
+        style="width:80px"
       ></b-form-select>
       <b-form-input
         slot="[mem_remark]"
         slot-scope="data"
         v-model="data.item.mem_remark"
+        style="width:200px"
       ></b-form-input>
       <template slot="bottom-row" slot-scope="data">
         <b-th :colspan="fields.length">
@@ -424,14 +433,16 @@ export default {
         });
     },
     jobTypeOpts() {
-      return this.paramArray
-        .filter(obj => obj.par_typ === `F`)
-        .map(obj => {
-          return {
-            text: obj.par_name,
-            value: obj.par_no,
-          };
-        });
+      return [
+        {
+          text: `就業`,
+          value: 1,
+        },
+        {
+          text: `未就業`,
+          value: 2,
+        },
+      ];
     },
     jobTypeNoOpts() {
       return this.paramArray

@@ -9,7 +9,7 @@
 
     <b-container fluid>
       <b-row class="my-1" v-for="item in fields" :key="item.key">
-        <b-col style="text-align: right;">
+        <b-col style="text-align: center;">
           <label>{{ item.text }}</label>
         </b-col>
         <b-col style="text-align: left;">

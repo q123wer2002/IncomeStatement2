@@ -2,12 +2,14 @@
 using IncomeStatement.WebData.Server_Code.CommonModule.mssql;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 
 namespace IncomeStatement.WebData.Server_Code
 {
 	public partial class S_MyFamInfo : System.Web.UI.Page
 	{
 		RequestHandler m_requestHandler;
+		string m_szRole;
 		protected void Page_Load( object sender, EventArgs e )
 		{
 			// check status, set default
@@ -22,6 +24,8 @@ namespace IncomeStatement.WebData.Server_Code
 				Response.Write(m_requestHandler.GetReturnResult());
 				return;
 			}
+
+			m_szRole = Request.Cookies[ CookieKey.UserRole ].Value;
 
 			m_requestHandler.StatusCode = (int)ErrorCode.Success;
 			m_requestHandler.ReturnData = GetMyFamInfo();
@@ -41,11 +45,18 @@ namespace IncomeStatement.WebData.Server_Code
 
 		dynamic GetMyFamInfo( string szMyRecNo = null )
 		{
-			if( Request.Cookies[ CookieKey.UserRole ].Value != "B" ) {
+			if( new List<string>() { "A", "B" }.Contains(m_szRole) == false ) {
 				return null;
 			}
 
-			string szSQL = $"SELECT * FROM {TableName.CoRecFam} WHERE {TableName.CoRecFam}.fam_no IN (SELECT fam_no FROM co_rec_fam WHERE rec_user='{Request.Cookies[ CookieKey.UserID ].Value}') ";
+			string szSQL = $"SELECT * FROM {TableName.CoRecFam} WHERE {TableName.CoRecFam}.fam_no IN (SELECT fam_no FROM co_rec_fam ";
+			if( m_szRole.ToUpper() == "A" ) {
+				szSQL += ")";
+			}
+			else {
+				szSQL += $"WHERE rec_user = '{Request.Cookies[ CookieKey.UserID ].Value}'";
+			}
+
 			if( szMyRecNo != null ) {
 				szSQL += $"AND rec_user='{szMyRecNo}'";
 			}

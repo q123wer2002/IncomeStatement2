@@ -119,11 +119,6 @@ namespace IncomeStatement.WebData.Server_Code
 						m_param.Add($"{TableName.CoExpAudit}.fam_no BETWEEN {szFamNoStart} AND {szFamNoEnd}");
 					}
 
-					if( Request.Form[ Param.CheckNo ] != null ) {
-						string szCheckNo = Request.Form[ Param.CheckNo ].ToString();
-						m_param.Add($"{TableName.CoExpAudit}.chk_user LIKE '%{szCheckNo}%'");
-					}
-
 					if( Request.Form[ Param.CheckType ] != null ) {
 						string szCheckType = Request.Form[ Param.CheckType ].ToString();
 						if( szCheckType != "0" ) {
@@ -170,13 +165,14 @@ namespace IncomeStatement.WebData.Server_Code
 			string szMonth = ParseTwoDigital(Request.Form[ Param.Month ].ToString());
 
 			string szErrorCode;
-			return m_mssql.TryQuery($"{PRODUCENAME} '{szYear}', '{szMonth}', '{m_szUserCode}'", out szErrorCode);
+			string szSQL = $"{PRODUCENAME} '{szYear}', '{szMonth}', '{m_szUserCode}'";
+			return m_mssql.TryQuery(szSQL, out szErrorCode);
 		}
 		dynamic ReadData()
 		{
-			string szSelectSQL = $"SELECT * FROM {TableName.CoExpAudit} ";
+			string szSelectSQL = $"SELECT * FROM {TableName.CoExpAudit} WHERE {TableName.CoExpAudit}.chk_user LIKE '%{m_szUserCode}%' ";
 			if( m_param.Count > 0 ) {
-				szSelectSQL += "WHERE ";
+				szSelectSQL += "AND ";
 				for( int i = 0; i < m_param.Count; i++ ) {
 					szSelectSQL += m_param[ i ];
 					szSelectSQL += i == m_param.Count - 1 ? " " : "AND ";

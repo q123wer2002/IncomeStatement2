@@ -41,7 +41,8 @@ namespace IncomeStatement.WebData.Server_Code
 
 		dynamic GetMyFamInfo( string szMyRecNo = null )
 		{
-			string szSQL = $"SELECT * FROM {TableName.CoSysUser}";
+			string szSQL = $"SELECT u.*, a.state FROM {TableName.CoSysUser} u " +
+				$"LEFT JOIN {TableName.CoSysAuth} a ON a.user_id=u.user_id";
 
 			JArray result;
 			m_mssql.TryQuery(szSQL, out result);

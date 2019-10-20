@@ -418,24 +418,6 @@ export const dataCheckerModel = [
     },
   },
   {
-    key: `checker`,
-    text: `檢誤人員`,
-    type: {
-      id: `text`,
-    },
-    value: {
-      id: ``,
-    },
-    source: {
-      id: null,
-    },
-    valid: {
-      id: () => {
-        return true;
-      },
-    },
-  },
-  {
     key: `checktime`,
     text: `檢誤時間`,
     type: {

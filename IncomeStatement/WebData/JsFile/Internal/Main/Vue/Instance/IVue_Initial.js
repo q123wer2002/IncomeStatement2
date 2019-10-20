@@ -6,6 +6,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css';
 import vueStore from '../Vuex/Vuex_GlobalStore';
 import '../Mixins/Vue_GlobalMixins';
 
+import { accountRole } from '../DataModel/dataModel.js';
 import IncomeDataMaintain from '../Components/CVue_IncomeDataMaintain.vue';
 import SubjectMaintain from '../Components/CVue_SubjectMaintain.vue';
 import DetailedMaintain from '../Components/CVue_DetailedMaintain.vue';
@@ -127,6 +128,9 @@ function IVueInitialCreator() {
           ],
         },
         currentPageKey: ``,
+
+        // user info
+        userInfo: {},
       },
       methods: {
         ...mapActions([`initialSubject`, `initialParam`]),
@@ -182,6 +186,13 @@ function IVueInitialCreator() {
         await this.initialSubject({
           CodeNo: -1,
         });
+
+        // get user info
+        this.userInfo = {
+          id: this.mixinGetCookie('UserID'),
+          name: this.mixinGetCookie('UserName'),
+          role: accountRole[this.mixinGetCookie('UserRole')],
+        };
       },
       watch: {},
       beforeDestroy() {},

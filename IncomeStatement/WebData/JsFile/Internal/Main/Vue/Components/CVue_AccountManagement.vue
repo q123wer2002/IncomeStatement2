@@ -172,19 +172,23 @@ export default {
       });
     },
     async updateInsertUser(userObj) {
+      console.log(userObj);
       const resObject = await this.mixinCallBackService(
         this.mixinBackendService.accountMgr,
         {
           Action: `WRITE`,
           UserObject: JSON.stringify(userObj),
+          ResetPwd: userObj.isResetPwd || false,
         }
       );
 
       if (resObject.status !== this.mixinBackendErrorCode.success) {
         // do nothing
+        alert(`儲存失敗，${resObject.data}`);
         return;
       }
 
+      alert(`儲存成功`);
       const userIdx = this.items.findIndex(
         obj => obj.login_id === userObj.login_id
       );

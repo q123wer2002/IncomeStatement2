@@ -206,6 +206,7 @@ namespace IncomeStatement.WebData.Server_Code
 
 			// get co_fam
 			string szSQL = $"SELECT {TableName.CoFam}.* FROM {TableName.CoFam} WHERE ";
+			string szFilterSQL = "";
 			for( int i = 0; i < m_paramList.Count; i++ ) {
 				szSQL += $" {m_paramList[ i ]}";
 				szSQL += i == m_paramList.Count - 1 ? " " : " AND";
@@ -224,9 +225,13 @@ namespace IncomeStatement.WebData.Server_Code
 			szSQL = $"SELECT * FROM {TableName.CoFamMem} " +
 				$"WHERE fam_no IN ({string.Join(", ", result.Select(obj => $"'{obj[ "fam_no" ].ToString()}'"))})";
 
+			// set filter
+			if( Request.Form[ Param.Year ] != null && Request.Form[ Param.Month ] != null ) {
+				szSQL += $" AND ie_year={Request.Form[ Param.Year ]} AND ie_mon={Request.Form[ Param.Month ]}";
+			}
+
 			isSuccess = m_mssql.TryQuery(szSQL, out result);
 			jResult[ "co_fam_mem" ] = result;
-
 
 			return jResult;
 		}
@@ -329,7 +334,8 @@ namespace IncomeStatement.WebData.Server_Code
 					// means insert
 					jData[ "crt_date" ] = "CURRENT_TIMESTAMP";
 					jData[ "crt_user" ] = m_szUserCode;
-					isSuccess = m_mssql.TryQuery($"INSERT INTO {TableName.CoFam} ({string.Join(", ", jData.Properties().Select(p => p.Name).ToList())}) VALUES ({string.Join(", ", jData.Properties().Select(p => p.Value.ToString() == "CURRENT_TIMESTAMP" ? "CURRENT_TIMESTAMP" : p.Value.ToString().Length == 0 || p.Value.ToString() == "\r" ? "NULL" : $"'{p.Value}'").ToList())})", out szErrorMsg);
+					string szInsertAa = $"INSERT INTO {TableName.CoFam} ({string.Join(", ", jData.Properties().Select(p => p.Name).ToList())}) VALUES ({string.Join(", ", jData.Properties().Select(p => p.Value.ToString() == "CURRENT_TIMESTAMP" ? "CURRENT_TIMESTAMP" : p.Value.ToString().Length == 0 || p.Value.ToString() == "\r" ? "NULL" : $"'{p.Value}'").ToList())})";
+					isSuccess = m_mssql.TryQuery(szInsertAa, out szErrorMsg);
 					if( isSuccess == false ) {
 						return false;
 					}

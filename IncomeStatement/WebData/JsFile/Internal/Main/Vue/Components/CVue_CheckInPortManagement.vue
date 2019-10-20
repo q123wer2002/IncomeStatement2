@@ -37,6 +37,12 @@
             <img width="24px" :src="$options.imgSrc.edit" />
           </a>
         </template>
+        <span slot="[rec_status]" slot-scope="data">
+          {{ accountStateToString(data.item.rec_status) }}
+        </span>
+        <span slot="[adi_status]" slot-scope="data">
+          {{ accountStateToString(data.item.adi_status) }}
+        </span>
         <span slot="[state]" slot-scope="data">
           {{ stateToString(data.item.state) }}
         </span>
@@ -60,7 +66,7 @@
 </template>
 
 <script>
-import { portState } from '../DataModel/dataModel.js';
+import { portState, accountStateToString } from '../DataModel/dataModel.js';
 import { checkinPortModel } from '../DataModel/selectorModel.js';
 import Selector from './CVue_Selector.vue';
 import CheckInMaintain from './CVue_CheckInPortMaintain.vue';
@@ -132,7 +138,7 @@ export default {
       const insertItems = famList.filter(
         obj => originalFamNos.includes(obj.fam_no) === false
       );
-      console.log(updateItems);
+
       if (updateItems && updateItems.length > 0) {
         await this.updateFamObj(updateItems);
       }
@@ -147,6 +153,9 @@ export default {
     // ui show
     stateToString(state) {
       return portState[state];
+    },
+    accountStateToString(state) {
+      return accountStateToString[state];
     },
     updateFam() {
       this.$refs.domModal.hide();
@@ -252,6 +261,7 @@ export default {
         return;
       }
 
+      console.log(insertItems);
       this.items = [...this.items, ...insertItems];
     },
   },
@@ -264,8 +274,10 @@ export default {
         { key: `fam_no`, label: `戶號` },
         { key: `rec_user`, label: `登錄人員編號` },
         { key: `rec_name`, label: `登錄人員` },
+        { key: `rec_status`, label: `登錄人員狀態`, sortable: true },
         { key: `adi_user`, label: `審核人員編號` },
         { key: `adi_name`, label: `審核人員` },
+        { key: `adi_status`, label: `審核人員狀態`, sortable: true },
         { key: `state`, label: `戶號狀態` },
       ];
     },

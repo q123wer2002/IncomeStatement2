@@ -70,24 +70,29 @@
           <a href="javascript:;" @click="openComponent('MainCard', data.item)">
             主卡
           </a>
+          |
           <a
             href="javascript:;"
             @click="openComponent('FamilyMember', data.item)"
           >
             組成
           </a>
+          |
           <a href="javascript:;" @click="openComponent('HouseInfo', data.item)">
             住宅
           </a>
+          |
           <a
             href="javascript:;"
             @click="openComponent('HomeEquipment', data.item)"
           >
             家庭設備
           </a>
+          |
           <a href="javascript:;" @click="openComponent('Education', data.item)">
             在學
           </a>
+          |
           <a
             href="javascript:;"
             @click="openComponent('StaticPayment', data.item)"
@@ -110,6 +115,7 @@
           :is="selectComponent"
           :coFamData="selectedCoFamData"
           @updateFamItem="updateFamData"
+          style="width: auto; overflow-y: auto;"
         ></component>
       </b-modal>
       <input
@@ -272,7 +278,11 @@ export default {
               startIdx += 1;
             }
 
-            if (tempArray.length !== 126) {
+            if (
+              tempArray.length !== 126 ||
+              tempArray[0].length === 0 ||
+              tempArray[1].length === 0
+            ) {
               return {};
             }
 
@@ -366,7 +376,7 @@ export default {
                 adi_user: tempArray[118],
                 sor_user: tempArray[119],
                 rec_user: tempArray[120],
-                fam_remark: tempArray[121],
+                fam_remark: tempArray[121].replace(`'`, `''`),
                 tutoring: tempArray[123],
                 hou_tax: isNaN(parseInt(tempArray[124], 10))
                   ? 0
@@ -399,20 +409,20 @@ export default {
                 job_typ_no: tempArray[34],
                 inc_fam_prc: tempArray[35],
                 fee_fam_prc: tempArray[36],
-                insu_pub: tempArray[37],
-                insu_lab: tempArray[38],
-                insu_farm: tempArray[39],
-                insu_fish: tempArray[40],
-                insu_mil: tempArray[41],
-                insu_medi: tempArray[42],
-                insu_acci: tempArray[43],
-                insu_life: tempArray[44],
-                insu_heal: tempArray[45],
+                insu_pub: parseInt(tempArray[37], 10),
+                insu_lab: parseInt(tempArray[38], 10),
+                insu_farm: parseInt(tempArray[39], 10),
+                insu_fish: parseInt(tempArray[40], 10),
+                insu_mil: parseInt(tempArray[41], 10),
+                insu_medi: parseInt(tempArray[42], 10),
+                insu_acci: parseInt(tempArray[43], 10),
+                insu_life: parseInt(tempArray[44], 10),
+                insu_heal: parseInt(tempArray[45], 10),
                 annuity: tempArray[46],
-                insu_car: tempArray[47],
-                insu_moto: tempArray[48],
-                insu_soci_amt: tempArray[49],
-                insu_heal_amt: tempArray[50],
+                insu_car: parseInt(tempArray[47], 10),
+                insu_moto: parseInt(tempArray[48], 10),
+                insu_soci_amt: parseInt(tempArray[49], 10),
+                insu_heal_amt: parseInt(tempArray[50], 10),
                 mem_remark: tempArray[122],
               },
             };
@@ -1073,7 +1083,8 @@ export default {
 }
 #tableData {
   text-align: center;
-  width: 85%;
+  width: 95%;
   margin: auto;
+  overflow-y: auto;
 }
 </style>

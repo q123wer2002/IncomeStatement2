@@ -11,8 +11,10 @@ namespace IncomeStatement.WebData.Server_Code
 		string szUserId = "";
 		string szUserName = "";
 		string szRole = "";
+		int m_nErrorCount = 0;
 		AccountErrorCode aErrorCode = AccountErrorCode.success;
-		async protected void Page_Load( object sender, EventArgs e )
+		JObject jReturnMsg = new JObject();
+		protected void Page_Load( object sender, EventArgs e )
 		{
 			m_requestHandler = new RequestHandler();
 
@@ -23,55 +25,63 @@ namespace IncomeStatement.WebData.Server_Code
 			//get user typing
 			string szUserName = Request.Form[ Param.Username ].ToString();
 			string szUserPassword = Request.Form[ Param.Password ].ToString();
-			DateTime ExpireTime = DateTime.Now.AddDays( 1d );
+			DateTime ExpireTime = DateTime.Now.AddDays(1d);
 
 			JObject jUserInfo;
-			if( isLoginSuccess( szUserName, szUserPassword, out jUserInfo ) ) {
+			if( isLoginSuccess(szUserName, szUserPassword, out jUserInfo) ) {
 				// check account status
 				string szState = jUserInfo[ "account" ][ "state" ].ToString();
 				if( szState == "0" ) {
 					aErrorCode = AccountErrorCode.accountDisabled;
 				}
-				else if(szState == "2") {
+				else if( szState == "2" ) {
 					aErrorCode = AccountErrorCode.accountLock;
 				}
+				else {
+					// check account expired
+					if( jUserInfo[ "account" ][ "exp_date" ] != null && jUserInfo[ "account" ][ "exp_date" ].ToString().Length > 0 ) {
+						DateTime dtExpire = DateTime.Parse(jUserInfo[ "account" ][ "exp_date" ].ToString());
+						TimeSpan tDiff = (dtExpire - DateTime.Now);
+						if( tDiff.TotalMilliseconds < 0 ) {
+							aErrorCode = AccountErrorCode.accountExpired;
+						}
+						else if( tDiff.TotalDays <= 7 ) {
+							aErrorCode = AccountErrorCode.tobeExpired;
+							jReturnMsg[ "expiredDate" ] = dtExpire.ToShortDateString();
+						}
+					}
 
-				// check account expired
-				string szStartDate = jUserInfo[ "account" ][ "start_date" ].ToString();
-				string szEndDate = jUserInfo[ "account" ][ "end_date" ].ToString();
-
-				// change password
-				if( jUserInfo[ "account" ][ "chg_pwd" ].ToString() == "Y" ) {
-					aErrorCode = AccountErrorCode.changePassword;
+					// change password
+					if( jUserInfo[ "account" ][ "chg_pwd" ].ToString() == "Y" ) {
+						aErrorCode = AccountErrorCode.changePassword;
+					}
 				}
 			}
 
 			// write login log
-			WriteLoginLog( aErrorCode );
-
-			if( (int)aErrorCode < 0 ) {
-				// fail
-				m_requestHandler.StatusCode = (int)ErrorCode.Error;
-				m_requestHandler.ReturnData = aErrorCode;
-				Response.Write( m_requestHandler.GetReturnResult() );
-				return;
+			bool isNeedToLock;
+			LogAndCheckLock(aErrorCode, out isNeedToLock);
+			if( isNeedToLock ) {
+				aErrorCode = AccountErrorCode.accountLock;
 			}
 
-			//create token 
-			string szJWTToken = JWTChecker.CreateNewJWTObjectString( szUserName );
-			Response.Cookies[ CookieKey.JWTName ].Value = szJWTToken;
-			Response.Cookies[ CookieKey.JWTName ].Expires = ExpireTime;
-			Response.Cookies[ CookieKey.UserID ].Value = szUserId;
-			Response.Cookies[ CookieKey.UserID ].Expires = ExpireTime;
-			Response.Cookies[ CookieKey.Username ].Value = szUserName;
-			Response.Cookies[ CookieKey.Username ].Expires = ExpireTime;
-			Response.Cookies[ CookieKey.UserRole ].Value = szRole;
-			Response.Cookies[ CookieKey.UserRole ].Expires = ExpireTime;
+			if( (int)aErrorCode >= 0 ) {
+				//create token 
+				string szJWTToken = JWTChecker.CreateNewJWTObjectString(szUserName);
+				Response.Cookies[ CookieKey.JWTName ].Value = szJWTToken;
+				Response.Cookies[ CookieKey.JWTName ].Expires = ExpireTime;
+				Response.Cookies[ CookieKey.UserID ].Value = szUserId;
+				Response.Cookies[ CookieKey.UserID ].Expires = ExpireTime;
+				Response.Cookies[ CookieKey.Username ].Value = szUserName;
+				Response.Cookies[ CookieKey.Username ].Expires = ExpireTime;
+				Response.Cookies[ CookieKey.UserRole ].Value = szRole;
+				Response.Cookies[ CookieKey.UserRole ].Expires = ExpireTime;
+			}
 
 			//success
-			m_requestHandler.StatusCode = (int)ErrorCode.Success;
-			m_requestHandler.ReturnData = aErrorCode;
-			Response.Write( m_requestHandler.GetReturnResult() );
+			m_requestHandler.StatusCode = (int)aErrorCode;
+			m_requestHandler.ReturnData = GetReturnData(aErrorCode);
+			Response.Write(m_requestHandler.GetReturnResult());
 		}
 
 		bool isParamValid()
@@ -99,12 +109,18 @@ namespace IncomeStatement.WebData.Server_Code
 			}
 
 			// check password
-			jUserInfo["account"] = (JObject)jResult[ 0 ];
+			jUserInfo[ "account" ] = (JObject)jResult[ 0 ];
+			m_nErrorCount = int.Parse(jUserInfo[ "account" ][ "err_cnt" ].ToString());
 			string szDBPassword = jUserInfo[ "account" ][ "pwd" ].ToString();
 			if( szDBPassword != szUserPassword ) {
 				aErrorCode = AccountErrorCode.passwordError;
 				return false;
 			}
+
+			// reset error count
+			string szErrorMsg;
+			string szResetErrorCount = $"UPDATE {TableName.CoSysAuth} SET err_cnt=0 WHERE user_id='{szUserName}'";
+			m_mssql.TryQuery(szResetErrorCount, out szErrorMsg);
 
 			// get user info
 			string szUserInfo = $"SELECT * FROM {TableName.CoSysUser} WHERE user_id='{szUserName}'";
@@ -117,8 +133,10 @@ namespace IncomeStatement.WebData.Server_Code
 			szRole = jUserInfo[ "account" ][ "role" ].ToString();
 			return true;
 		}
-		void WriteLoginLog( AccountErrorCode errorcode )
+		void LogAndCheckLock( AccountErrorCode errorcode, out bool isLock )
 		{
+			isLock = false;
+
 			string szUserId = Request.Form[ Param.Username ].ToString();
 			string szIP = Request.Form[ Param.IP ].ToString();
 			string szErrorMsg;
@@ -126,14 +144,39 @@ namespace IncomeStatement.WebData.Server_Code
 			if( (int)errorcode > 0 ) {
 				// write success login
 				string szLogAuth = $"UPDATE {TableName.CoSysAuth} SET log_date=CURRENT_TIMESTAMP WHERE login_id='{szUserId}'";
-				m_mssql.TryQuery( szLogAuth, out szErrorMsg );
+				m_mssql.TryQuery(szLogAuth, out szErrorMsg);
 			}
 
 			// write log into co_sys_log
-			string szLogSys = $"INSERT INTO {TableName.CoSysLog} VALUES (CURRENT_TIMESTAMP, '{szUserId}', '{szIP}', '{parseErrorLog( errorcode )}', N'' )";
-			m_mssql.TryQuery( szLogSys, out szErrorMsg );
+			string szLogSys = $"INSERT INTO {TableName.CoSysLog} VALUES (CURRENT_TIMESTAMP, '{szUserId}', '{szIP}', '{ParseErrorLog(errorcode)}', N'' )";
+			m_mssql.TryQuery(szLogSys, out szErrorMsg);
+
+			// record error count
+			if( errorcode == AccountErrorCode.passwordError ) {
+				m_nErrorCount = m_nErrorCount + 1;
+
+				// get max error number
+				int nMaxErrorCount = 3; // default
+				JArray jErrorNumber;
+				string szGetMaxErrTimes = $"SELECT * FROM {TableName.CoParam} WHERE par_typ='SYS' AND par_no='S002'";
+				if( m_mssql.TryQuery(szGetMaxErrTimes, out jErrorNumber) && jErrorNumber.Count > 0 ) {
+					nMaxErrorCount = int.Parse(jErrorNumber[ 0 ][ "par_val" ].ToString());
+				}
+
+				if( nMaxErrorCount > m_nErrorCount ) {
+					// record
+					string szErrorCount = $"UPDATE {TableName.CoSysAuth} SET err_cnt={m_nErrorCount} WHERE login_id='{szUserId}'";
+					m_mssql.TryQuery(szErrorCount, out szErrorMsg);
+				}
+				else {
+					// lock account
+					string szLockAccount = $"UPDATE {TableName.CoSysAuth} SET err_cnt={m_nErrorCount}, state='2' WHERE login_id='{szUserId}'";
+					m_mssql.TryQuery(szLockAccount, out szErrorMsg);
+					isLock = true;
+				}
+			}
 		}
-		string parseErrorLog( AccountErrorCode errorcode )
+		string ParseErrorLog( AccountErrorCode errorcode )
 		{
 			switch( errorcode ) {
 				case AccountErrorCode.success:
@@ -158,6 +201,15 @@ namespace IncomeStatement.WebData.Server_Code
 					return "09";
 				default:
 					return "10";
+			}
+		}
+		string GetReturnData( AccountErrorCode errorCode )
+		{
+			switch( errorCode ) {
+				case AccountErrorCode.tobeExpired:
+					return jReturnMsg[ "expiredDate" ].ToString();
+				default:
+					return errorCode.ToString();
 			}
 		}
 		class Param
@@ -186,6 +238,7 @@ namespace IncomeStatement.WebData.Server_Code
 		}
 		enum AccountErrorCode
 		{
+			tobeExpired = 2,
 			changePassword = 1,
 			success = 0,
 			noAccount = -1,
@@ -206,8 +259,8 @@ namespace IncomeStatement.WebData.Server_Code
 
 			// return
 			m_requestHandler.StatusCode = (int)ErrorCode.Error;
-			m_requestHandler.ReturnData = ( ConnectionInfo.isDebugMode ) ? ex.ToString() : string.Empty;
-			Response.Write( m_requestHandler.GetReturnResult() );
+			m_requestHandler.ReturnData = (ConnectionInfo.isDebugMode) ? ex.ToString() : string.Empty;
+			Response.Write(m_requestHandler.GetReturnResult());
 			Server.ClearError();
 		}
 
