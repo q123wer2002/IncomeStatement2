@@ -453,24 +453,20 @@ export const dataCheckerModel = [
       code: 0,
     },
     source: {
-      code: [
-        {
-          value: 0,
-          text: `全部`,
+      code: {
+        type: `dynamic2`,
+        api: `paramArray`,
+        filter: dataArray => {
+          return dataArray
+            .filter(obj => obj.par_typ === 'H')
+            .map(obj => {
+              return {
+                value: obj.par_no,
+                text: obj.par_name,
+              };
+            });
         },
-        {
-          value: 1,
-          text: `無支出日`,
-        },
-        {
-          value: 2,
-          text: `支出週期`,
-        },
-        {
-          value: 3,
-          text: `極端值`,
-        },
-      ],
+      },
     },
     valid: {
       code: () => {

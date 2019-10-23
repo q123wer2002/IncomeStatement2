@@ -171,7 +171,9 @@ export default {
       ],
       items: this.data,
       cantSaveHint: ``,
+      isEditMode: false,
       isEnabledSave: false,
+      isCheckMode: false,
       tempSubjectArray: [],
       tempSubjectNoObj: [],
     };
@@ -181,7 +183,7 @@ export default {
       const { ie_year, ie_mon, ie_day, fam_no } = this.items[0];
       this.items.splice(index, 1);
 
-      if (this.saveItems.length === 0 ){
+      if (this.saveItems.length === 0 && this.isCheckMode === false) {
         this.queryObject.Year = ie_year;
         this.queryObject.Month = ie_mon;
         this.queryObject.Day = ie_day;
@@ -220,7 +222,6 @@ export default {
       }
 
       this.$set(this.items[index], `code_name`, newName);
-      this.changeSubjectCodeOpts(tempItem.code_no);
     },
     onSubjectNameChanged(index) {
       const tempItem = this.items[index];
@@ -240,12 +241,14 @@ export default {
 
       if (this.data.length > 0 || this.items.length > 0) {
         const { ie_year, ie_mon, ie_day, fam_no } = this.data[0] || this.items[0];
-        this.items.forEach(obj => {
-          obj.ie_year = ie_year;
-          obj.ie_mon = ie_mon;
-          obj.ie_day = ie_day;
-          obj.fam_no = fam_no;
-        });
+        this.items
+          .filter(obj => obj.place.length > 0)
+          .forEach(obj => {
+            obj.ie_year = ie_year;
+            obj.ie_mon = ie_mon;
+            obj.ie_day = ie_day;
+            obj.fam_no = fam_no;
+          });
 
         Year = ie_year;
         Month = ie_mon;
@@ -259,7 +262,7 @@ export default {
       }
 
       this.$emit(`save`, {
-        items: this.items,
+        items: this.items.filter(obj => obj.place.length > 0),
         remark: this.tempRemark,
         totalCost: this.totalCost,
         queryObject: {
@@ -289,6 +292,7 @@ export default {
     checkIsEnableSave() {
       // check code no
       const isExistCodeNo = this.items
+        .filter(obj => obj.place.length > 0)
         .map(obj => obj.code_no)
         .every(
           code =>
@@ -301,7 +305,9 @@ export default {
       }
 
       // check empty
-      const isNoEmpty = this.items.every(obj => obj.code_name.length !== 0);
+      const isNoEmpty = this.items
+        .filter(obj => obj.place.length > 0)
+        .every(obj => obj.code_name.length !== 0);
       if (isNoEmpty === false) {
         this.cantSaveHint = `有科目欄位為空`;
         this.isEnabledSave = false;
@@ -329,50 +335,6 @@ export default {
         .filter(obj => obj.code_no === codeNo)
         .map(obj => obj.code_name);
     },
-    changeSubjectCodeOpts(codeNo) {
-      /*
-      if (!this.fnUpdateCodeAry) {
-        const fnPrint = inputCodeNo => {
-          if (this.tempSubjectNoObj.length > 0) {
-            const isStartSameNo = this.tempSubjectNoObj.every(code => {
-              const regex = new RegExp(
-                `^${inputCodeNo.substring(0, inputCodeNo.length - 1)}`
-              );
-              return regex.test(code);
-            });
-
-            if (isStartSameNo) {
-              this.tempSubjectNoObj = this.tempSubjectNoObj.filter(code => {
-                const regex = new RegExp(`^${inputCodeNo}`);
-                return regex.test(code);
-              });
-
-              return;
-            }
-          }
-
-          const isExist = this.subjectCodeNotDuplicate.some(code =>
-            code.startsWith(inputCodeNo)
-          );
-
-          if (isExist) {
-            const array = this.subjectCodeNotDuplicate.filter(code => {
-              const regex = new RegExp(`^${inputCodeNo}`);
-              return regex.test(code);
-            });
-
-            this.tempSubjectNoObj = array;
-          } else {
-            this.tempSubjectNoObj = [];
-          }
-        };
-
-        this.fnUpdateCodeAry = debounce(fnPrint, 300);
-      }
-
-      this.fnUpdateCodeAry(codeNo);
-      */
-    },
   },
   created() {},
   async mounted() {
@@ -380,19 +342,24 @@ export default {
       this.tempRemark = this.remark;
     }
 
+    const { Day } = this.queryObject;
     if (this.data.length > 0) {
+      this.isEditMode = true;
       await this.queryDetailedData({
         Year: this.data[0].ie_year,
         Month: this.data[0].ie_mon,
         Day: this.data[0].ie_day,
         FamNo: this.data[0].fam_no
       });
+    } else if (Day !== undefined) {
+      this.isCheckMode = true;
+      await this.queryDetailedData(this.queryObject);
     }
   },
   computed: {
     ...mapState([`paramArray`, `subjectArray`]),
     subjectWithDEFFG() {
-      return this.subjectArray.filter(obj => obj.def_fg.length !== 0);
+      return this.subjectArray.filter(obj => obj.def_fg && obj.def_fg.length !== 0);
     },
     subjectCodeNotDuplicate() {
       return this.subjectArray
@@ -418,12 +385,18 @@ export default {
       return ``;
     },
     dataDate() {
-      if (this.data.length > 0 || this.items.length > 0) {
+      if (this.data.length > 0 || this.items.length > 0 && this.isEditMode) {
         const { ie_year, ie_mon, ie_day } = this.data[0] || this.items[0];
         return `${ie_year}年${ie_mon}月${ie_day}日`;
       }
 
-      const { Year, Month } = this.queryObject;
+      const { Year, Month, Day } = this.queryObject;
+      if (this.isCheckMode) {
+        if (Year && Month && Day) {
+          return `${Year}年${Month}月${Day}日`;
+        }
+      }
+
       if (Year && Month) {
         return `${Year}年${Month}月`;
       }
@@ -447,6 +420,10 @@ export default {
     },
     isNeedSelectDay() {
       if (this.data.length > 0) {
+        return false;
+      }
+
+      if (this.isCheckMode) {
         return false;
       }
 

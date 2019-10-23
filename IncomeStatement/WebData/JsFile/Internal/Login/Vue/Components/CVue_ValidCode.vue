@@ -48,6 +48,7 @@ export default {
       const codeList = [];
       const chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz0123456789';
       const charsLen = chars.length;
+      const upperList = [`C`, `K`, `O`, `P`, `S`, `V`, `X`, `Z`];
 
       // 生成
       for (let i = 0; i < len; i++) {
@@ -57,8 +58,12 @@ export default {
           Math.round(Math.random() * 200),
         ];
 
+        let code = chars.charAt(Math.floor(Math.random() * charsLen));
+        const codeIdx = upperList.indexOf(code.toUpperCase());
+        code = codeIdx === -1 ? code : upperList[codeIdx];
+
         codeList.push({
-          code: chars.charAt(Math.floor(Math.random() * charsLen)),
+          code,
           color: `rgb(${rgb})`,
           fontSize: `2${[Math.floor(Math.random() * 10)]}px`,
           padding: `${[Math.floor(Math.random() * 10)]}px`,

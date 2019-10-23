@@ -74,6 +74,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
   /* eslint-disable no-undef, no-param-reassign */
   name: 'Selector',
@@ -121,22 +123,30 @@ export default {
           if (
             !obj.source[tempObj] ||
             !obj.source[tempObj].type ||
-            obj.source[tempObj].type !== `dynamic`
+            (obj.source[tempObj].type !== `dynamic` &&
+              obj.source[tempObj].type !== `dynamic2`)
           ) {
             return;
           }
 
           // dynamic
-          const { api, payload, key } = obj.source[tempObj];
-          const resObject = await this.mixinCallBackService(
-            this.mixinBackendService[api],
-            payload
-          );
+          if (obj.source[tempObj].type === 'dynamic') {
+            const { api, payload, key } = obj.source[tempObj];
+            const resObject = await this.mixinCallBackService(
+              this.mixinBackendService[api],
+              payload
+            );
 
-          if (resObject.status === this.mixinBackendErrorCode.success) {
-            obj.source[tempObj] = resObject.data
-              ? resObject.data.map(apiObj => apiObj[key])
-              : [];
+            if (resObject.status === this.mixinBackendErrorCode.success) {
+              obj.source[tempObj] = resObject.data
+                ? resObject.data.map(apiObj => apiObj[key])
+                : [];
+            }
+          }
+
+          if (obj.source[tempObj].type === 'dynamic2') {
+            const { api, filter } = obj.source[tempObj];
+            obj.source[tempObj] = filter(this[api]);
           }
         });
       });
@@ -171,6 +181,7 @@ export default {
     this.initialFilterItem();
   },
   computed: {
+    ...mapState(['paramArray']),
     isBtnSearchDisabled() {
       if (this.items.length === 0) {
         return false;

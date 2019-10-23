@@ -38,6 +38,14 @@
         head-variant="dark"
         class="my-2"
       >
+        <a
+          href="javascript:;"
+          slot="[fam_no]"
+          slot-scope="data"
+          @click="showDetail(data.item.ie_day, data.item.fam_no)"
+        >
+          {{ data.item.fam_no }}
+        </a>
         <template slot="[action]" slot-scope="data">
           <a href="javascript:;" @click="openDeleteDialog(data.item)">
             <img width="24px" :src="$options.imgSrc.trash" />
@@ -58,24 +66,38 @@
         class="justify-content-center"
       ></b-pagination>
     </div>
+
+    <b-modal ref="domModal" size="xl" title="明細維護" hide-footer>
+      <detailed-view
+        :queryObject="detailedQueryObj"
+        :data="detailedData"
+        :remark="passRemark"
+        @save="onSaveEvent"
+      ></detailed-view>
+    </b-modal>
   </div>
 </template>
 
 <script>
 import { dataCheckerModel } from '../DataModel/selectorModel.js';
 import Selector from './CVue_Selector.vue';
+import DetailedView from './CVue_DetailedView.vue';
 
 export default {
   /* eslint-disable no-undef, no-param-reassign, camelcase */
   name: 'DataChecker',
   components: {
     Selector,
+    DetailedView,
   },
   props: {},
   data() {
     return {
       selectorModel: dataCheckerModel,
       queryObject: {},
+      detailedQueryObj: {},
+      detailedData: [],
+      passRemark: '',
 
       // for table
       items: [],
@@ -213,6 +235,112 @@ export default {
       link.setAttribute(`download`, `data_ckeck_result.csv`);
       document.body.appendChild(link);
       link.click();
+    },
+    showDetail(day, famNo) {
+      const { Year, Month } = this.queryObject;
+      this.detailedQueryObj = {
+        Year,
+        Month,
+        FamNo: famNo,
+        Day: parseInt(day, 10),
+      };
+
+      this.$refs.domModal.show();
+    },
+    async onSaveEvent({ items, remark, totalCost, queryObject }) {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.detatiledData,
+        {
+          Action: `READ`,
+          ...queryObject,
+        }
+      );
+
+      const { Year, Month, Day, FamNo } = queryObject;
+      const filteredItems = resObject.data.CoExpD.filter(
+        obj =>
+          obj.ie_year === Year &&
+          obj.ie_mon === Month &&
+          obj.ie_day === Day &&
+          obj.fam_no === FamNo
+      );
+
+      const updateItems = items.filter(obj => obj.item_no !== undefined);
+      const insertItems = items.filter(obj => !obj.item_no);
+      const deleteItems = filteredItems.filter(
+        obj =>
+          updateItems.map(obj2 => obj2.item_no).includes(obj.item_no) === false
+      );
+
+      let isSuccess = false;
+      if (deleteItems.length > 0) {
+        await this.deleteItems(deleteItems);
+      }
+
+      if (updateItems.length > 0 || insertItems.length > 0) {
+        isSuccess = await this.saveItems(
+          updateItems,
+          insertItems,
+          remark,
+          totalCost
+        );
+      }
+
+      if (isSuccess) {
+        alert('修改成功');
+      } else {
+        alert('修改失敗');
+      }
+
+      this.$refs.domModal.hide();
+    },
+    async saveItems(updateItems, insertItems, remark, totalCost) {
+      let famNo;
+      let ieYear;
+      let ieMon;
+      let ieDay;
+      if (updateItems.length === 0) {
+        famNo = insertItems[0].fam_no;
+        ieYear = insertItems[0].ie_year;
+        ieMon = insertItems[0].ie_mon;
+        ieDay = insertItems[0].ie_day;
+      } else {
+        famNo = updateItems[0].fam_no;
+        ieYear = updateItems[0].ie_year;
+        ieMon = updateItems[0].ie_mon;
+        ieDay = updateItems[0].ie_day;
+      }
+
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.detatiledData,
+        {
+          Action: `WRITE`,
+          UpdateItems: JSON.stringify(updateItems),
+          InsertItems: JSON.stringify(insertItems),
+          FamNo: famNo,
+          Year: ieYear,
+          Month: ieMon,
+          Day: ieDay,
+          TotalCost: totalCost,
+          Remark: remark,
+        }
+      );
+
+      return resObject.status === this.mixinBackendErrorCode.success;
+    },
+    async deleteItems(items) {
+      const tempItems = items.length > 0 ? items : this.selected;
+      if (!tempItems || tempItems.length === 0) {
+        return;
+      }
+
+      const deleteItemNoAry = tempItems.map(obj => obj.item_no);
+
+      await this.mixinCallBackService(this.mixinBackendService.detatiledData, {
+        Action: `DELETE`,
+        ItemArray: JSON.stringify(deleteItemNoAry),
+        FamNo: tempItems[0].fam_no,
+      });
     },
   },
   created() {},

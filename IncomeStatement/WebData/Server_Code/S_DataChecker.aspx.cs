@@ -178,6 +178,7 @@ namespace IncomeStatement.WebData.Server_Code
 					szSelectSQL += i == m_param.Count - 1 ? " " : "AND ";
 				}
 			}
+			szSelectSQL += $" ORDER BY {TableName.CoExpAudit}.chk_date DESC, {TableName.CoExpAudit}.fam_no ASC";
 
 			JArray jResult;
 			if( m_mssql.TryQuery(szSelectSQL, out jResult) ) {

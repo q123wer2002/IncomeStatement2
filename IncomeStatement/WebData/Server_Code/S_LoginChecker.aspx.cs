@@ -69,13 +69,13 @@ namespace IncomeStatement.WebData.Server_Code
 				//create token 
 				string szJWTToken = JWTChecker.CreateNewJWTObjectString(szUserName);
 				Response.Cookies[ CookieKey.JWTName ].Value = szJWTToken;
-				Response.Cookies[ CookieKey.JWTName ].Expires = ExpireTime;
+				// Response.Cookies[ CookieKey.JWTName ].Expires = ExpireTime;
 				Response.Cookies[ CookieKey.UserID ].Value = szUserId;
-				Response.Cookies[ CookieKey.UserID ].Expires = ExpireTime;
+				// Response.Cookies[ CookieKey.UserID ].Expires = ExpireTime;
 				Response.Cookies[ CookieKey.Username ].Value = szUserName;
-				Response.Cookies[ CookieKey.Username ].Expires = ExpireTime;
+				// Response.Cookies[ CookieKey.Username ].Expires = ExpireTime;
 				Response.Cookies[ CookieKey.UserRole ].Value = szRole;
-				Response.Cookies[ CookieKey.UserRole ].Expires = ExpireTime;
+				// Response.Cookies[ CookieKey.UserRole ].Expires = ExpireTime;
 			}
 
 			//success
