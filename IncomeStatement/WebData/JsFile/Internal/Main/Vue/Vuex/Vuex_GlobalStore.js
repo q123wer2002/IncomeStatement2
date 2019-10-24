@@ -10,8 +10,12 @@ const vueStore = new Vuex.Store({
   state: {
     subjectArray: [],
     paramArray: [],
+    reportArray: [],
   },
   mutations: {
+    fnInitialReport(state, reportArray) {
+      state.reportArray = reportArray;
+    },
     fnInitialSubject(state, tempArry) {
       state.subjectArray = tempArry;
     },
@@ -58,6 +62,19 @@ const vueStore = new Vuex.Store({
     },
   },
   actions: {
+    async initialReport(context) {
+      const resObject = await UtilFn.mixinCallBackService(
+        UtilData.mixinBackendService.reporter,
+        {
+          Action: `GETREPORTS`,
+        }
+      );
+
+      if (resObject.status === UtilData.mixinBackendErrorCode.success) {
+        context.commit(`fnInitialReport`, resObject.data || []);
+      }
+    },
+
     // for subject
     async initialSubject(context, queryObject) {
       const resObject = await UtilFn.mixinCallBackService(

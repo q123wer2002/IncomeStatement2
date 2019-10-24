@@ -23,6 +23,7 @@ const CommonDataModel = {
     accountMgr: `S_AccountManagement.aspx`,
     famInfo: `S_FamInfo.aspx`,
     dataChecker: `S_DataChecker.aspx`,
+    reporter: `S_Tableau.aspx`,
   },
 };
 

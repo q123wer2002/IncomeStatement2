@@ -261,7 +261,6 @@ export default {
         return;
       }
 
-      console.log(insertItems);
       this.items = [...this.items, ...insertItems];
     },
   },
@@ -271,12 +270,12 @@ export default {
     fields() {
       return [
         { key: `action`, label: `` },
-        { key: `fam_no`, label: `戶號` },
-        { key: `rec_user`, label: `登錄人員編號` },
-        { key: `rec_name`, label: `登錄人員` },
+        { key: `fam_no`, label: `戶號`, sortable: true },
+        { key: `rec_user`, label: `登錄人員編號`, sortable: true },
+        { key: `rec_name`, label: `登錄人員`, sortable: true },
         { key: `rec_status`, label: `登錄人員狀態`, sortable: true },
-        { key: `adi_user`, label: `審核人員編號` },
-        { key: `adi_name`, label: `審核人員` },
+        { key: `adi_user`, label: `審核人員編號`, sortable: true },
+        { key: `adi_name`, label: `審核人員`, sortable: true },
         { key: `adi_status`, label: `審核人員狀態`, sortable: true },
         { key: `state`, label: `戶號狀態` },
       ];

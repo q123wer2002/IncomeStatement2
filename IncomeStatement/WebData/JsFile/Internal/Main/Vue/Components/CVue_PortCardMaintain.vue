@@ -227,6 +227,14 @@ export default {
       this.$refs.domFileInput.value = ``;
       this.$refs.domFileInput.click();
     },
+    parseToEnoughDigital(string, nDigital) {
+      let tempNewValue = string;
+      while (tempNewValue.length < nDigital) {
+        tempNewValue = `0${tempNewValue}`;
+      }
+
+      return tempNewValue;
+    },
     importCSV(event) {
       const inputFiles = event.target;
 
@@ -286,11 +294,16 @@ export default {
               return {};
             }
 
+            const fam_no = `${this.parseToEnoughDigital(
+              tempArray[3],
+              5
+            )}${this.parseToEnoughDigital(tempArray[4], 3)}`;
+            console.log(tempArray);
             return {
               fam: {
                 ie_year: tempArray[0],
                 ie_mon: tempArray[1],
-                fam_no: `${tempArray[3]}${tempArray[4]}`,
+                fam_no,
                 cou_name: tempArray[2],
                 cou_no: tempArray[3],
                 sam_seq: tempArray[4],
@@ -388,7 +401,7 @@ export default {
               fammem: {
                 ie_year: tempArray[0],
                 ie_mon: tempArray[1],
-                fam_no: `${tempArray[3]}${tempArray[4]}`,
+                fam_no,
                 mem_no: tempArray[17],
                 mem_name: tempArray[18],
                 title: tempArray[19],
@@ -409,20 +422,20 @@ export default {
                 job_typ_no: tempArray[34],
                 inc_fam_prc: tempArray[35],
                 fee_fam_prc: tempArray[36],
-                insu_pub: parseInt(tempArray[37], 10),
-                insu_lab: parseInt(tempArray[38], 10),
-                insu_farm: parseInt(tempArray[39], 10),
-                insu_fish: parseInt(tempArray[40], 10),
-                insu_mil: parseInt(tempArray[41], 10),
-                insu_medi: parseInt(tempArray[42], 10),
-                insu_acci: parseInt(tempArray[43], 10),
-                insu_life: parseInt(tempArray[44], 10),
-                insu_heal: parseInt(tempArray[45], 10),
+                insu_pub: parseInt(tempArray[37].replace(',', ''), 10),
+                insu_lab: parseInt(tempArray[38].replace(',', ''), 10),
+                insu_farm: parseInt(tempArray[39].replace(',', ''), 10),
+                insu_fish: parseInt(tempArray[40].replace(',', ''), 10),
+                insu_mil: parseInt(tempArray[41].replace(',', ''), 10),
+                insu_medi: parseInt(tempArray[42].replace(',', ''), 10),
+                insu_acci: parseInt(tempArray[43].replace(',', ''), 10),
+                insu_life: parseInt(tempArray[44].replace(',', ''), 10),
+                insu_heal: parseInt(tempArray[45].replace(',', ''), 10),
                 annuity: tempArray[46],
-                insu_car: parseInt(tempArray[47], 10),
-                insu_moto: parseInt(tempArray[48], 10),
-                insu_soci_amt: parseInt(tempArray[49], 10),
-                insu_heal_amt: parseInt(tempArray[50], 10),
+                insu_car: parseInt(tempArray[47].replace(',', ''), 10),
+                insu_moto: parseInt(tempArray[48].replace(',', ''), 10),
+                insu_soci_amt: parseInt(tempArray[49].replace(',', ''), 10),
+                insu_heal_amt: parseInt(tempArray[50].replace(',', ''), 10),
                 mem_remark: tempArray[122],
               },
             };

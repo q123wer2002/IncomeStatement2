@@ -206,7 +206,6 @@ namespace IncomeStatement.WebData.Server_Code
 
 			// get co_fam
 			string szSQL = $"SELECT {TableName.CoFam}.* FROM {TableName.CoFam} WHERE ";
-			string szFilterSQL = "";
 			for( int i = 0; i < m_paramList.Count; i++ ) {
 				szSQL += $" {m_paramList[ i ]}";
 				szSQL += i == m_paramList.Count - 1 ? " " : " AND";
@@ -334,6 +333,7 @@ namespace IncomeStatement.WebData.Server_Code
 					// means insert
 					jData[ "crt_date" ] = "CURRENT_TIMESTAMP";
 					jData[ "crt_user" ] = m_szUserCode;
+					jData[ "ie_mon" ] = ParseTwoDigital(jData[ "ie_mon" ].ToString());
 					string szInsertAa = $"INSERT INTO {TableName.CoFam} ({string.Join(", ", jData.Properties().Select(p => p.Name).ToList())}) VALUES ({string.Join(", ", jData.Properties().Select(p => p.Value.ToString() == "CURRENT_TIMESTAMP" ? "CURRENT_TIMESTAMP" : p.Value.ToString().Length == 0 || p.Value.ToString() == "\r" ? "NULL" : $"'{p.Value}'").ToList())})";
 					isSuccess = m_mssql.TryQuery(szInsertAa, out szErrorMsg);
 					if( isSuccess == false ) {
@@ -406,6 +406,7 @@ namespace IncomeStatement.WebData.Server_Code
 					// means insert
 					jData[ "crt_date" ] = "CURRENT_TIMESTAMP";
 					jData[ "crt_user" ] = m_szUserCode;
+					jData[ "ie_mon" ] = ParseTwoDigital(jData[ "ie_mon" ].ToString());
 					isSuccess = m_mssql.TryQuery($"INSERT INTO {TableName.CoFamMem} ({string.Join(", ", jData.Properties().Select(p => p.Name).ToList())}) VALUES ({string.Join(", ", jData.Properties().Select(p => p.Value.ToString() == "CURRENT_TIMESTAMP" ? "CURRENT_TIMESTAMP" : p.Value.ToString().Length == 0 || p.Value.ToString() == "\r" ? "NULL" : $"'{p.Value}'").ToList())})", out szErrorMsg);
 				}
 				else {
@@ -442,6 +443,14 @@ namespace IncomeStatement.WebData.Server_Code
 			}
 
 			return true;
+		}
+		string ParseTwoDigital( string szTempString )
+		{
+			if( szTempString.Length >= 2 ) {
+				return szTempString;
+			}
+
+			return $"0{szTempString}";
 		}
 		#endregion
 

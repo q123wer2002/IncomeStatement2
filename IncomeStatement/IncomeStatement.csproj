@@ -136,6 +136,7 @@
     <Content Include="WebData\Server_Code\S_MySysUser.aspx" />
     <Content Include="WebData\Server_Code\S_ParamInfo.aspx" />
     <Content Include="WebData\Server_Code\S_SubjectData.aspx" />
+    <Content Include="WebData\Server_Code\S_Tableau.aspx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Main.aspx.cs">
@@ -263,6 +264,13 @@
     <Compile Include="WebData\Server_Code\S_SubjectData.aspx.designer.cs">
       <DependentUpon>S_SubjectData.aspx</DependentUpon>
     </Compile>
+    <Compile Include="WebData\Server_Code\S_Tableau.aspx.cs">
+      <DependentUpon>S_Tableau.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebData\Server_Code\S_Tableau.aspx.designer.cs">
+      <DependentUpon>S_Tableau.aspx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
@@ -277,12 +285,16 @@
     </None>
     <Content Include="WebData\ConfigFile\connection.json" />
     <Content Include="WebData\ConfigFile\dbConnection.json" />
+    <Content Include="WebData\ConfigFile\report.json" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="WebData\JsFile\External\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

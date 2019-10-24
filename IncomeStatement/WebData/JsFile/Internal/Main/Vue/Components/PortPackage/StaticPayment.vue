@@ -17,6 +17,7 @@
             v-model="clonedData[item.key]"
             size="sm"
             value="null"
+            class="w-25 d-inline"
           ></b-form-input>
         </b-col>
       </b-row>

@@ -178,6 +178,7 @@ namespace IncomeStatement.WebData.Server_Code
 					szSelectSQL += i == m_param.Count - 1 ? " " : "AND ";
 				}
 			}
+			szSelectSQL += $" AND {TableName.CoExpAudit}.chk_user='{m_szUserCode}'";
 			szSelectSQL += $" ORDER BY {TableName.CoExpAudit}.chk_date DESC, {TableName.CoExpAudit}.fam_no ASC";
 
 			JArray jResult;
@@ -189,8 +190,9 @@ namespace IncomeStatement.WebData.Server_Code
 		}
 		dynamic GetCheckTime()
 		{
+			string szSQL = $"SELECT DISTINCT chk_date FROM {TableName.CoExpAudit} WHERE chk_user='{m_szUserCode}'";
 			JArray jResult;
-			m_mssql.TryQuery($"SELECT DISTINCT chk_date FROM {TableName.CoExpAudit}", out jResult);
+			m_mssql.TryQuery(szSQL, out jResult);
 			return jResult;
 		}
 		string ParseTwoDigital(string szTempString )

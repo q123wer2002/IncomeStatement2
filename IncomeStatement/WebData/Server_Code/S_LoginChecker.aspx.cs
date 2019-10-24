@@ -9,7 +9,6 @@ namespace IncomeStatement.WebData.Server_Code
 	{
 		RequestHandler m_requestHandler;
 		string szUserId = "";
-		string szUserName = "";
 		string szRole = "";
 		int m_nErrorCount = 0;
 		AccountErrorCode aErrorCode = AccountErrorCode.success;

@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { mapActions } from 'vuex';
+import { mapActions, mapState } from 'vuex';
 import BootstrapVue from 'bootstrap-vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
@@ -92,20 +92,7 @@ function IVueInitialCreator() {
               supportRole: [`A`, `B`, `C`],
             },
           ],
-          reportPage: [
-            {
-              key: `familyIncomeResult`,
-              text: `家庭收支記帳調查結果`,
-              isSupport: false,
-              supportRole: [`A`, `B`, `C`, `D`],
-            },
-            {
-              key: `familyIncomeReport`,
-              text: `家庭收支記帳調查統計月報`,
-              isSupport: false,
-              supportRole: [`A`, `B`, `C`, `D`],
-            },
-          ],
+          reportPage: [],
           systemPage: [
             {
               key: `AccountManagement`,
@@ -133,7 +120,7 @@ function IVueInitialCreator() {
         userInfo: {},
       },
       methods: {
-        ...mapActions([`initialSubject`, `initialParam`]),
+        ...mapActions([`initialSubject`, `initialParam`, `initialReport`]),
         async checkAccountStatus() {
           const { isErrorAuth } = await this.mixinAccountStatus();
 
@@ -145,9 +132,33 @@ function IVueInitialCreator() {
         async logout() {
           await this.mixinLogoutProcess();
         },
+        initialReportMenu() {
+          this.subMenu.reportPage = this.reportArray.map(obj => {
+            return {
+              key: obj.remark,
+              text: obj.par_name,
+              isSupport: true,
+              supportRole: [`A`, `B`, `C`, `D`],
+            };
+          });
+        },
+        async openReport(subUrl) {
+          const resObject = await this.mixinCallBackService(
+            this.mixinBackendService.reporter,
+            {
+              Action: `GETTICKET`,
+              SubUrl: subUrl,
+            }
+          );
+
+          if (resObject.status === this.mixinBackendErrorCode.success) {
+            window.open(resObject.data);
+          }
+        },
       },
       updated() {},
       computed: {
+        ...mapState(['reportArray']),
         supportSubMenu() {
           return pageKey => {
             const userRole = this.mixinGetCookie(`UserRole`);
@@ -179,6 +190,9 @@ function IVueInitialCreator() {
         // check account status
         await this.checkAccountStatus();
 
+        // init reports
+        await this.initialReport();
+
         // init param
         await this.initialParam();
 
@@ -186,6 +200,9 @@ function IVueInitialCreator() {
         await this.initialSubject({
           CodeNo: -1,
         });
+
+        // init report menu
+        this.initialReportMenu();
 
         // get user info
         this.userInfo = {

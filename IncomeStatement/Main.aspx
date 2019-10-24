@@ -10,13 +10,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
         <!--import JS and CSS file -->
-
+<!--
         <script  type="text/javascript" src="/IncomeStatement/WebData/BundleResult/Main/IS_20191024_min_v1.js"></script>
         <link rel="stylesheet" href="/IncomeStatement/WebData/BundleResult/Main/IS_20191024_min_v1_CSS.css" />
-<!--
+-->
         <script  type="text/javascript" src="http://localhost:8080/JsFile/Internal/Main/IS_20191024_min_v1.js"></script>
         <link rel="stylesheet" href="http://localhost:8080/JsFile/Internal/Main/IS_20191024_min_v1_CSS.css" />
--->
+
     </head>
     <body>
         <div id="vue-instance">
@@ -35,7 +35,14 @@
                     </div>
 
                     <b-collapse v-model="item.isShowChild" :id="`collaspe_${item.key}`">
-                        <ul class="submenuUL">
+                        <ul class="submenuUL" v-if="item.key === `reportPage`">
+                            <li
+                                v-for="submenu in supportSubMenu(item.key)"
+                                class="button"
+                                @click="openReport(submenu.key)"
+                            >{{submenu.text}}</li>
+                        </ul>
+                        <ul class="submenuUL" v-else>
                             <li
                                 v-for="submenu in supportSubMenu(item.key)"
                                 class="button"
@@ -75,7 +82,7 @@
     margin: 0px 0px 0px 16px;
     font-size: 15px;
     border-bottom: 1px solid rgba(0,0,0,0.1);
-    width: 25%;
+    width: 20%;
     height: 100px;
     position: absolute;
 }

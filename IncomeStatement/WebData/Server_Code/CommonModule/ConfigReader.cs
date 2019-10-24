@@ -46,6 +46,7 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 		{
 			DBConnection,
 			Connection,
+			Report,
 		}
 		#endregion
 
@@ -57,6 +58,8 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 					return "dbConnection.json";
 				case Config.Connection:
 					return "connection.json";
+				case Config.Report:
+					return "report.json";
 			}
 
 			return string.Empty;
