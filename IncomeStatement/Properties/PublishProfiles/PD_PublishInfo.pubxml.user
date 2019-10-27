@@ -13,10 +13,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/03/2019 11:17:34</publishTime>
     </File>
     <File Include="bin/IncomeStatement.dll">
-      <publishTime>10/24/2019 01:10:30</publishTime>
+      <publishTime>10/27/2019 17:36:02</publishTime>
     </File>
     <File Include="bin/IncomeStatement.pdb">
-      <publishTime>10/24/2019 01:10:30</publishTime>
+      <publishTime>10/27/2019 17:36:02</publishTime>
     </File>
     <File Include="bin/jose-jwt.dll">
       <publishTime>06/21/2017 19:57:54</publishTime>
@@ -40,16 +40,16 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/03/2019 11:17:30</publishTime>
     </File>
     <File Include="Login.html">
-      <publishTime>10/24/2019 01:09:11</publishTime>
+      <publishTime>10/27/2019 17:35:59</publishTime>
     </File>
     <File Include="Main.aspx">
-      <publishTime>10/24/2019 01:08:39</publishTime>
+      <publishTime>10/27/2019 17:35:41</publishTime>
     </File>
     <File Include="packages.config">
       <publishTime>06/03/2019 11:17:30</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>06/03/2019 11:17:30</publishTime>
+      <publishTime>10/25/2019 00:16:44</publishTime>
     </File>
     <File Include="WebData/BundleResult/Login/IS_20190901_min_v1.js">
       <publishTime>09/01/2019 22:18:56</publishTime>
@@ -123,6 +123,12 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="WebData/BundleResult/Login/IS_20191024_min_v1_CSS.css">
       <publishTime>10/24/2019 01:08:45</publishTime>
     </File>
+    <File Include="WebData/BundleResult/Login/IS_20191027_min_v1.js">
+      <publishTime>10/27/2019 17:32:44</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Login/IS_20191027_min_v1_CSS.css">
+      <publishTime>10/27/2019 17:32:44</publishTime>
+    </File>
     <File Include="WebData/BundleResult/Main/IS_20190901_min_v1.js">
       <publishTime>09/01/2019 22:18:56</publishTime>
     </File>
@@ -195,11 +201,20 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="WebData/BundleResult/Main/IS_20191024_min_v1_CSS.css">
       <publishTime>10/24/2019 01:08:45</publishTime>
     </File>
+    <File Include="WebData/BundleResult/Main/IS_20191027_min_v1.js">
+      <publishTime>10/27/2019 17:32:44</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Main/IS_20191027_min_v1_CSS.css">
+      <publishTime>10/27/2019 17:32:44</publishTime>
+    </File>
     <File Include="WebData/ConfigFile/connection.json">
       <publishTime>08/27/2019 22:47:14</publishTime>
     </File>
     <File Include="WebData/ConfigFile/dbConnection.json">
       <publishTime>09/01/2019 14:21:47</publishTime>
+    </File>
+    <File Include="WebData/ConfigFile/report.json">
+      <publishTime>10/25/2019 00:20:57</publishTime>
     </File>
     <File Include="WebData/CSS/External/googlefont.css">
       <publishTime>08/28/2019 00:12:06</publishTime>
@@ -278,6 +293,9 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     </File>
     <File Include="WebData/Server_Code/S_SubjectData.aspx">
       <publishTime>09/01/2019 15:51:36</publishTime>
+    </File>
+    <File Include="WebData/Server_Code/S_Tableau.aspx">
+      <publishTime>10/25/2019 00:10:41</publishTime>
     </File>
   </ItemGroup>
 </Project>

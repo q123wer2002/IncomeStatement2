@@ -19,8 +19,9 @@
         ></b-form-input>
       </div>
       <b-button-group class="my-3 float-sm-right" size="sm">
-        <b-button variant="info" @click="openUploader">
-          資料匯入
+        <b-button variant="info" @click="openUploader" :disabled="isImporting">
+          <b-spinner small v-if="isImporting"></b-spinner>
+          <span v-else>資料匯入</span>
         </b-button>
         <b-button
           variant="info"
@@ -141,7 +142,7 @@ import StaticPayment from './PortPackage/StaticPayment.vue';
 import FamilyMember from './PortPackage/FamilyMember.vue';
 
 export default {
-  /* eslint-disable no-undef, no-param-reassign, camelcase, no-restricted-globals */
+  /* eslint-disable no-undef, no-param-reassign, camelcase, no-restricted-globals, no-await-in-loop */
   name: 'PortCardMaintain',
   components: {
     Selector,
@@ -161,6 +162,7 @@ export default {
 
       queryObject: {},
       isSelectAll: false,
+      isImporting: false,
 
       fields: [],
       items: [],
@@ -246,6 +248,7 @@ export default {
           return;
         }
 
+        this.isImporting = true;
         const dataArray = fileTxt
           .split(`\n`)
           .slice(1)
@@ -273,7 +276,8 @@ export default {
                   0,
                   dataSubData[startIdx].length - 1
                 )}`;
-                tempArray.push(tempData);
+                // console.log(parseInt(tempData.replace(',', ''), 10));
+                tempArray.push(JSON.parse(JSON.stringify(tempData)));
 
                 tempData = ``;
                 isMerge = false;
@@ -298,7 +302,7 @@ export default {
               tempArray[3],
               5
             )}${this.parseToEnoughDigital(tempArray[4], 3)}`;
-            console.log(tempArray);
+
             return {
               fam: {
                 ie_year: tempArray[0],
@@ -389,7 +393,9 @@ export default {
                 adi_user: tempArray[118],
                 sor_user: tempArray[119],
                 rec_user: tempArray[120],
-                fam_remark: tempArray[121].replace(`'`, `''`),
+                fam_remark: tempArray[121]
+                  ? tempArray[121].replace(`'`, `''`)
+                  : '',
                 tutoring: tempArray[123],
                 hou_tax: isNaN(parseInt(tempArray[124], 10))
                   ? 0
@@ -442,9 +448,40 @@ export default {
           })
           .filter(obj => Object.keys(obj).length > 0);
 
-        // import into database
-        await this.updateCoFamData(dataArray.map(obj => obj.fam));
-        await this.updateCoFamMemData(dataArray.map(obj => obj.fammem));
+        let isSuccess;
+        let startIdx = 0;
+        let importData = [];
+        const importNum = 150;
+        while (startIdx <= dataArray.length) {
+          const endIdx =
+            dataArray.length < startIdx + importNum
+              ? dataArray.length
+              : startIdx + importNum;
+          importData = dataArray.slice(startIdx, endIdx);
+
+          // import into database
+          isSuccess = await this.updateCoFamData(
+            importData.map(obj => obj.fam),
+            false
+          );
+          isSuccess = await this.updateCoFamMemData(
+            importData.map(obj => obj.fammem),
+            false
+          );
+
+          if (isSuccess === false) {
+            break;
+          }
+          startIdx += importNum;
+        }
+        if (isSuccess === false) {
+          alert('儲存失敗');
+          this.isImporting = false;
+          return;
+        }
+
+        alert('儲存成功');
+        this.isImporting = false;
       };
 
       if (inputFiles.files.length === 0) {
@@ -939,7 +976,7 @@ export default {
 
       this.$refs.domModal.hide();
     },
-    async updateCoFamMemData(data) {
+    async updateCoFamMemData(data, isNeed2ShowMsg = true) {
       const { fam_no } = data[0];
       const filteredItems = this.memItems.filter(obj => obj.fam_no === fam_no);
 
@@ -960,20 +997,27 @@ export default {
       if (deleteItems.length > 0) {
         isSuccess = await this.deleteFamMemData(deleteItems);
         if (isSuccess === false) {
-          alert('儲存失敗');
-          return;
+          if (isNeed2ShowMsg) {
+            alert('儲存失敗');
+          }
+          return false;
         }
       }
 
       if (updateItems.length > 0 || insertItems.length > 0) {
         isSuccess = await this.updateFamMemData(updateItems, insertItems);
         if (isSuccess === false) {
-          alert('儲存失敗');
-          return;
+          if (isNeed2ShowMsg) {
+            alert('儲存失敗');
+          }
+          return false;
         }
       }
 
-      alert(`儲存成功`);
+      if (isNeed2ShowMsg) {
+        alert(`儲存成功`);
+      }
+      return true;
     },
     async updateFamMemData(updateItems, insertItems) {
       const resObject = await this.mixinCallBackService(
@@ -1019,7 +1063,7 @@ export default {
 
       return true;
     },
-    async updateCoFamData(data) {
+    async updateCoFamData(data, isNeed2ShowMsg = true) {
       const resObject = await this.mixinCallBackService(
         this.mixinBackendService.familyData,
         {
@@ -1029,8 +1073,10 @@ export default {
       );
 
       if (resObject.status !== this.mixinBackendErrorCode.success) {
-        alert(`儲存失敗`);
-        return;
+        if (isNeed2ShowMsg) {
+          alert(`儲存失敗`);
+        }
+        return false;
       }
 
       // update local var
@@ -1040,7 +1086,10 @@ export default {
         this.$set(this.items, famIdx, data);
       }
 
-      alert(`儲存成功`);
+      if (isNeed2ShowMsg) {
+        alert(`儲存成功`);
+      }
+      return true;
     },
   },
   created() {
@@ -1086,7 +1135,7 @@ export default {
       },
     },
   },
-  /* eslint-disable no-undef, no-param-reassign, camelcase, no-restricted-globals */
+  /* eslint-disable no-undef, no-param-reassign, camelcase, no-restricted-globals, no-await-in-loop */
 };
 </script>
 

@@ -190,7 +190,7 @@ namespace IncomeStatement.WebData.Server_Code
 		}
 		dynamic GetCheckTime()
 		{
-			string szSQL = $"SELECT DISTINCT chk_date FROM {TableName.CoExpAudit} WHERE chk_user='{m_szUserCode}'";
+			string szSQL = $"SELECT DISTINCT chk_date, ie_year, ie_mon FROM {TableName.CoExpAudit} WHERE chk_user='{m_szUserCode}'";
 			JArray jResult;
 			m_mssql.TryQuery(szSQL, out jResult);
 			return jResult;

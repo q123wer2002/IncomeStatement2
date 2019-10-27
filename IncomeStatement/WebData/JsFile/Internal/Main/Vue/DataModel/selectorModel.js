@@ -391,6 +391,7 @@ export const dataCheckerModel = [
         return value > 0 || value.length > 0;
       },
     },
+    action: 'refreshCheckTime',
     required: true,
   },
   {
@@ -427,14 +428,7 @@ export const dataCheckerModel = [
       num: ``,
     },
     source: {
-      num: {
-        type: `dynamic`,
-        api: `dataChecker`,
-        payload: {
-          Action: `GETCHECKTIME`,
-        },
-        key: `chk_date`,
-      },
+      num: [],
     },
     valid: {
       num: value => {

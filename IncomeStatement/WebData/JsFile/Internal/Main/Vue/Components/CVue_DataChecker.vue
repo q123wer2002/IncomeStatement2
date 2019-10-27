@@ -5,7 +5,6 @@
       :isDataCheckBtn="true"
       :filterModel="selectorModel"
       @search="searchEvent"
-      @checkData="startCheck"
     ></selector>
 
     <div id="tableData">
@@ -155,25 +154,6 @@ export default {
       }
 
       this.items = resObject.data || [];
-    },
-    async startCheck() {
-      const resObject = await this.mixinCallBackService(
-        this.mixinBackendService.dataChecker,
-        {
-          Action: `CHECK`,
-          ...this.queryObject,
-        }
-      );
-
-      if (
-        resObject.status !== this.mixinBackendErrorCode.success ||
-        resObject.data === false
-      ) {
-        alert(`資料檢誤失敗`);
-        return;
-      }
-
-      alert(`資料檢誤成功`);
     },
     exportResult() {
       const checkeddData = this.items;

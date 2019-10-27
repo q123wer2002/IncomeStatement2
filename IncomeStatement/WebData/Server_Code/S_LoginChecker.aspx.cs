@@ -41,10 +41,10 @@ namespace IncomeStatement.WebData.Server_Code
 					if( jUserInfo[ "account" ][ "exp_date" ] != null && jUserInfo[ "account" ][ "exp_date" ].ToString().Length > 0 ) {
 						DateTime dtExpire = DateTime.Parse(jUserInfo[ "account" ][ "exp_date" ].ToString());
 						TimeSpan tDiff = (dtExpire - DateTime.Now);
-						if( tDiff.TotalMilliseconds < 0 ) {
+						if( tDiff.TotalDays < -1 ) {
 							aErrorCode = AccountErrorCode.accountExpired;
 						}
-						else if( tDiff.TotalDays <= 7 ) {
+						else if( tDiff.TotalDays <= 30 ) {
 							aErrorCode = AccountErrorCode.tobeExpired;
 							jReturnMsg[ "expiredDate" ] = dtExpire.ToShortDateString();
 						}

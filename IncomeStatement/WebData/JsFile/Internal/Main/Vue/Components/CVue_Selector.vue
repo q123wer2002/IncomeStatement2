@@ -21,6 +21,7 @@
             :options="item.source[typeKey]"
             class="d-inline w-25 h-10"
             size="sm"
+            @change="onchanged(typeKey)"
           ></b-form-select>
 
           <template v-else>
@@ -105,6 +106,8 @@ export default {
     return {
       isAddEnabled: false,
       items: [],
+      sourceCheckTime: [],
+      filteredCheckTime: [],
     };
   },
   methods: {
@@ -139,7 +142,7 @@ export default {
 
             if (resObject.status === this.mixinBackendErrorCode.success) {
               obj.source[tempObj] = resObject.data
-                ? resObject.data.map(apiObj => apiObj[key])
+                ? resObject.data.map(apiObj => apiObj[key]).sort()
                 : [];
             }
           }
@@ -151,9 +154,18 @@ export default {
         });
       });
     },
-    initialFilterItem() {
+    async initialFilterItem() {
       // key, text, type, value, source
       this.items = this.filterModel;
+
+      if (this.isDataCheckBtn === true) {
+        await this.refreshCkeckDate();
+      }
+    },
+    onchanged(key) {
+      if (this.isDataCheckBtn && [`year`, `month`].includes(key)) {
+        this.refreshCheckTime();
+      }
     },
     search() {
       const itemValueObj = this.items.reduce((tempObj, itemObj) => {
@@ -168,9 +180,95 @@ export default {
       this.search();
       this.$emit(`additem`);
     },
-    onCheckData() {
-      this.search();
-      this.$emit(`checkData`);
+    async onCheckData() {
+      // this.search();
+      const dateObj = this.items.find(obj => obj.key === 'date');
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.dataChecker,
+        {
+          Action: `CHECK`,
+          Year: dateObj.value.year,
+          Month: dateObj.value.month,
+        }
+      );
+
+      if (
+        resObject.status !== this.mixinBackendErrorCode.success ||
+        resObject.data === false
+      ) {
+        alert(`資料檢誤失敗`);
+        return;
+      }
+
+      const currentCount = this.filteredCheckTime.length;
+      const maxTimes = 10;
+      let doTimes = 1;
+      const checkInterval = setInterval(async () => {
+        if (
+          currentCount === this.filteredCheckTime.length &&
+          maxTimes > doTimes
+        ) {
+          await this.refreshCkeckDate();
+        } else {
+          clearInterval(checkInterval);
+        }
+
+        doTimes += 1;
+      }, 1000);
+      alert(`資料檢誤成功`);
+    },
+    async refreshCkeckDate() {
+      const resObject = await this.mixinCallBackService(
+        this.mixinBackendService.dataChecker,
+        {
+          Action: `GETCHECKTIME`,
+        }
+      );
+
+      if (resObject.status === this.mixinBackendErrorCode.success) {
+        this.sourceCheckTime = resObject.data || [];
+        this.refreshCheckTime();
+      }
+    },
+    refreshCheckTime() {
+      const dateObj = this.items.find(obj => obj.key === 'date');
+      const { year, month } = dateObj.value;
+      const resultArray = this.sourceCheckTime
+        .filter(obj => {
+          return (
+            parseInt(obj.ie_year, 10) === parseInt(year, 10) &&
+            parseInt(obj.ie_mon, 10) === parseInt(month, 10)
+          );
+        })
+        .map(obj => {
+          return {
+            value: obj.chk_date,
+            text: obj.chk_date,
+          };
+        })
+        .sort((a, b) => {
+          const dtA = new Date(a.value);
+          const dtB = new Date(b.value);
+          if (dtA > dtB) {
+            return -1;
+          }
+
+          if (dtA < dtB) {
+            return 1;
+          }
+
+          return 0;
+        });
+
+      const ckObj = this.items.find(obj => obj.key === 'checktime');
+      ckObj.source.num = [
+        {
+          text: ``,
+          value: ``,
+        },
+        ...resultArray,
+      ];
+      ckObj.source.isRefresh = true;
     },
   },
   created() {},
@@ -178,7 +276,7 @@ export default {
     await this.preProcessModel();
 
     // check filer model
-    this.initialFilterItem();
+    await this.initialFilterItem();
   },
   computed: {
     ...mapState(['paramArray']),

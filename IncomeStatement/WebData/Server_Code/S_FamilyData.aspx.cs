@@ -323,7 +323,7 @@ namespace IncomeStatement.WebData.Server_Code
 			for( int i = 0; i < jDataList.Count; i++ ) {
 				JObject jData = jDataList[ i ];
 				string szWhere = $"{TableName.CoFam}.ie_year='{jData[ "ie_year" ].ToString()}' " +
-					$"AND {TableName.CoFam}.ie_mon='{jData[ "ie_mon" ].ToString()}' " +
+					$"AND {TableName.CoFam}.ie_mon='{ParseTwoDigital(jData[ "ie_mon" ].ToString())}' " +
 					$"AND {TableName.CoFam}.fam_no='{jData[ "fam_no" ].ToString()}' ";
 
 				// select once

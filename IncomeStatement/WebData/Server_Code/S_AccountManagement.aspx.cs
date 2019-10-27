@@ -167,21 +167,13 @@ namespace IncomeStatement.WebData.Server_Code
 			string szEndDate = jUser[ "end_date" ].ToString().Length == 0 ? dtStart.AddYears(2).ToString("yyyy-MM-dd") : jUser[ "end_date" ].ToString();
 
 			// select once
+			int nExtendDays = GetPwdExtendDays();
+			string szPwdExpiredDatetime = DateTime.Now.AddDays(nExtendDays).ToString("yyyy-MM-dd");
 			JArray jTempUser;
 			m_mssql.TryQuery($"SELECT * FROM {TableName.CoSysAuth} WHERE login_id='{jUser[ "login_id" ].ToString()}'", out jTempUser);
 			if( jTempUser.Count == 1 ) {
 				// means update
 				if( bool.Parse(Request.Form[ Param.ResetPWD ].ToString()) ) {
-					// extend account
-					JArray jExtendDays;
-					int nExtendDays = 30;
-					if(
-						m_mssql.TryQuery($"SELECT * FROM {TableName.CoParam} WHERE par_typ='PWD' AND par_no='P002'", out jExtendDays) &&
-						jExtendDays.Count > 0
-					) {
-						nExtendDays = int.Parse(jExtendDays[ 0 ][ "par_val" ].ToString());
-					}
-
 					// check pwd
 					string szNewPwd = jUser[ "pwd" ].ToString();
 					JObject jData = (JObject)jTempUser[ 0 ];
@@ -197,7 +189,7 @@ namespace IncomeStatement.WebData.Server_Code
 					// reset
 					if( m_mssql.TryQuery($"UPDATE {TableName.CoSysAuth} " +
 						$"SET pwd='{jUser[ "pwd" ].ToString()}', " +
-						$"exp_date='{DateTime.Now.AddDays(nExtendDays).ToString("yyyy-MM-dd")}' " +
+						$"exp_date='{szPwdExpiredDatetime}' " +
 						$"WHERE login_id='{jUser[ "login_id" ].ToString()}'", out szErrorMsg) == false ) {
 						return szErrorMsg;
 					}
@@ -231,8 +223,9 @@ namespace IncomeStatement.WebData.Server_Code
 				}
 			}
 			else {
+
 				// co_sys_auth
-				if( m_mssql.TryQuery($"INSERT INTO {TableName.CoSysAuth} VALUES ('{jUser[ "login_id" ].ToString()}', '{jUser[ "pwd" ].ToString()}', 0, '{jUser[ "role" ].ToString()}', '{jUser[ "login_id" ].ToString()}', '{jUser[ "state" ].ToString()}', '{jUser[ "start_date" ].ToString()}', '{szEndDate}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)", out szErrorMsg) == false ) {
+				if( m_mssql.TryQuery($"INSERT INTO {TableName.CoSysAuth} VALUES ('{jUser[ "login_id" ].ToString()}', '{jUser[ "pwd" ].ToString()}', 0, '{jUser[ "role" ].ToString()}', '{jUser[ "login_id" ].ToString()}', '{jUser[ "state" ].ToString()}', '{jUser[ "start_date" ].ToString()}', '{szEndDate}', NULL, '{szPwdExpiredDatetime}', NULL, NULL, NULL, NULL, NULL, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)", out szErrorMsg) == false ) {
 					return szErrorMsg;
 				}
 
@@ -261,6 +254,20 @@ namespace IncomeStatement.WebData.Server_Code
 
 			isSuccess = true;
 			return null;
+		}
+		int GetPwdExtendDays()
+		{
+			// extend account
+			JArray jExtendDays;
+			int nExtendDays = 30;
+			if(
+				m_mssql.TryQuery($"SELECT * FROM {TableName.CoParam} WHERE par_typ='PWD' AND par_no='P002'", out jExtendDays) &&
+				jExtendDays.Count > 0
+			) {
+				nExtendDays = int.Parse(jExtendDays[ 0 ][ "par_val" ].ToString());
+			}
+
+			return nExtendDays;
 		}
 
 		enum ApiAction
