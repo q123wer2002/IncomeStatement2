@@ -220,7 +220,7 @@ namespace IncomeStatement.WebData.Server_Code
 				szOtherSetting = $", adi_user='{szUserCode}', adi_name='{szUserName}'";
 			}
 			string szUpdateCoFam = $"UPDATE {TableName.CoFam} " +
-				$"SET state={(int)state}{szOtherSetting} upd_date=CURRENT_TIMESTAMP, upd_user='{szUserCode}'" +
+				$"SET state={(int)state}{szOtherSetting}, upd_date=CURRENT_TIMESTAMP, upd_user='{szUserCode}' " +
 				$"WHERE {szWhere}";
 			bool isSuccess = m_mssql.TryQuery(szUpdateCoFam, out szErrorMsg);
 			if( isSuccess == false ) {

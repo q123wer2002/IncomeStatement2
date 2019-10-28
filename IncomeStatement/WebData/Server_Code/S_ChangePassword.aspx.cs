@@ -85,6 +85,7 @@ namespace IncomeStatement.WebData.Server_Code
 				$"pwd2={pwd2}, " +
 				$"pwd3={pwd3}, " +
 				$"exp_date='{DateTime.Now.AddDays(nExtendDays).ToString("yyyy-MM-dd")}', " +
+				$"chg_pwd=NULL, " + 
 				$"upd_date=CURRENT_TIMESTAMP, upd_user='{m_szUserId}' " +
 				$"WHERE user_id='{m_szUserId}'", out szErrorMsg);
 

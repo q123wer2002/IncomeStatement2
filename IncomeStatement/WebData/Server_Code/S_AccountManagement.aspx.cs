@@ -225,7 +225,7 @@ namespace IncomeStatement.WebData.Server_Code
 			else {
 
 				// co_sys_auth
-				if( m_mssql.TryQuery($"INSERT INTO {TableName.CoSysAuth} VALUES ('{jUser[ "login_id" ].ToString()}', '{jUser[ "pwd" ].ToString()}', 0, '{jUser[ "role" ].ToString()}', '{jUser[ "login_id" ].ToString()}', '{jUser[ "state" ].ToString()}', '{jUser[ "start_date" ].ToString()}', '{szEndDate}', NULL, '{szPwdExpiredDatetime}', NULL, NULL, NULL, NULL, NULL, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)", out szErrorMsg) == false ) {
+				if( m_mssql.TryQuery($"INSERT INTO {TableName.CoSysAuth} VALUES ('{jUser[ "login_id" ].ToString()}', '{jUser[ "pwd" ].ToString()}', 0, '{jUser[ "role" ].ToString()}', '{jUser[ "login_id" ].ToString()}', '{jUser[ "state" ].ToString()}', '{jUser[ "start_date" ].ToString()}', '{szEndDate}', NULL, '{szPwdExpiredDatetime}', 'Y', NULL, NULL, NULL, NULL, CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL)", out szErrorMsg) == false ) {
 					return szErrorMsg;
 				}
 

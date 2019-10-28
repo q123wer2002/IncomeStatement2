@@ -5,12 +5,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-    <script type="text/javascript" src="/IncomeStatement/WebData/BundleResult/Login/IS_20191027_min_v1.js"></script>
-    <link rel="stylesheet" href="/IncomeStatement/WebData/BundleResult/Login/IS_20191027_min_v1_CSS.css" />
+    <script type="text/javascript" src="/IncomeStatement/WebData/BundleResult/Login/IS_20191029_min_v1.js"></script>
+    <link rel="stylesheet" href="/IncomeStatement/WebData/BundleResult/Login/IS_20191029_min_v1_CSS.css" />
     <!--
-    <script type="text/javascript" src="http://localhost:8080/JsFile/Internal/Login/IS_20191027_min_v1.js"></script>
-    <link rel="stylesheet" href="http://localhost:8080/JsFile/Internal/Login/IS_20191027_min_v1.css" />
-        -->
+        <script type="text/javascript" src="http://localhost:8080/JsFile/Internal/Login/IS_20191029_min_v1.js"></script>
+        <link rel="stylesheet" href="http://localhost:8080/JsFile/Internal/Login/IS_20191029_min_v1_CSS.css" />
+    -->
 </head>
         <body>
             <div id="vue_instance">
@@ -22,7 +22,7 @@
                     <b-form-input
                       id="input-account"
                       v-model="userInput.account"
-                      type="email"
+                      type="text"
                       required
                       placeholder="帳號"
                     ></b-form-input>
@@ -37,7 +37,7 @@
                     ></b-form-input>
                     <br />
                     <b-form-input
-                      id="input-password"
+                      id="input-validCode"
                       v-model="userInput.validCode"
                       required
                       placeholder="輸入驗證碼"
@@ -55,6 +55,9 @@
                 </div>
                 <div id="bgPic"></div>
                 <div id="bottomBanner"></div>
+                <b-modal ref="changePasswordDiv" size="xl" hide-footer hide-header>
+                   <change-password @confirm="changePwdAction"></change-password> 
+                </b-modal>
             </div>
         </body>
     </html>

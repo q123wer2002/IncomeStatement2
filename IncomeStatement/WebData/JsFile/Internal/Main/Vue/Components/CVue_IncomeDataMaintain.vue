@@ -268,8 +268,14 @@ export default {
             return this.parseDataToStructure(dataString);
           });
 
+          console.log(structuredData);
+
           // divide by fam_no, and day
           const famDayObj = structuredData.reduce((tempObj, obj) => {
+            if (!obj) {
+              return tempObj;
+            }
+
             const famNo = obj.fam_no;
             const day = obj.ie_day;
 
@@ -513,10 +519,13 @@ export default {
     // default load last month data
     const dtcurrent = new Date();
     dtcurrent.setMonth(dtcurrent.getMonth() - 1);
-    await this.queryIncomeStateData({
-      Year: dtcurrent.getFullYear() - 1911,
-      Month: dtcurrent.getMonth() + 1,
-    });
+    const year = dtcurrent.getFullYear() - 1911;
+    const month = dtcurrent.getMonth() + 1;
+
+    this.queryObject.Year = year;
+    this.queryObject.Month = month;
+
+    await this.queryIncomeStateData(this.queryObject);
   },
   computed: {
     statusToString() {
@@ -529,14 +538,20 @@ export default {
         return false;
       }
 
-      return this.selected.every(obj => obj.state === `1`);
+      return (
+        this.selected.every(obj => obj.state === `1`) &&
+        ['A', 'B', 'C'].includes(this.mixinGetCookie('UserRole'))
+      );
     },
     enabledReview() {
       if (this.selected.length === 0) {
         return false;
       }
 
-      return this.selected.every(obj => obj.state === `2`);
+      return (
+        this.selected.every(obj => obj.state === `2`) &&
+        ['A', 'C'].includes(this.mixinGetCookie('UserRole'))
+      );
     },
     isSelectedItems() {
       if (this.selected.length === 0) {

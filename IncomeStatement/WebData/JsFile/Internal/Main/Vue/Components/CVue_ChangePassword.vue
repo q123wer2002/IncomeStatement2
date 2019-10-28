@@ -121,6 +121,7 @@ export default {
       );
 
       if (resObject.status !== this.mixinBackendErrorCode.success) {
+        this.$emit('confirm', false);
         alert(resObject.data);
         return;
       }
@@ -129,6 +130,8 @@ export default {
       this.newPwd = ``;
       this.newPwd2 = ``;
       alert(`變更成功`);
+
+      this.$emit('confirm', true);
     },
   },
   created() {},

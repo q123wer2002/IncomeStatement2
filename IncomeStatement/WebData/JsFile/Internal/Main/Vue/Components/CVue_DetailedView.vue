@@ -437,7 +437,7 @@ export default {
     placeList() {
       return this.paramArray
         .filter(obj => obj.par_typ === `A`)
-        .map(obj => obj.par_no)
+        .map(obj => `${obj.par_no} ${obj.par_name}`)
         .sort((aNo, bNo) => {
           const a = parseInt(aNo, 10);
           const b = parseInt(bNo, 10);

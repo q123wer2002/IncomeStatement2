@@ -6,6 +6,7 @@ import vueStore from '../Vuex/Vuex_GlobalStore';
 import '../Mixins/Vue_GlobalMixins.js';
 
 import ValidCode from '../Components/CVue_ValidCode.vue';
+import ChangePassword from '../../../Main/Vue/Components/CVue_ChangePassword.vue';
 
 const sha256 = require('js-sha256');
 
@@ -16,11 +17,12 @@ function IVueInitalLogin() {
   let _Instance = null;
   this.Intital = () => {
     _Instance = new Vue({
-      /* eslint-disable no-undef no-param-reassign */
+      /* eslint-disable no-undef no-param-reassign, no-restricted-globals */
       store: vueStore,
       el: '#vue_instance',
       components: {
         ValidCode,
+        ChangePassword,
       },
       data: {
         userInput: {
@@ -92,6 +94,9 @@ function IVueInitalLogin() {
             case 0:
               loginInfo.isSuccess = true;
               break;
+            case 1: // change password
+              this.$refs.changePasswordDiv.show();
+              break;
             case 2:
               loginInfo.isSuccess = true;
               loginInfo.message = `帳號即將於 ${
@@ -115,6 +120,13 @@ function IVueInitalLogin() {
 
           return loginInfo;
         },
+        changePwdAction(result) {
+          if (result === false) {
+            return;
+          }
+
+          location.reload(true);
+        },
       },
       created() {},
       async mounted() {
@@ -124,7 +136,7 @@ function IVueInitalLogin() {
         const ipInfo = await this.mixinGetIpInfo();
         this.ip = ipInfo == null ? `` : ipInfo.ip;
       },
-      /* eslint-disable no-undef no-param-reassign */
+      /* eslint-disable no-undef no-param-reassign, no-restricted-globals */
     });
   };
   this._getColsure = () => {
