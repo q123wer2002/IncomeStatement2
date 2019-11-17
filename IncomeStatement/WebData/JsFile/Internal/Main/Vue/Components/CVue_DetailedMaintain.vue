@@ -213,10 +213,10 @@ export default {
             this.items.filter(item => item.ie_day === dataObj.ie_day)
           )
         );
-        const { day_rem } = this.coExpMitems.find(
+        const expObject = this.coExpMitems.find(
           obj => obj.ie_day === dataObj.ie_day
         );
-        this.passRemark = day_rem;
+        this.passRemark = expObject === undefined ? '' : expObject.day_rem;
       } else {
         const { Year, Month, FamNo } = this.queryObject;
         this.detailedData = [];
@@ -290,6 +290,9 @@ export default {
       if (updateItems.length > 0 || insertItems.length > 0) {
         await this.saveItems(updateItems, insertItems, remark, totalCost);
       }
+
+      // reload
+      await this.queryDetailedData(this.queryObject);
 
       this.$refs.domModal.hide();
     },

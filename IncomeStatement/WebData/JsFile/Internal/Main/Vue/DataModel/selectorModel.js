@@ -1,3 +1,15 @@
+const fnGetYearOpts = () => {
+  const startYear = 103 + 1911;
+  const curtYear = new Date().getFullYear();
+  const yearOpts = [];
+
+  for (let i = startYear; i <= curtYear; i++) {
+    yearOpts.push(i);
+  }
+
+  return yearOpts.map(year => year - 1911);
+};
+
 export const incomeDataModel = [
   {
     key: `date`,
@@ -11,7 +23,7 @@ export const incomeDataModel = [
       month: 7,
     },
     source: {
-      year: [106, 107, 108].map(year => {
+      year: fnGetYearOpts().map(year => {
         return {
           value: year,
           text: `${year}年`,
@@ -183,7 +195,7 @@ export const detailedModel = [
       month: 7,
     },
     source: {
-      year: [106, 107, 108].map(year => {
+      year: fnGetYearOpts().map(year => {
         return {
           value: year,
           text: `${year}年`,
@@ -370,7 +382,7 @@ export const dataCheckerModel = [
       month: 7,
     },
     source: {
-      year: [106, 107, 108].map(year => {
+      year: fnGetYearOpts().map(year => {
         return {
           value: year,
           text: `${year}年`,
@@ -483,7 +495,7 @@ export const portPackageModel = [
       month: 7,
     },
     source: {
-      year: [106, 107, 108].map(year => {
+      year: fnGetYearOpts().map(year => {
         return {
           value: year,
           text: `${year}年`,

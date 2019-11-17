@@ -399,6 +399,8 @@ namespace IncomeStatement.WebData.Server_Code
 					$"AND {TableName.CoFamMem}.fam_no='{jData[ "fam_no" ].ToString()}' " +
 					$"AND {TableName.CoFamMem}.mem_no='{jData[ "mem_no" ].ToString()}' ";
 
+				List<string> Add0Keys = new List<string>() { "bir_mon", "edu_no" };
+
 				// select once
 				JArray jResult;
 				m_mssql.TryQuery($"SELECT * FROM {TableName.CoFamMem} WHERE {szWhere}", out jResult);
@@ -407,7 +409,22 @@ namespace IncomeStatement.WebData.Server_Code
 					jData[ "crt_date" ] = "CURRENT_TIMESTAMP";
 					jData[ "crt_user" ] = m_szUserCode;
 					jData[ "ie_mon" ] = ParseTwoDigital(jData[ "ie_mon" ].ToString());
-					isSuccess = m_mssql.TryQuery($"INSERT INTO {TableName.CoFamMem} ({string.Join(", ", jData.Properties().Select(p => p.Name).ToList())}) VALUES ({string.Join(", ", jData.Properties().Select(p => p.Value.ToString() == "CURRENT_TIMESTAMP" ? "CURRENT_TIMESTAMP" : p.Value.ToString().Length == 0 || p.Value.ToString() == "\r" ? "NULL" : $"'{p.Value}'").ToList())})", out szErrorMsg);
+					isSuccess = m_mssql.TryQuery($@"
+						INSERT INTO {TableName.CoFamMem} ({string.Join(", ", jData.Properties().Select(p => p.Name).ToList())}) 
+						VALUES ({
+							string.Join(
+								", ",
+								jData.Properties().Select(
+									p => p.Value.ToString() == "CURRENT_TIMESTAMP"
+										? "CURRENT_TIMESTAMP"
+										: p.Value.ToString().Length == 0 || p.Value.ToString() == "\r"
+											? "NULL"
+											: Add0Keys.Contains(p.Name)
+												? $"'{ParseTwoDigital(p.Value.ToString())}'"
+												: $"'{p.Value}'"
+								).ToList()
+							)
+						}) ", out szErrorMsg);
 				}
 				else {
 					List<string> keys = jData.Properties().Select(p => p.Name).ToList();
@@ -419,7 +436,14 @@ namespace IncomeStatement.WebData.Server_Code
 							continue;
 						}
 						string szKey = keys[ j ];
-						string szValue = jData[ keys[ j ] ].ToString().Length == 0 ? "NULL" : $"'{jData[ keys[ j ] ].ToString()}'";
+						string szValue;
+
+						if( Add0Keys.Contains(szKey) ) {
+							szValue = jData[ keys[ j ] ].ToString().Length == 0 ? "NULL" : $"'{ParseTwoDigital(jData[ keys[ j ] ].ToString())}'";
+						}
+						else {
+							szValue = jData[ keys[ j ] ].ToString().Length == 0 ? "NULL" : $"'{jData[ keys[ j ] ].ToString()}'";
+						}
 
 						setSQLList.Add($"{szKey}={szValue}");
 					}

@@ -72,6 +72,9 @@
         <b-form-input
           v-model="data.item.place"
           @focus="onChangeSubName(data.index)"
+          @update="onChangedPlace(data.index)"
+          @keyup="onKeyUp(data.index, `place`, $event)"
+          :id="`input_${data.index}_place`"
           list="placeNoList"
         ></b-form-input>
         <datalist id="placeNoList">
@@ -84,6 +87,8 @@
         <b-form-input
           v-model="data.item.code_amt"
           @focus="onChangeSubName(data.index)"
+          @keyup="onKeyUp(data.index, `code_amt`, $event)"
+          :id="`input_${data.index}_code_amt`"
         ></b-form-input>
       </template>
       <template slot="[code_no]" slot-scope="data">
@@ -91,6 +96,8 @@
           v-model="data.item.code_no"
           @update="onCodeChanged(data.index)"
           list="subjectNolist"
+          @keyup="onKeyUp(data.index, `code_no`, $event)"
+          :id="`input_${data.index}_code_no`"
         ></b-form-input>
         <datalist id="subjectNolist">
           <option v-for="(code, index) in subjectCodeNotDuplicate" :key="index">
@@ -104,6 +111,8 @@
           list="subjectNamelist"
           @focus="changeSubjectOpts(data.item.code_no)"
           @update="onSubjectNameChanged(data.index)"
+          @keyup="onKeyUp(data.index, `code_name`, $event)"
+          :id="`input_${data.index}_code_name`"
         ></b-form-input>
         <datalist id="subjectNamelist">
           <option v-for="(name, index) in tempSubjectArray" :key="index">
@@ -248,6 +257,7 @@ export default {
             obj.ie_mon = ie_mon;
             obj.ie_day = ie_day;
             obj.fam_no = fam_no;
+            obj.place = obj.place.split(' ')[0];
           });
 
         Year = ie_year;
@@ -324,6 +334,31 @@ export default {
       }
 
       this.addItem();
+    },
+    onChangedPlace(index) {
+      this.items[index].place = this.items[index].place.split(' ')[0];
+    },
+    onKeyUp(index, name, event) {
+      const { keyCode } = event;
+      if (keyCode != 13) {
+        // only do something when press Enter
+        return;
+      }
+
+      switch(name) {
+        case 'place':
+          $(`#input_${index}_code_amt`).focus();
+          break;
+        case 'code_amt':
+          $(`#input_${index}_code_no`).focus();
+          break;
+        case 'code_no':
+          $(`#input_${index}_code_name`).focus();
+          break;
+        case 'code_name':
+          $(`#input_${index + 1}_place`).focus();
+          break;
+      }
     },
     changeSubjectOpts(codeNo) {
       if (!codeNo) {

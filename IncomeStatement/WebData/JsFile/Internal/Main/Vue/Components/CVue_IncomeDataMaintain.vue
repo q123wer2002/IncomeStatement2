@@ -106,6 +106,20 @@
         ></detailed-maintain>
       </b-modal>
     </div>
+
+    <div ref="domProgressBG" class="blackBG">
+      <b-progress
+        :max="pgbMax"
+        height="3rem"
+        style="width: 80%; margin: 20% auto 0 auto;"
+      >
+        <b-progress-bar :value="pgbValue">
+          (請不要關閉) 匯入進度:
+          <strong>{{ progress }} ({{ pgbValue }} / {{ pgbMax }})</strong>
+        </b-progress-bar>
+      </b-progress>
+    </div>
+
     <input
       type="file"
       accept="text/plain"
@@ -136,6 +150,10 @@ export default {
       detailedQueryObj: {},
       queryObject: {},
       isSelectAll: false,
+
+      // progres bar
+      pgbMax: 100,
+      pgbValue: 74,
 
       fields: [],
       items: [],
@@ -268,8 +286,6 @@ export default {
             return this.parseDataToStructure(dataString);
           });
 
-          console.log(structuredData);
-
           // divide by fam_no, and day
           const famDayObj = structuredData.reduce((tempObj, obj) => {
             if (!obj) {
@@ -291,21 +307,29 @@ export default {
             return tempObj;
           }, {});
 
+          this.showProgressBar();
+          this.pgbMax = structuredData.length;
           let isSuccess = true;
-          await Object.values(famDayObj).forEach(async obj => {
-            const insertDays = Object.values(obj);
-            for (let i = 0; i < insertDays.length; i++) {
-              const insertItems = insertDays[i];
+          for (let i = 0; i < Object.values(famDayObj).length; i++) {
+            const insertDays = Object.values(Object.values(famDayObj)[i]);
+            for (let j = 0; j < insertDays.length; j++) {
+              const insertItems = insertDays[j];
 
               // store data
               const isOk = await this.saveCoExp(insertItems);
               if (isOk === false) {
                 isSuccess = false;
               }
+
+              this.pgbValue += insertItems.length;
+              if (this.pgbValue > this.pgbMax) {
+                this.pgbValue = this.pgbMax;
+              }
             }
-          });
+          }
 
           alert(isSuccess ? `匯入成功` : `匯入失敗`);
+          this.hideProgressBar();
         });
       };
 
@@ -329,8 +353,8 @@ export default {
         code_no: dataString.substring(13, 18),
         fam_cnt: dataString.substring(21, 22),
         job_cnt: dataString.substring(22, 23),
-        job_typ_no: dataString.substring(23, 25),
-        job_no: dataString.substring(25, 27),
+        job_no: dataString.substring(23, 25),
+        job_typ_no: dataString.substring(25, 27),
         code_amt: parseInt(dataString.substring(27, 34), 10),
         item_no: dataString.substring(35, 41),
         place: dataString.substring(42, 43),
@@ -502,6 +526,15 @@ export default {
 
       return resObject.status === this.mixinBackendErrorCode.success;
     },
+    showProgressBar() {
+      $(this.$refs.domProgressBG).css('display', 'block');
+      $(this.$refs.domProgressBG).focus();
+    },
+    hideProgressBar() {
+      $(this.$refs.domProgressBG).css('display', 'none');
+      this.pgbValue = 0;
+      this.pgbMax = 0;
+    },
   },
   created() {
     this.fields = [
@@ -560,6 +593,13 @@ export default {
 
       return this.selected.length > 0;
     },
+    progress() {
+      if (this.pgbMax === 0) {
+        return '0%';
+      }
+
+      return `${Math.round((this.pgbValue / this.pgbMax) * 10000) / 100}%`;
+    },
   },
   watch: {
     currentPage: {
@@ -584,5 +624,15 @@ export default {
   text-align: center;
   width: 85%;
   margin: auto;
+}
+.blackBG {
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  left: 0;
+  top: 0;
+  text-align: center;
+  display: none;
 }
 </style>

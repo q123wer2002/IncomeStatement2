@@ -13,10 +13,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/03/2019 11:17:34</publishTime>
     </File>
     <File Include="bin/IncomeStatement.dll">
-      <publishTime>10/29/2019 00:15:59</publishTime>
+      <publishTime>11/17/2019 18:16:30</publishTime>
     </File>
     <File Include="bin/IncomeStatement.pdb">
-      <publishTime>10/29/2019 00:15:59</publishTime>
+      <publishTime>11/17/2019 18:16:30</publishTime>
     </File>
     <File Include="bin/jose-jwt.dll">
       <publishTime>06/21/2017 19:57:54</publishTime>
@@ -40,10 +40,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/03/2019 11:17:30</publishTime>
     </File>
     <File Include="Login.html">
-      <publishTime>10/29/2019 00:13:48</publishTime>
+      <publishTime>11/17/2019 18:18:08</publishTime>
     </File>
     <File Include="Main.aspx">
-      <publishTime>10/29/2019 00:13:24</publishTime>
+      <publishTime>11/17/2019 18:17:59</publishTime>
     </File>
     <File Include="packages.config">
       <publishTime>06/03/2019 11:17:30</publishTime>
@@ -135,6 +135,12 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="WebData/BundleResult/Login/IS_20191029_min_v1_CSS.css">
       <publishTime>10/29/2019 00:14:34</publishTime>
     </File>
+    <File Include="WebData/BundleResult/Login/IS_20191117_min_v1.js">
+      <publishTime>11/17/2019 18:14:15</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Login/IS_20191117_min_v1_CSS.css">
+      <publishTime>11/17/2019 18:14:15</publishTime>
+    </File>
     <File Include="WebData/BundleResult/Main/IS_20190901_min_v1.js">
       <publishTime>09/01/2019 22:18:56</publishTime>
     </File>
@@ -218,6 +224,12 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     </File>
     <File Include="WebData/BundleResult/Main/IS_20191029_min_v1_CSS.css">
       <publishTime>10/29/2019 00:14:34</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Main/IS_20191117_min_v1.js">
+      <publishTime>11/17/2019 18:14:15</publishTime>
+    </File>
+    <File Include="WebData/BundleResult/Main/IS_20191117_min_v1_CSS.css">
+      <publishTime>11/17/2019 18:14:15</publishTime>
     </File>
     <File Include="WebData/ConfigFile/connection.json">
       <publishTime>08/27/2019 22:47:14</publishTime>

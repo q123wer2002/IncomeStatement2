@@ -77,6 +77,10 @@ namespace IncomeStatement.WebData.Server_Code
 					return ApiAction.DELETE;
 				}
 
+				if( szAction.ToUpper() == "HUGEINSERT" ) {
+					return ApiAction.HUGEINSERT;
+				}
+
 				return ApiAction.UNKNOW;
 			}
 			catch {
@@ -191,6 +195,23 @@ namespace IncomeStatement.WebData.Server_Code
 					JArray.Parse(szItemArray);
 					return true;
 				}
+
+				if( action == ApiAction.HUGEINSERT ) {
+					string szInsertItems = Request.Form[ Param.InsertItems ].ToString();
+					JArray.Parse(szInsertItems);
+
+					// get date
+					string szYear = Request.Form[ Param.Year ].ToString();
+					int.Parse(szYear);
+					string szMonth = Request.Form[ Param.Month ].ToString();
+					int.Parse(szMonth);
+					string szDay = Request.Form[ Param.Day ].ToString();
+					int.Parse(szDay);
+
+					m_paramExpDList.Add($"{TableName.CoExpD}.ie_year={szYear} AND {TableName.CoExpD}.ie_mon={szMonth} AND {TableName.CoExpD}.ie_day={szDay}");
+					m_paramExpMList.Add($"{TableName.CoExpM}.ie_year={szYear} AND {TableName.CoExpM}.ie_mon={szMonth} AND {TableName.CoExpM}.ie_day={szDay}");
+					return true;
+				}
 				return false;
 			}
 			catch {
@@ -209,6 +230,10 @@ namespace IncomeStatement.WebData.Server_Code
 
 			if( action == ApiAction.DELETE ) {
 				return Delete();
+			}
+
+			if( action == ApiAction.HUGEINSERT ) {
+				return HugeInsert();
 			}
 
 			return null;
@@ -358,6 +383,34 @@ namespace IncomeStatement.WebData.Server_Code
 			bool isSuccess = m_mssql.TryQuery(szInsert, out szErrorMsg);
 			return isSuccess;
 		}
+		bool HugeInsert()
+		{
+			// for insert
+			List<JObject> insertItems = JsonConvert.DeserializeObject<List<JObject>>(Request.Form[ Param.InsertItems ].ToString());
+			if( insertItems.Count == 0 ) {
+				return false;
+			}
+
+			// insert data
+			InsertIntems(false, insertItems);
+
+			// insert total cost
+			int nTotalCosst = int.Parse(Request.Form[ Param.TotalCost ].ToString());
+			string szRemark = Request.Form[ Param.DayRemark ].ToString();
+			string szWhere = "";
+			for( int i = 0; i < m_paramExpMList.Count; i++ ) {
+				szWhere += $" {m_paramExpMList[ i ]}";
+				szWhere += i == m_paramExpMList.Count - 1 ? " " : " AND";
+			}
+
+			string szErrorMsg;
+			string szYear = Request.Form[ Param.Year ].ToString();
+			string szMonth = Request.Form[ Param.Month ].ToString();
+			string szDay = Request.Form[ Param.Day ].ToString();
+			string szFamNo = Request.Form[ Param.FamNo ].ToString();
+			string szInsertql = $"INSERT INTO {TableName.CoExpM} VALUES ('{szYear}', '{parse2TwoDigital(szMonth)}', '{parse2TwoDigital(szDay)}', '{szFamNo}', '{nTotalCosst}', '{szRemark}', '1', CURRENT_TIMESTAMP, '{szUserCode}', NULL, NUll, NULL, NULL, NULL, NULL)";
+			return m_mssql.TryQuery(szInsertql, out szErrorMsg);
+		}
 		public string parse2TwoDigital(string szNumber)
 		{
 			int nTemp;
@@ -377,6 +430,7 @@ namespace IncomeStatement.WebData.Server_Code
 			READ,
 			WRITE,
 			DELETE,
+			HUGEINSERT,
 			UNKNOW
 		}
 		class Param
