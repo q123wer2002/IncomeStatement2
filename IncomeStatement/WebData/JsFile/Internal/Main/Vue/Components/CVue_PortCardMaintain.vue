@@ -915,9 +915,15 @@ export default {
     },
     openComponent(componentKey, coFamData) {
       if (componentKey === `FamilyMember`) {
-        const famNoMemData = this.memItems.filter(
-          obj => obj.fam_no === coFamData.fam_no
-        );
+        const famNoMemData = this.memItems
+          .filter(obj => obj.fam_no === coFamData.fam_no)
+          .map(obj => {
+            return {
+              ...obj,
+              bir_mon: parseInt(obj.bir_mon, 10),
+              edu_no: parseInt(obj.edu_no, 10),
+            };
+          });
         this.selectedCoFamData = famNoMemData;
       } else {
         this.selectedCoFamData = coFamData;

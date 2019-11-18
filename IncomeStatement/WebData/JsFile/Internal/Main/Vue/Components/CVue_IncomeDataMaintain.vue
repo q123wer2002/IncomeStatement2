@@ -436,8 +436,8 @@ export default {
           return [
             `1${ie_mon}${ie_day}${fam_no}${code_no}0 0${fam_cnt}${job_cnt}${this.stringFixed(
               2,
-              job_typ_no
-            )}${this.stringFixed(2, job_no)}${this.stringFixed(
+              job_no
+            )}${this.stringFixed(2, job_typ_no)}${this.stringFixed(
               7,
               code_amt
             )} ${this.stringFixed(6, item_no)} ${place}`,
