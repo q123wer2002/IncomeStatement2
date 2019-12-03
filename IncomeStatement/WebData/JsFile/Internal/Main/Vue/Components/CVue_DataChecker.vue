@@ -17,6 +17,7 @@
           class="d-inline-block"
         ></b-form-input>
       </div>
+      <label class="d-inline-block">共{{ items.length }}筆資料</label>
       <b-button
         variant="info"
         @click="exportResult"
@@ -129,7 +130,7 @@ export default {
         this.queryObject.CheckNo = checker.id;
       }
 
-      if (checkType.code > 0) {
+      if (checkType.code >= 0) {
         this.queryObject.CheckType = checkType.code;
       }
 

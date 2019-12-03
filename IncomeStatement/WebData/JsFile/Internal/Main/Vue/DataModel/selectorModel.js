@@ -463,14 +463,20 @@ export const dataCheckerModel = [
         type: `dynamic2`,
         api: `paramArray`,
         filter: dataArray => {
-          return dataArray
-            .filter(obj => obj.par_typ === 'H')
-            .map(obj => {
-              return {
-                value: obj.par_no,
-                text: obj.par_name,
-              };
-            });
+          return [
+            {
+              value: 0,
+              text: '全部',
+            },
+            ...dataArray
+              .filter(obj => obj.par_typ === 'H')
+              .map(obj => {
+                return {
+                  value: obj.par_no,
+                  text: obj.par_name,
+                };
+              }),
+          ];
         },
       },
     },

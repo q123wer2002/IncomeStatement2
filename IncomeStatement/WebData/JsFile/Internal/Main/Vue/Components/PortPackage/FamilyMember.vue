@@ -65,9 +65,9 @@
         style="width:100px"
       ></b-form-select>
       <b-form-select
-        slot="[edu_no]"
+        slot="[education]"
         slot-scope="data"
-        v-model="data.item.edu_no"
+        v-model="data.item.education"
         :options="eduNoOpts"
         style="width:80px"
       ></b-form-select>
@@ -121,6 +121,11 @@
             size="sm"
             value="null"
           ></b-form-input>
+          <b-form-select
+            v-if="item.type === `eduType`"
+            v-model="selectedFamUniData[item.key]"
+            :options="eduNoOpts"
+          ></b-form-select>
         </div>
       </div>
     </b-container>
@@ -232,7 +237,7 @@ export default {
         },
         {
           label: '最高教育程度',
-          key: 'edu_no',
+          key: 'education',
         },
         {
           label: '就業別',
@@ -264,8 +269,8 @@ export default {
         {
           text: '教育程度',
           key: 'education',
-          type: 'select',
-          options: this.eduNoOpts,
+          type: 'eduType',
+          // options: this.eduNoOpts,
         },
         {
           text: '學校',
@@ -289,15 +294,15 @@ export default {
         },
         {
           text: '行業編號',
-          key: 'job_no',
-          type: 'select',
-          options: this.jobTypeOpts,
-        },
-        {
-          text: '職業編號',
           key: 'job_typ_no',
           type: 'select',
           options: this.jobTypeNoOpts,
+        },
+        {
+          text: '職業編號',
+          key: 'job_no',
+          type: 'select',
+          options: this.jobNoOpts,
         },
         {
           text: '所得提供家庭(%)',
@@ -428,7 +433,7 @@ export default {
         .map(obj => {
           return {
             text: obj.par_name,
-            value: obj.par_no,
+            value: obj.par_name,
           };
         });
     },
@@ -443,6 +448,16 @@ export default {
           value: 2,
         },
       ];
+    },
+    jobNoOpts() {
+      return this.paramArray
+        .filter(obj => obj.par_typ === `F`)
+        .map(obj => {
+          return {
+            text: obj.par_name,
+            value: obj.par_no,
+          };
+        });
     },
     jobTypeNoOpts() {
       return this.paramArray

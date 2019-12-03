@@ -1039,8 +1039,10 @@ export default {
       }
 
       for (let i = 0; i < updateItems.length; i++) {
-        const { mem_no } = updateItems[i];
-        const itemIdx = this.memItems.findIndex(obj => obj.mem_no === mem_no);
+        const { mem_no, fam_no } = updateItems[i];
+        const itemIdx = this.memItems.findIndex(
+          obj => obj.fam_no === fam_no && obj.mem_no === mem_no
+        );
         this.$set(this.memItems, itemIdx, updateItems[i]);
       }
 
@@ -1062,8 +1064,10 @@ export default {
       }
 
       for (let i = 0; i < deleteItems.length; i++) {
-        const { mem_no } = deleteItems[i];
-        const itemIdx = this.memItems.findIndex(obj => obj.mem_no === mem_no);
+        const { mem_no, fam_no } = deleteItems[i];
+        const itemIdx = this.memItems.findIndex(
+          obj => obj.fam_no === fam_no && obj.mem_no === mem_no
+        );
         this.$delete(this.memItems, itemIdx);
       }
 
