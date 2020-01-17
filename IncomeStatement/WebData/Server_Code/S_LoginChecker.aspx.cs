@@ -75,6 +75,7 @@ namespace IncomeStatement.WebData.Server_Code
 				// Response.Cookies[ CookieKey.Username ].Expires = ExpireTime;
 				Response.Cookies[ CookieKey.UserRole ].Value = szRole;
 				// Response.Cookies[ CookieKey.UserRole ].Expires = ExpireTime;
+				Response.Cookies[ CookieKey.Nickname ].Value = jUserInfo[ "user" ][ "user_name" ].ToString();
 			}
 
 			//success
@@ -123,8 +124,9 @@ namespace IncomeStatement.WebData.Server_Code
 
 			// get user info
 			string szUserInfo = $"SELECT * FROM {TableName.CoSysUser} WHERE user_id='{szUserName}'";
-			m_mssql.TryQuery(szAccountInfo, out jResult);
-			jUserInfo[ "user" ] = (jResult == null) ? null : (JObject)jResult[ 0 ];
+			JArray jResult2;
+			m_mssql.TryQuery( szUserInfo, out jResult2 );
+			jUserInfo[ "user" ] = ( jResult2 == null) ? null : (JObject)jResult2[ 0 ];
 
 			// assign local var
 			szUserId = jUserInfo[ "user" ][ "user_id" ].ToString();

@@ -20,6 +20,7 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 			m_builder.UserID = info[ DBInfo.Username ].ToString();
 			m_builder.Password = info[ DBInfo.Password ].ToString();
 			m_builder.InitialCatalog = info[ DBInfo.Catalog ].ToString();
+			m_builder.ConnectTimeout = 0;
 		}
 
 		#region Public Method
@@ -43,9 +44,11 @@ namespace IncomeStatement.WebData.Server_Code.CommonModule
 		{
 			szErrorMsg = null;
 			try {
-				using( SqlConnection con = new SqlConnection(m_builder.ConnectionString) ) {
+				string szConnection = m_builder.ConnectionString;
+				using( SqlConnection con = new SqlConnection( szConnection ) ) {
 					con.Open();
 					using( SqlCommand cmd = new SqlCommand(szSQL, con) ) {
+						cmd.CommandTimeout = 0;
 						int nAffact = cmd.ExecuteNonQuery();
 					}
 					con.Close();

@@ -207,7 +207,7 @@ function IVueInitialCreator() {
         // get user info
         this.userInfo = {
           id: this.mixinGetCookie('UserID'),
-          name: this.mixinGetCookie('UserName'),
+          name: this.mixinGetCookie('NickName'),
           role: accountRole[this.mixinGetCookie('UserRole')],
         };
       },

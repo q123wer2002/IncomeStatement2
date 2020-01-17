@@ -59,7 +59,8 @@
           v-if="isDataCheckBtn"
           @click="onCheckData"
         >
-          資料檢誤
+          <span v-if="isDataChecking == false">資料檢誤</span>
+          <b-spinner v-else small label="Spinning"></b-spinner>
         </b-button>
         <b-button
           variant="info"
@@ -108,6 +109,7 @@ export default {
       items: [],
       sourceCheckTime: [],
       filteredCheckTime: [],
+      isDataChecking: false,
     };
   },
   methods: {
@@ -182,6 +184,7 @@ export default {
     },
     async onCheckData() {
       // this.search();
+      this.isDataChecking = true;
       const dateObj = this.items.find(obj => obj.key === 'date');
       const resObject = await this.mixinCallBackService(
         this.mixinBackendService.dataChecker,
@@ -192,6 +195,7 @@ export default {
         }
       );
 
+      this.isDataChecking = false;
       if (
         resObject.status !== this.mixinBackendErrorCode.success ||
         resObject.data === false

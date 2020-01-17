@@ -2,6 +2,13 @@
 {
 	public class CookieKey
 	{
+		public static string Nickname
+		{
+			get
+			{
+				return "NickName";
+			}
+		}
 		public static string Username
 		{
 			get

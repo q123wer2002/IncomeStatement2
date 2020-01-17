@@ -8,25 +8,29 @@
     ></selector>
 
     <div id="tableData">
-      <div class="w-25 d-inline-block justify-content-center">
-        <label class="d-inline-block">每頁顯示筆數</label>
-        <b-form-input
-          v-model="perPage"
-          type="number"
+      <div class="w-100 d-inline-flex justify-content-center">
+        <div class="float-sm-left">
+          <label>檢誤筆數: {{ items.length }} 筆</label>
+        </div>
+        <div>
+          <label>每頁顯示筆數</label>
+          <b-form-input
+            v-model="perPage"
+            type="number"
+            size="sm"
+            class="d-inline-block w-25"
+          ></b-form-input>
+        </div>
+        <b-button
+          variant="info"
+          @click="exportResult"
+          class="mx-1 float-sm-right"
+          :disabled="items.length === 0"
           size="sm"
-          class="d-inline-block"
-        ></b-form-input>
+        >
+          匯出
+        </b-button>
       </div>
-      <label class="d-inline-block">共{{ items.length }}筆資料</label>
-      <b-button
-        variant="info"
-        @click="exportResult"
-        class="my-3 mx-1 float-sm-right"
-        :disabled="items.length === 0"
-        size="sm"
-      >
-        匯出
-      </b-button>
       <b-table
         ref="domDatatable"
         :items="items"

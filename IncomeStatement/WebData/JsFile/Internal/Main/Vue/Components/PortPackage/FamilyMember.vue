@@ -65,9 +65,9 @@
         style="width:100px"
       ></b-form-select>
       <b-form-select
-        slot="[education]"
+        slot="[edu_no]"
         slot-scope="data"
-        v-model="data.item.education"
+        v-model="data.item.edu_no"
         :options="eduNoOpts"
         style="width:80px"
       ></b-form-select>
@@ -124,7 +124,7 @@
           <b-form-select
             v-if="item.type === `eduType`"
             v-model="selectedFamUniData[item.key]"
-            :options="eduNoOpts"
+            :options="educationOpts"
           ></b-form-select>
         </div>
       </div>
@@ -237,7 +237,7 @@ export default {
         },
         {
           label: '最高教育程度',
-          key: 'education',
+          key: 'edu_no',
         },
         {
           label: '就業別',
@@ -433,6 +433,16 @@ export default {
         .map(obj => {
           return {
             text: obj.par_name,
+            value: obj.par_no,
+          };
+        });
+    },
+    educationOpts() {
+      return this.paramArray
+        .filter(obj => obj.par_typ === `E`)
+        .map(obj => {
+          return {
+            text: obj.par_name,
             value: obj.par_name,
           };
         });
@@ -451,7 +461,7 @@ export default {
     },
     jobNoOpts() {
       return this.paramArray
-        .filter(obj => obj.par_typ === `F`)
+        .filter(obj => obj.par_typ === `G`)
         .map(obj => {
           return {
             text: obj.par_name,
@@ -461,7 +471,7 @@ export default {
     },
     jobTypeNoOpts() {
       return this.paramArray
-        .filter(obj => obj.par_typ === `G`)
+        .filter(obj => obj.par_typ === `F`)
         .map(obj => {
           return {
             text: obj.par_name,
