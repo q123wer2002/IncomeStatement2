@@ -2,6 +2,8 @@
 using IncomeStatement.WebData.Server_Code.CommonModule.mssql;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Text;
+using System.Web;
 
 namespace IncomeStatement.WebData.Server_Code
 {
@@ -75,7 +77,7 @@ namespace IncomeStatement.WebData.Server_Code
 				// Response.Cookies[ CookieKey.Username ].Expires = ExpireTime;
 				Response.Cookies[ CookieKey.UserRole ].Value = szRole;
 				// Response.Cookies[ CookieKey.UserRole ].Expires = ExpireTime;
-				Response.Cookies[ CookieKey.Nickname ].Value = jUserInfo[ "user" ][ "user_name" ].ToString();
+				Response.Cookies[ CookieKey.Nickname ].Value = Convert.ToBase64String( System.Text.Encoding.UTF8.GetBytes( jUserInfo[ "user" ][ "user_name" ].ToString() ) );
 			}
 
 			//success
