@@ -260,7 +260,8 @@ export default {
             let isMerge = false;
             while (startIdx !== dataSubData.length) {
               if (
-                dataSubData[startIdx].indexOf(`"`) !== -1 &&
+                dataSubData[startIdx].startsWith(`"`) &&
+                dataSubData[startIdx].endsWith(`"`) === false &&
                 isMerge === false
               ) {
                 isMerge = true;
@@ -269,7 +270,7 @@ export default {
                   1
                 );
               } else if (
-                dataSubData[startIdx].indexOf(`"`) !== -1 &&
+                dataSubData[startIdx].endsWith(`"`) &&
                 isMerge === true
               ) {
                 tempData += `,${dataSubData[startIdx].substring(
@@ -488,7 +489,7 @@ export default {
         return;
       }
 
-      reader.readAsText(inputFiles.files[0], `big5`);
+      reader.readAsText(inputFiles.files[0], `utf-8`);
     },
     exportCSV() {
       let detailedData = this.selected;
@@ -948,9 +949,15 @@ export default {
       }
 
       for (let i = 0; i < this.selected.length; i++) {
-        const itemIdx = this.items.findIndex(
-          obj => obj.fam_no === this.selected[i].fam_no
-        );
+        const { fam_no } = this.selected[i];
+        // delete fam_mem
+        const deleteItem = this.memItems.filter(obj => obj.fam_no === fam_no);
+        if (this.deleteFamMemData(deleteItem) === false) {
+          break;
+        }
+
+        // delete local var
+        const itemIdx = this.items.findIndex(obj => obj.fam_no === fam_no);
         if (itemIdx !== -1) {
           this.$delete(this.items, itemIdx);
         }
@@ -983,6 +990,10 @@ export default {
       this.$refs.domModal.hide();
     },
     async updateCoFamMemData(data, isNeed2ShowMsg = true) {
+      if (data.length === 0) {
+        return false;
+      }
+
       const { fam_no } = data[0];
       const filteredItems = this.memItems.filter(obj => obj.fam_no === fam_no);
 
@@ -1074,6 +1085,11 @@ export default {
       return true;
     },
     async updateCoFamData(data, isNeed2ShowMsg = true) {
+      // cannot be empty
+      if (data.length === 0) {
+        return false;
+      }
+
       const resObject = await this.mixinCallBackService(
         this.mixinBackendService.familyData,
         {
