@@ -352,35 +352,37 @@ namespace IncomeStatement.WebData.Server_Code
 		bool InsertIntems( bool isOwnItemNo, List<JObject> items )
 		{
 			int nNextItemNo = 0;
-			if( isOwnItemNo == false ) {
+			if(isOwnItemNo == false) {
 				// get the newest item_no
 				JObject jItem = items[ 0 ];
 				string szGetItemNo = $"SELECT TOP(1) item_no FROM {TableName.CoExpD} WHERE ie_year={jItem[ "ie_year" ].ToString()} AND ie_mon={jItem[ "ie_mon" ].ToString()} ORDER BY item_no DESC";
 				JArray result;
-				m_mssql.TryQuery(szGetItemNo, out result);
-				if( result.Count == 0 ) {
+				m_mssql.TryQuery( szGetItemNo, out result );
+				if(result.Count == 0) {
 					nNextItemNo = 0;
 				}
 				else {
-					nNextItemNo = int.Parse(((JObject)result[ 0 ])[ "item_no" ].ToString());
+					nNextItemNo = int.Parse( ( (JObject)result[ 0 ] )[ "item_no" ].ToString() );
 				}
 			}
 
 			string szFamNo = Request.Form[ Param.FamNo ].ToString();
 			string szErrorMsg;
 			string szInsert = $"INSERT INTO {TableName.CoExpD} (ie_year,ie_mon,ie_day,fam_no,item_no,place,code_amt,code_no,code_name,crt_date,crt_user,upd_date,upd_user,unit,qty) VALUES ";
-			for( int i = 0; i < items.Count; i++ ) {
+			for(int i = 0; i < items.Count; i++) {
 				JObject jItem = items[ i ];
-				int nItemNo = isOwnItemNo == false ? nNextItemNo + i +1 : int.Parse(jItem[ "item_no" ].ToString());
+				int nItemNo = isOwnItemNo == false ? nNextItemNo + i + 1 : int.Parse( jItem[ "item_no" ].ToString() );
 				string szCodeName = jItem[ "code_name" ] == null ? "NULL" : $"'{jItem[ "code_name" ].ToString()}'";
 				string szRecDate = jItem[ "crt_date" ] == null ? "NULL" : $"'{jItem[ "crt_date" ]}'";
 				string szRecUser = jItem[ "crt_user" ] == null ? "NULL" : $"'{jItem[ "crt_user" ].ToString()}'";
+				string szUnit = jItem[ "unit" ] == null || jItem[ "unit" ].ToString().Length == 0 ? "NULL" : $"N'{jItem[ "unit" ].ToString()}'";
+				string szQty = jItem[ "qty" ] == null || jItem[ "qty" ].ToString().Length == 0 ? "NULL" : $"'{jItem[ "qty" ].ToString()}'";
 
 				string szLastFourSQL = isOwnItemNo ? $"{szRecDate}, {szRecUser}, CURRENT_TIMESTAMP, '{szUserCode}'" : $"CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL";
-				szInsert += $"('{parse2TwoDigital(jItem[ "ie_year" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_mon" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_day" ].ToString())}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', {szCodeName}, {szLastFourSQL}, '{jItem[ "unit" ].ToString()}', '{jItem[ "qty" ].ToString()}' )";
+				szInsert += $"('{parse2TwoDigital( jItem[ "ie_year" ].ToString() )}', '{parse2TwoDigital( jItem[ "ie_mon" ].ToString() )}', '{parse2TwoDigital( jItem[ "ie_day" ].ToString() )}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', {szCodeName}, {szLastFourSQL}, {szUnit}, {szQty} )";
 				szInsert += i == items.Count - 1 ? " " : ", ";
 			}
-			bool isSuccess = m_mssql.TryQuery(szInsert, out szErrorMsg);
+			bool isSuccess = m_mssql.TryQuery( szInsert, out szErrorMsg );
 			return isSuccess;
 		}
 		bool HugeInsert()

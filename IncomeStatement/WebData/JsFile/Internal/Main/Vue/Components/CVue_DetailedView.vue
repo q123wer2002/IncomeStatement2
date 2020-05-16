@@ -90,10 +90,10 @@
           @update="onChangeUnit(data.index)"
           @keyup="onKeyUp(data.index, `unit`, $event)"
           :id="`input_${data.index}_unit`"
-          list="unitList"
+          :list="unitListName(data.item.code_no)"
         ></b-form-input>
-        <datalist id="unitList">
-          <option v-for="(uniCode, index) in unitList" :key="index">
+        <datalist :id="unitListName(data.item.code_no)">
+          <option v-for="(uniCode, index) in unitDatalist(data.item.code_no)" :key="index">
             {{ uniCode }}
           </option>
         </datalist>
@@ -381,12 +381,6 @@ export default {
 
       switch(name) {
         case 'place':
-          $(`#input_${index}_unit`).focus();
-          break;
-        case `unit`: 
-          $(`#input_${index}_qty`).focus();
-          break;
-        case `qty`: 
           $(`#input_${index}_code_amt`).focus();
           break;
         case 'code_amt':
@@ -396,6 +390,12 @@ export default {
           $(`#input_${index}_code_name`).focus();
           break;
         case 'code_name':
+          $(`#input_${index}_unit`).focus();
+          break;
+        case `unit`: 
+          $(`#input_${index}_qty`).focus();
+          break;
+        case `qty`: 
           $(`#input_${index + 1}_place`).focus();
           break;
       }
@@ -432,7 +432,7 @@ export default {
     }
   },
   computed: {
-    ...mapState([`paramArray`, `subjectArray`]),
+    ...mapState([`paramArray`, `subjectArray`, `codeAttrArray`]),
     subjectWithDEFFG() {
       return this.subjectArray.filter(obj => obj.def_fg && obj.def_fg.length !== 0);
     },
@@ -528,7 +528,7 @@ export default {
     unitList() {
       return this.paramArray
         .filter(obj => obj.par_typ === `I`)
-        .map(obj => `${obj.par_no} ${obj.par_name}`)
+        .map(obj => `${obj.par_name}`)
         .sort((aNo, bNo) => {
           const a = parseInt(aNo, 10);
           const b = parseInt(bNo, 10);
@@ -540,7 +540,30 @@ export default {
             return -1;
           }
         });
-    }
+    },
+    unitListName() {
+      return codeNo => {
+        if (codeNo === undefined || codeNo.length === 0) {
+          return ``;
+        }
+
+        return `unitList_${codeNo}`;
+      };
+    },
+    unitDatalist() {
+      return codeNo => {
+        if (codeNo.length === 0) {
+          return [];
+        }
+
+        return this.codeAttrArray
+          .filter(obj => obj.code_no === codeNo)
+          .sort((a,b) => {
+            return a.seq_no - b.seq_no;
+          })
+          .map(obj => obj.unit);
+      };
+    },
   },
   watch: {
     queryObject: {

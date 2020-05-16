@@ -9,8 +9,8 @@
         <b-button @click="selectAllRows">全選</b-button>
         <b-button @click="clearSelected">取消全選</b-button>
       </b-button-group>
-      <div class="d-inline-block justify-content-center" style="width:180px">
-        <label class="d-inline-block">每頁顯示筆數</label>
+      <div class="d-inline-block justify-content-center" style="width:100px">
+        <label class="d-inline-block">顯示筆數</label>
         <b-form-input
           v-model="perPage"
           type="number"
@@ -139,6 +139,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import { incomeDataModel } from '../DataModel/selectorModel.js';
 import Selector from './CVue_Selector.vue';
 import { statusMapToString } from '../DataModel/dataModel.js';
@@ -581,7 +582,7 @@ export default {
       // create link
       const link = document.createElement(`a`);
       link.setAttribute(`href`, encodedUri);
-      link.setAttribute(`download`, `detailed_incomestatement.txt`);
+      link.setAttribute(`download`, `detailed_incomestatement.csv`);
       document.body.appendChild(link);
       link.click();
     },
@@ -685,6 +686,7 @@ export default {
     await this.queryIncomeStateData(this.queryObject);
   },
   computed: {
+    ...mapState(['codeAttrArray']),
     statusToString() {
       return statusCode => {
         return statusMapToString[statusCode];

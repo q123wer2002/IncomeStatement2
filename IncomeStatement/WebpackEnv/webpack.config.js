@@ -15,7 +15,7 @@ let connectionSetting = {
 let webpackSetting = {
 	mode: 'development',
 	entry: {
-		"Main/IS_20200501_min_v1": "../WebData/JsFile/Internal/Main/SystemInitial.js",
+		"Main/IS_20200516_min_v1": "../WebData/JsFile/Internal/Main/SystemInitial.js",
 		"Login/IS_20200117_min_v1": "../WebData/JsFile/Internal/Login/Login_SystemInitial.js",
 	},
 	devtool: 'cheap-source-map',//dev used
@@ -35,16 +35,6 @@ let webpackSetting = {
 	},
 	module: {
 		rules: [
-			{
-				test: /\.(js|vue)$/,
-				loader: 'eslint-loader',
-				enforce: 'pre',
-				include: [path.resolve(__dirname, '../WebData/JsFile/Internal/')],
-				exclude: [/node_modules/, /dist/],
-				options: {
-					configFile: path.join(__dirname, './.eslintrc.json'),
-				},
-			},
 			{
 				test: /\.vue$/,
 				loader: 'vue-loader'
