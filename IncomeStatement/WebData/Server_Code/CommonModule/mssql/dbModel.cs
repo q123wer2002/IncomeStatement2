@@ -63,6 +63,13 @@
 				return "co_param";
 			}
 		}
+		public static string CoExpCodeAttr
+		{
+			get
+			{
+				return "co_exp_code_attr";
+			}
+		}
 		public static string CoExpD
 		{
 			get

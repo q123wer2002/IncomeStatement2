@@ -11,6 +11,7 @@ const vueStore = new Vuex.Store({
     subjectArray: [],
     paramArray: [],
     reportArray: [],
+    codeAttrArray: [],
   },
   mutations: {
     fnInitialReport(state, reportArray) {
@@ -59,6 +60,9 @@ const vueStore = new Vuex.Store({
     },
     fnUpdateParam(state, placeArray) {
       state.paramArray = placeArray;
+    },
+    fnUpdateCodeAttr(state, codeAttrArray) {
+      state.codeAttrArray = codeAttrArray;
     },
   },
   actions: {
@@ -151,7 +155,8 @@ const vueStore = new Vuex.Store({
       );
 
       if (resObject.status === UtilData.mixinBackendErrorCode.success) {
-        context.commit(`fnUpdateParam`, resObject.data || []);
+        context.commit(`fnUpdateParam`, resObject.data.param || []);
+        context.commit(`fnUpdateCodeAttr`, resObject.data.code_attr || []);
       }
     },
   },

@@ -41,12 +41,21 @@ namespace IncomeStatement.WebData.Server_Code
 			Server.ClearError();
 		}
 
-		JArray GetParamList()
+		JObject GetParamList()
 		{
+			JObject jParam = new JObject();
+
+			// get param 
 			string szSQL = $"SELECT * FROM {TableName.CoParam}";
 			JArray result;
 			bool isSuccess = m_mssql.TryQuery(szSQL, out result);
-			return result;
+			jParam[ "param" ] = result;
+
+			// get code attr
+			isSuccess = m_mssql.TryQuery( $"SELECT * FROM {TableName.CoExpCodeAttr}", out result );
+			jParam[ "code_attr" ] = result;
+
+			return jParam;
 		}
 
 		MSSQL m_mssql = new MSSQL();

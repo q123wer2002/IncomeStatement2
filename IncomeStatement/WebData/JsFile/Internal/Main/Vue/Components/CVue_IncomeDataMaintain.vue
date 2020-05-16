@@ -9,7 +9,7 @@
         <b-button @click="selectAllRows">全選</b-button>
         <b-button @click="clearSelected">取消全選</b-button>
       </b-button-group>
-      <div class="d-inline-block justify-content-center">
+      <div class="d-inline-block justify-content-center" style="width:180px">
         <label class="d-inline-block">每頁顯示筆數</label>
         <b-form-input
           v-model="perPage"
