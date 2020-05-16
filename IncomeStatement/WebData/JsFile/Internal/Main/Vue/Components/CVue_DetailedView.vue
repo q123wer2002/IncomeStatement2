@@ -83,6 +83,29 @@
           </option>
         </datalist>
       </template>
+      <template slot="[unit]" slot-scope="data">
+        <b-form-input
+          v-model="data.item.unit"
+          @focus="onChangeSubName(data.index)"
+          @update="onChangeUnit(data.index)"
+          @keyup="onKeyUp(data.index, `unit`, $event)"
+          :id="`input_${data.index}_unit`"
+          list="unitList"
+        ></b-form-input>
+        <datalist id="unitList">
+          <option v-for="(uniCode, index) in unitList" :key="index">
+            {{ uniCode }}
+          </option>
+        </datalist>
+      </template>
+      <template slot="[qty]" slot-scope="data">
+        <b-form-input
+          v-model="data.item.qty"
+          @focus="onChangeSubName(data.index)"
+          @keyup="onKeyUp(data.index, `qty`, $event)"
+          :id="`input_${data.index}_qty`"
+        ></b-form-input>
+      </template>
       <template slot="[code_amt]" slot-scope="data">
         <b-form-input
           v-model="data.item.code_amt"
@@ -174,6 +197,8 @@ export default {
         { key: `delete`, label: `` },
         { key: `no`, label: `項次` },
         { key: `place`, label: `購買地點` },
+        { key: `unit`, label: `單位` },
+        { key: `qty`, label: `數量` },
         { key: `code_amt`, label: `金額` },
         { key: `code_no`, label: `科目代碼` },
         { key: `code_name`, label: `科目名稱` },
@@ -293,7 +318,13 @@ export default {
         }
       );
 
-      this.items = resObject.data.CoExpD;
+      this.items = resObject.data.CoExpD.map(obj => {
+        const qtyCount = obj.qty || 1;
+        return {
+          ...obj,
+          qty: qtyCount,
+        }
+      });
       this.tempRemark =
         resObject.data.CoExpM.length === 0
           ? ``
@@ -338,6 +369,9 @@ export default {
     onChangedPlace(index) {
       this.items[index].place = this.items[index].place.split(' ')[0];
     },
+    onChangeUnit(index) {
+      this.items[index].unit = this.items[index].unit.split(' ')[0];
+    },
     onKeyUp(index, name, event) {
       const { keyCode } = event;
       if (keyCode != 13) {
@@ -347,6 +381,12 @@ export default {
 
       switch(name) {
         case 'place':
+          $(`#input_${index}_unit`).focus();
+          break;
+        case `unit`: 
+          $(`#input_${index}_qty`).focus();
+          break;
+        case `qty`: 
           $(`#input_${index}_code_amt`).focus();
           break;
         case 'code_amt':
@@ -485,6 +525,22 @@ export default {
           }
         });
     },
+    unitList() {
+      return this.paramArray
+        .filter(obj => obj.par_typ === `I`)
+        .map(obj => `${obj.par_no} ${obj.par_name}`)
+        .sort((aNo, bNo) => {
+          const a = parseInt(aNo, 10);
+          const b = parseInt(bNo, 10);
+          if (a > b) {
+            return 1;
+          }
+
+          if (a < b) {
+            return -1;
+          }
+        });
+    }
   },
   watch: {
     queryObject: {

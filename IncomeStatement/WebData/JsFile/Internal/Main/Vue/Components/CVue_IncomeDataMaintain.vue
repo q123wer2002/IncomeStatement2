@@ -9,7 +9,7 @@
         <b-button @click="selectAllRows">全選</b-button>
         <b-button @click="clearSelected">取消全選</b-button>
       </b-button-group>
-      <div class="w-25 d-inline-block justify-content-center">
+      <div class="d-inline-block justify-content-center">
         <label class="d-inline-block">每頁顯示筆數</label>
         <b-form-input
           v-model="perPage"
@@ -55,6 +55,14 @@
           @click="exportTXT"
         >
           收支匯出
+        </b-button>
+        <b-button
+          variant="info"
+          :disabled="items.length === 0"
+          @click="exportCompleteCSV"
+          title="匯出整月份資料"
+        >
+          收支完整匯出
         </b-button>
       </b-button-group>
 
@@ -114,7 +122,7 @@
         style="width: 80%; margin: 20% auto 0 auto;"
       >
         <b-progress-bar :value="pgbValue">
-          (請不要關閉) 匯入進度:
+          (請不要關閉) 進度:
           <strong>{{ progress }} ({{ pgbValue }} / {{ pgbMax }})</strong>
         </b-progress-bar>
       </b-progress>
@@ -153,7 +161,7 @@ export default {
 
       // progres bar
       pgbMax: 100,
-      pgbValue: 74,
+      pgbValue: 0,
 
       fields: [],
       items: [],
@@ -460,6 +468,122 @@ export default {
 
       // clear
       this.clearSelected();
+    },
+    async exportCompleteCSV() {
+      this.showProgressBar();
+      this.pgbMax = this.items.length;
+
+      let exportArray = [];
+
+      // get detailed data
+      for (let i = 0; i < this.items.length; i++) {
+        const {
+          ie_year,
+          ie_mon,
+          fam_no,
+          fam_cnt,
+          job_cnt,
+          job_typ_no,
+          job_no,
+        } = this.items[i];
+
+        const data = await this.queryDetailedData({
+          Year: ie_year,
+          Month: ie_mon,
+          FamNo: fam_no,
+        });
+
+        exportArray = [
+          ...exportArray,
+          ...data.map(obj => {
+            return {
+              fam_cnt,
+              job_cnt,
+              job_typ_no,
+              job_no,
+              ...obj,
+            };
+          }),
+        ];
+
+        this.pgbValue = i;
+      }
+
+      // create txt data
+      const csvData = [
+        ...exportArray.map(obj => {
+          const {
+            ie_mon,
+            ie_day,
+            fam_no,
+            fam_cnt,
+            job_cnt,
+            job_typ_no,
+            job_no,
+            code_no,
+            code_amt,
+            place,
+            item_no,
+            unit,
+            qty,
+            code_name,
+          } = obj;
+
+          return [
+            `1`,
+            `${ie_mon}${ie_day}`,
+            fam_no,
+            code_no,
+            `0`,
+            fam_cnt,
+            job_cnt,
+            job_typ_no,
+            job_no,
+            code_amt,
+            item_no,
+            place,
+            unit,
+            qty,
+            code_name,
+          ];
+        }),
+      ];
+      const csvDataString = [
+        [
+          `類別`,
+          `登打日期`,
+          `記帳帳戶號`,
+          `科目代碼`,
+          `設算別`,
+          `戶內人數`,
+          `就業人數`,
+          `本業：行業編號`,
+          `本業：職業編號`,
+          `金額`,
+          `流水號`,
+          `購買地`,
+          `單位`,
+          `數量`,
+          `科目名稱`,
+        ],
+        ...csvData,
+      ]
+        .map(col => col.join(`,`))
+        .join('\n');
+      const encodedUri = URL.createObjectURL(
+        new Blob([`\uFEFF${csvDataString}`], {
+          type: `text/csv;charset=utf-8;`,
+        })
+      );
+
+      this.hideProgressBar();
+
+      // create link
+      const link = document.createElement(`a`);
+      link.setAttribute(`href`, encodedUri);
+      link.setAttribute(`download`, `detailed_incomestatement.txt`);
+      document.body.appendChild(link);
+      link.click();
     },
     showDetails(famNo) {
       const { Year, Month } = this.queryObject;

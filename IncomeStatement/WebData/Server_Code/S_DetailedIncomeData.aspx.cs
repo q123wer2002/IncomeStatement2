@@ -368,7 +368,7 @@ namespace IncomeStatement.WebData.Server_Code
 
 			string szFamNo = Request.Form[ Param.FamNo ].ToString();
 			string szErrorMsg;
-			string szInsert = $"INSERT INTO {TableName.CoExpD} VALUES ";
+			string szInsert = $"INSERT INTO {TableName.CoExpD} (ie_year,ie_mon,ie_day,fam_no,item_no,place,code_amt,code_no,code_name,crt_date,crt_user,upd_date,upd_user,unit,qty) VALUES ";
 			for( int i = 0; i < items.Count; i++ ) {
 				JObject jItem = items[ i ];
 				int nItemNo = isOwnItemNo == false ? nNextItemNo + i +1 : int.Parse(jItem[ "item_no" ].ToString());
@@ -377,7 +377,7 @@ namespace IncomeStatement.WebData.Server_Code
 				string szRecUser = jItem[ "crt_user" ] == null ? "NULL" : $"'{jItem[ "crt_user" ].ToString()}'";
 
 				string szLastFourSQL = isOwnItemNo ? $"{szRecDate}, {szRecUser}, CURRENT_TIMESTAMP, '{szUserCode}'" : $"CURRENT_TIMESTAMP, '{szUserCode}', NULL, NULL";
-				szInsert += $"('{parse2TwoDigital(jItem[ "ie_year" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_mon" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_day" ].ToString())}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', {szCodeName}, {szLastFourSQL} )";
+				szInsert += $"('{parse2TwoDigital(jItem[ "ie_year" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_mon" ].ToString())}', '{parse2TwoDigital(jItem[ "ie_day" ].ToString())}', '{szFamNo}', '{nItemNo}', '{jItem[ "place" ].ToString()}', '{jItem[ "code_amt" ].ToString()}', '{jItem[ "code_no" ].ToString()}', {szCodeName}, {szLastFourSQL}, '{jItem[ "unit" ].ToString()}', '{jItem[ "qty" ].ToString()}' )";
 				szInsert += i == items.Count - 1 ? " " : ", ";
 			}
 			bool isSuccess = m_mssql.TryQuery(szInsert, out szErrorMsg);
